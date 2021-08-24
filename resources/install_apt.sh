@@ -4,7 +4,7 @@ if [ ! -z $1 ]; then
 fi
 touch ${PROGRESS_FILE}
 echo 0 > ${PROGRESS_FILE}
-echo "Launch install of Atlas dependancy"
+echo "Launch install of Atlas dependancies"
 BASEDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 sudo apt-get clean
 echo 30 > ${PROGRESS_FILE}
