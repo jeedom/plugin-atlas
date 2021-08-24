@@ -30,6 +30,23 @@ class atlas extends eqLogic {
     
     /*     * ***********************Methode static*************************** */
 
+  public static function dependancy_info() {
+    $return = array();
+    $return['progress_file'] = jeedom::getTmpFolder('atlas') . '/dependance';
+    $return['state'] = 'ok';
+    if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "python3\-requests|python3\-pyudev" | wc -l') < 2) {
+      $return['state'] = 'nok';
+    }
+    if (exec(system::getCmdSudo() . 'pip3 list | grep -E "nmcli" | wc -l') < 8) {
+      $return['state'] = 'nok';
+    }
+    return $return;
+  }
+	
+  public static function dependancy_install() {
+    log::remove(__CLASS__ . '_update');
+    return array('script' => __DIR__ . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('atlas') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
+  }
     /*
      * Fonction exécutée automatiquement toutes les minutes par Jeedom
       public static function cron() {
