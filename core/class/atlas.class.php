@@ -47,6 +47,76 @@ class atlas extends eqLogic {
     log::remove(__CLASS__ . '_update');
     return array('script' => __DIR__ . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('atlas') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
   }
+
+
+
+  public static function crea_log_avancement(){
+	shell_exec('(sudo unzip -p /var/www/html/data/JeedomAtlas-V1-ARMBIAN-AOUT-2021.zip | sudo dd of=/dev/mmcblk2 obs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+  }
+
+
+  public static function percentageAdvancmt(){
+      
+      $logMigrate = log::get('migrate', 0, 1);
+      $logMigrateAll = log::get('migrate', 0, 10);
+      $GO = 32; 
+      $MO = $GO*1024;
+      $KO = $MO*1024;
+      $BytesGlobal = $KO*1024;
+      
+      $pos = self::posOut($logMigrateAll);
+      $firstln = $logMigrate[0];
+      log::add('atlas', 'debug', 'AVANCEMENT: '.$firstln);
+
+      if($pos == false){
+         log::add('atlas', 'debug', 'MAJ % ACTIVE');
+         $valueByte = stristr($firstln, 'bytes', true);
+         log::add('atlas', 'debug', $valueByte);
+         $pourcentage = round((100*$valueByte)/$BytesGlobal, 2);
+         log::add('atlas', 'debug', 'ETAT: ' .$pourcentage. '%');
+         log::clear('migrate');
+         if($valueByte == '' || $valueByte == null){
+            log::add('atlas', 'debug', 'NULL');
+         }else{
+            return $pourcentage;
+         }
+      }else{
+         log::add('atlas', 'debug', 'FIN');
+         log::add('atlas', 'debug', '100%');
+         return 100;
+      }
+
+  }
+
+
+  public static function posOut($needles){
+       log::add('atlas', 'debug', ' Fonction posOut : ');
+       foreach($needles as $needle){
+          $rep = strpos($needle, 'records');
+          log::add('atlas', 'debug', $needle.' >>> '.$res);
+          if($rep != false){
+            log::add('atlas', 'debug', ' RESULTAT VRAI ');
+            return true;
+          }else{
+            log::add('atlas', 'debug', ' RESULTAT FAUX ');
+          }
+       }
+       return false;
+
+  }
+
+
+public function startPercentage(){
+    self::crea_log_avancement();
+    $var_test = self::percentageAdvancmt();
+    if ($var_test != 100){
+       sleep(1);
+       self::percentageAdvancmt();
+    }
+
+}
+
+  
     /*
      * Fonction exécutée automatiquement toutes les minutes par Jeedom
       public static function cron() {
