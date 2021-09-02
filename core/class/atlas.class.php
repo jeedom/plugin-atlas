@@ -46,6 +46,21 @@ class atlas extends eqLogic {
     return array('script' => __DIR__ . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('atlas') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
   }
 
+  public static function put_ini_file($file, $array, $i = 0){
+      $str="";
+      foreach ($array as $k => $v){
+        if (is_array($v)){
+          $str.=str_repeat(" ",$i*2)."[$k]".PHP_EOL;
+          $str.=put_ini_file("",$v, $i+1);
+        }else
+          $str.=str_repeat(" ",$i*2)."$k = $v".PHP_EOL;
+      }
+    if($file)
+        return file_put_contents($file,$str);
+      else
+        return $str;
+  }
+
   public static function startMigration($target = 'emmc'){
       log::clear('migrate');
       $path_target='';
@@ -61,6 +76,7 @@ class atlas extends eqLogic {
       }elseif(file_exists('/dev/sda') && $target == 'usb'){
         $path_target = '/dev/sda';
         atlas::ddImg($path_target);
+        atlas::recoveryUsbMount($path_target);
         return 'ok';
       }else{
         log::add('atlas', 'debug', 'ERREUR TARGET DEVICE');
@@ -68,6 +84,30 @@ class atlas extends eqLogic {
       }
   }
 
+  public static function recoveryUsbMount($devusb = '/dev/sda'){
+    if(!file_exists('/mnt/usb')){
+      log::add('atlas', 'debug', 'creation /mnt/usb');
+      shell_exec('sudo mkdir /mnt/usb');
+    }
+    shell_exec('sudo umount /mnt/usb');
+    shell_exec('sudo mount '.$devusb.'1 /mnt/usb');
+    if(!file_exists('/mnt/usb/var/www/html/data/imgOs')){
+      shell_exec('sudo mkdir /mnt/usb/var/www/html/data/imgOs');
+    }else{
+      if(!file_exists('/mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz')){
+        shell_exec('sudo rm /mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz');
+      }
+    }
+    log::add('atlas', 'debug', 'montage clé usb');
+    shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlasB.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz');
+    log::add('atlas', 'debug', 'cp de l\'image');
+    $ini_array = parse_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini');
+    log::add('atlas', 'debug', '--------------');
+    $ini_array['product_name'] = 'Jeedom Atlas Recovery';
+    atlas::put_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini', $ini_array);
+    file_put_contents('/mnt/usb/etc/hostname', 'JeedomAtlasRecovery');
+    log::add('atlas', 'debug', 'Fin');
+  }
 
   public static function ddImg($target){
     log::add('atlas', 'debug', 'IN CREATE LOG');
