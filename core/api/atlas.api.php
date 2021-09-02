@@ -49,7 +49,7 @@ if($methode == 'ddEMMC'){
 }
 
 if($methode == 'pourcMigrate'){
-  atlas::loop_percentage();
+  atlas::loopPercentage();
   $jsonrpc->makeSuccess();
 }
 
