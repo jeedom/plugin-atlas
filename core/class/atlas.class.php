@@ -52,13 +52,20 @@ class atlas extends eqLogic {
       log::add('atlas', 'debug', 'PATH TARGET');
       if(file_exists('/dev/mmcblk2') && $target == 'emmc'){
         $path_target = '/dev/mmcblk2';
+        atlas::create_log_progress($path_target);
+        return 'ok';
+      }elseif(file_exists('/dev/mmcblk1') && $target == 'emmc'){
+        $path_target = '/dev/mmcblk1';
+        return 'ok';
+        atlas::create_log_progress($path_target);
       }elseif(file_exists('/dev/sda') && $target == 'usb'){
         $path_target = '/dev/sda';
+        return 'ok';
+        atlas::create_log_progress($path_target);
       }else{
         log::add('atlas', 'debug', 'ERREUR TARGET DEVICE');
-        return;
+        return 'nok';
       }
-        atlas::create_log_progress($path_target);
   }
 
 
@@ -122,7 +129,6 @@ public static function download_image(){
         }
      }
      return true;
-
 
 }
 
