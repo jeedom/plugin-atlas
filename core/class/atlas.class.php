@@ -21,13 +21,13 @@ require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
 class atlas extends eqLogic {
     /*     * *************************Attributs****************************** */
-    
+
   /*
    * Permet de définir les possibilités de personnalisation du widget (en cas d'utilisation de la fonction 'toHtml' par exemple)
    * Tableau multidimensionnel - exemple: array('custom' => true, 'custom::layout' => false)
 	public static $_widgetPossibility = array();
    */
-    
+
     /*     * ***********************Methode static*************************** */
 
   public static function dependancy_info() {
@@ -42,31 +42,108 @@ class atlas extends eqLogic {
     }
     return $return;
   }
-	
+
+
   public static function dependancy_install() {
     log::remove(__CLASS__ . '_update');
     return array('script' => __DIR__ . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('atlas') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
   }
 
-
-
-  public static function crea_log_avancement(){
-	shell_exec('(sudo unzip -p /var/www/html/data/JeedomAtlas-V1-ARMBIAN-AOUT-2021.zip | sudo dd of=/dev/mmcblk2 obs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+  public static function startPercentage($target = 'emmc'){
+      log::clear('migrate');
+      $path_target='';
+      log::add('atlas', 'debug', 'PATH TARGET');
+      if(file_exists('/dev/mmcblk2') && $target == 'emmc'){
+        $path_target = '/dev/mmcblk2';
+      }elseif(file_exists('/dev/sda') && $target == 'usb'){
+        $path_target = '/dev/sda';
+      }else{
+        log::add('atlas', 'debug', 'ERREUR TARGET DEVICE');
+        return;
+      }
+        atlas::create_log_progress($path_target);
   }
 
 
-  public static function percentageAdvancmt(){
-      
+  public static function create_log_progress($target){
+    log::add('atlas', 'debug', 'IN CREATE LOG');
+     if(atlas::download_image()){
+       log::add('atlas', 'debug', '(sudo gzip -c /var/www/html/data/imgOs/jeedomAtlasB.gz | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+       shell_exec('(sudo gzip -c /var/www/html/data/imgOs/jeedomAtlasB.gz | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+     }else{
+       log::add('atlas', 'debug', 'ERREUR IMAGE MIGRATE');
+     }
+  }
+
+
+public static function download_image(){
+  /*  $json_rpc = repo_market::getJsonRpc();*/
+  /*  if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
+			throw new Exception($jsonrpc->getErrorMessage());
+		}*/
+	/*	$urlArray = $jsonrpc->getResult();
+		$url = $urlArray['url'];
+		$size = $urlArray['SHA256'];*/
+    log::add('atlas', 'debug', 'IN DOWNALOAD');
+    $size = '7890e7d804f0a546ae35e18faec5a2e93c9fb6169310c87b3bfbf47aca7368d3';
+		exec('sudo pkill -9 wget');
+    $path_imgOs = '/var/www/html/data/imgOs';
+    if(!file_exists($path_imgOs)){
+       mkdir($path_imgOs, 0644);
+    }
+    $find = false;
+    $fichier = $path_imgOs.'/jeedomAtlasB.gz';
+    log::add('atlas', 'debug', 'fichier > '.$fichier);
+    if(file_exists($fichier)){
+      $sha_256 = hash_file('sha256', $fichier);
+      log::add('atlas', 'debug', 'existe');
+      log::add('atlas', 'debug', 'size > '.$size);
+      log::add('atlas', 'debug', 'size > '.$sha_256);
+      if($size == $sha_256){
+          log::add('atlas', 'debug', 'SHA pareil');
+          $find = true;
+      }else{
+          log::add('atlas', 'debug', 'SHA pas pareil');
+          //RM fichier
+          //unlink($fichier);
+      }
+    }
+     if($find == false){
+        log::add('atlas', 'debug', 'find a False');
+        shell_exec('sudo wget --progress=dot --dot=mega '.$url.' -a '.log::getPathToLog('download_image').' -O '.$path_imgOs.'/jeedomAtlasB.gz >> ' . log::getPathToLog('download_image').' 2&>1');
+        if($size == $sha_256){
+          return true;
+        }else{
+          return false;
+        }
+     }
+     return true;
+
+
+}
+
+// AJAX //
+public static function loop_percentage(){
+    $level_percentage = atlas::percentage_progress();
+    while($level_percentage != 100){
+       log::add('atlas', 'debug', $level_percentage);
+       sleep(1);
+       $level_percentage = atlas::percentage_progress();
+    }
+}
+
+  public static function percentage_progress(){
+
       $logMigrate = log::get('migrate', 0, 1);
       $logMigrateAll = log::get('migrate', 0, 10);
-      $GO = 32; 
+      $GO = 32;
       $MO = $GO*1024;
       $KO = $MO*1024;
       $BytesGlobal = $KO*1024;
-      
+
       $pos = self::posOut($logMigrateAll);
       $firstln = $logMigrate[0];
-      log::add('atlas', 'debug', 'AVANCEMENT: '.$firstln);
+      log::add('atlas', 'debug', 'AVANCEMENT : '.$firstln);
 
       if($pos == false){
          log::add('atlas', 'debug', 'MAJ % ACTIVE');
@@ -92,31 +169,22 @@ class atlas extends eqLogic {
   public static function posOut($needles){
        log::add('atlas', 'debug', ' Fonction posOut : ');
        foreach($needles as $needle){
-          $rep = strpos($needle, 'records');
-          log::add('atlas', 'debug', $needle.' >>> '.$res);
-          if($rep != false){
-            log::add('atlas', 'debug', ' RESULTAT VRAI ');
-            return true;
-          }else{
-            log::add('atlas', 'debug', ' RESULTAT FAUX ');
-          }
+            $rep = strpos($needle, 'records');
+            log::add('atlas', 'debug', $needle.' >>> '.$res);
+            if($rep != false){
+              log::add('atlas', 'debug', ' RESULTAT VRAI ');
+              return true;
+            }else{
+              log::add('atlas', 'debug', ' RESULTAT FAUX ');
+            }
        }
        return false;
-
   }
 
 
-public function startPercentage(){
-    self::crea_log_avancement();
-    $var_test = self::percentageAdvancmt();
-    if ($var_test != 100){
-       sleep(1);
-       self::percentageAdvancmt();
-    }
 
-}
 
-  
+
     /*
      * Fonction exécutée automatiquement toutes les minutes par Jeedom
       public static function cron() {
@@ -134,19 +202,19 @@ public function startPercentage(){
       public static function cron10() {
       }
      */
-    
+
     /*
      * Fonction exécutée automatiquement toutes les 15 minutes par Jeedom
       public static function cron15() {
       }
      */
-    
+
     /*
      * Fonction exécutée automatiquement toutes les 30 minutes par Jeedom
       public static function cron30() {
       }
      */
-    
+
     /*
      * Fonction exécutée automatiquement toutes les heures par Jeedom
       public static function cronHourly() {
@@ -162,45 +230,45 @@ public function startPercentage(){
 
 
     /*     * *********************Méthodes d'instance************************* */
-    
- // Fonction exécutée automatiquement avant la création de l'équipement 
+
+ // Fonction exécutée automatiquement avant la création de l'équipement
     public function preInsert() {
-        
+
     }
 
- // Fonction exécutée automatiquement après la création de l'équipement 
+ // Fonction exécutée automatiquement après la création de l'équipement
     public function postInsert() {
-        
+
     }
 
- // Fonction exécutée automatiquement avant la mise à jour de l'équipement 
+ // Fonction exécutée automatiquement avant la mise à jour de l'équipement
     public function preUpdate() {
-        
+
     }
 
- // Fonction exécutée automatiquement après la mise à jour de l'équipement 
+ // Fonction exécutée automatiquement après la mise à jour de l'équipement
     public function postUpdate() {
-        
+
     }
 
- // Fonction exécutée automatiquement avant la sauvegarde (création ou mise à jour) de l'équipement 
+ // Fonction exécutée automatiquement avant la sauvegarde (création ou mise à jour) de l'équipement
     public function preSave() {
-        
+
     }
 
- // Fonction exécutée automatiquement après la sauvegarde (création ou mise à jour) de l'équipement 
+ // Fonction exécutée automatiquement après la sauvegarde (création ou mise à jour) de l'équipement
     public function postSave() {
-        
+
     }
 
- // Fonction exécutée automatiquement avant la suppression de l'équipement 
+ // Fonction exécutée automatiquement avant la suppression de l'équipement
     public function preRemove() {
-        
+
     }
 
- // Fonction exécutée automatiquement après la suppression de l'équipement 
+ // Fonction exécutée automatiquement après la suppression de l'équipement
     public function postRemove() {
-        
+
     }
 
     /*
@@ -227,11 +295,11 @@ public function startPercentage(){
 
 class atlasCmd extends cmd {
     /*     * *************************Attributs****************************** */
-    
+
     /*
       public static $_widgetPossibility = array();
     */
-    
+
     /*     * ***********************Methode static*************************** */
 
 
@@ -244,12 +312,10 @@ class atlasCmd extends cmd {
       }
      */
 
-  // Exécution d'une commande  
+  // Exécution d'une commande
      public function execute($_options = array()) {
-        
+
      }
 
     /*     * **********************Getteur Setteur*************************** */
 }
-
-

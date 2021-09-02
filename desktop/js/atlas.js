@@ -26,6 +26,49 @@ $("#table_cmd").sortable({
   forcePlaceholderSize: true
 });
 
+
+
+function ajax_loop_percentage() {
+  $.ajax({
+    type: "POST",
+    url: "plugins/atlas/core/ajax/atlas.ajax.php",
+    data: {
+      action: "loop_percentage"
+    },
+    dataType: 'json',
+    error: function (request, status, error) {
+      handleAjaxError(request, status, error);
+    },
+    success: function (data) {
+       if (data.state != 'ok') {
+        $('#div_alert').showAlert({message: data.result, level: 'danger'});
+        return;
+       }
+     }
+  });
+}
+
+
+function ajax_start_percentage() {
+  $.ajax({
+    type: "POST",
+    url: "plugins/atlas/core/ajax/atlas.ajax.php",
+    data: {
+      action: "start_percentage"
+    },
+    dataType: 'json',
+    error: function (request, status, error) {
+      handleAjaxError(request, status, error);
+    },
+    success: function (data) {
+       if (data.state != 'ok') {
+        $('#div_alert').showAlert({message: data.result, level: 'danger'});
+        return;
+       }
+     }
+  });
+}
+
 /* Fonction permettant l'affichage des commandes dans l'équipement */
 function addCmdToTable(_cmd) {
   if (!isset(_cmd)) {
