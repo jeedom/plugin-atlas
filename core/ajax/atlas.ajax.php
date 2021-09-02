@@ -35,8 +35,8 @@ try {
            ajax::success();
       }
 
-      if (init('action') == 'startPercentage') {
-             atlas::startPercentage();
+      if (init('action') == 'startMigration') {
+             atlas::startMigration();
              ajax::success();
         }
 

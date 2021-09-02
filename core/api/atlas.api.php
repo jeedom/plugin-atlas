@@ -31,7 +31,7 @@ log::add('atlas', 'debug', 'Appel API Atlas > ' . $methode);
 log::add('atlas', 'debug', 'parametres passés > ' . json_encode($params));
 
 if($methode == 'ddUSB'){
-  $usb = atlas::startPercentage('usb');
+  $usb = atlas::startMigration('usb');
   if($usb == 'ok'){
     $jsonrpc->makeSuccess();
   }else{
@@ -40,7 +40,7 @@ if($methode == 'ddUSB'){
 }
 
 if($methode == 'ddEMMC'){
-  $emmc = atlas::startPercentage('emmc');
+  $emmc = atlas::startMigration('emmc');
   if($emmc == 'ok'){
     $jsonrpc->makeSuccess();
   }else{

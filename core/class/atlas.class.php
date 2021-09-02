@@ -46,21 +46,21 @@ class atlas extends eqLogic {
     return array('script' => __DIR__ . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('atlas') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
   }
 
-  public static function startPercentage($target = 'emmc'){
+  public static function startMigration($target = 'emmc'){
       log::clear('migrate');
       $path_target='';
       log::add('atlas', 'debug', 'PATH TARGET');
       if(file_exists('/dev/mmcblk2') && $target == 'emmc'){
         $path_target = '/dev/mmcblk2';
-        atlas::create_log_progress($path_target);
+        atlas::ddImg($path_target);
         return 'ok';
       }elseif(file_exists('/dev/mmcblk1') && $target == 'emmc'){
         $path_target = '/dev/mmcblk1';
-        atlas::create_log_progress($path_target);
+        atlas::ddImg($path_target);
         return 'ok';
       }elseif(file_exists('/dev/sda') && $target == 'usb'){
         $path_target = '/dev/sda';
-        atlas::create_log_progress($path_target);
+        atlas::ddImg($path_target);
         return 'ok';
       }else{
         log::add('atlas', 'debug', 'ERREUR TARGET DEVICE');
@@ -69,9 +69,9 @@ class atlas extends eqLogic {
   }
 
 
-  public static function create_log_progress($target){
+  public static function ddImg($target){
     log::add('atlas', 'debug', 'IN CREATE LOG');
-     if(atlas::download_image()){
+     if(atlas::downloadImage()){
        log::add('atlas', 'debug', '(sudo cat /var/www/html/data/imgOs/jeedomAtlasB.img.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
        shell_exec('(sudo cat /var/www/html/data/imgOs/jeedomAtlasB.img.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
      }else{
@@ -91,7 +91,7 @@ public static function marketImg(){
   return 'nok';
 }
 
-public static function download_image(){
+public static function downloadImage(){
     //$urlArray = atlas::marketImg();
 		//$url = $urlArray['url'];
 		//$size = $urlArray['SHA256'];
@@ -121,7 +121,7 @@ public static function download_image(){
     }
      if($find == false){
         log::add('atlas', 'debug', 'find a False');
-        shell_exec('sudo wget --progress=dot --dot=mega '.$url.' -a '.log::getPathToLog('download_image').' -O '.$path_imgOs.'/jeedomAtlasB.img.gz >> ' . log::getPathToLog('download_image').' 2&>1');
+        shell_exec('sudo wget --progress=dot --dot=mega '.$url.' -a '.log::getPathToLog('downloadImage').' -O '.$path_imgOs.'/jeedomAtlasB.img.gz >> ' . log::getPathToLog('downloadImage').' 2&>1');
         if($size == $sha_256){
           return true;
         }else{
@@ -132,18 +132,18 @@ public static function download_image(){
 
 }
 
-public static function loop_percentage(){
-    $level_percentage = atlas::percentage_progress();
+public static function loopPercentage(){
+    $level_percentage = atlas::percentageProgress();
     config::save('migration', $level_percentage);
     while($level_percentage != 100){
        log::add('atlas', 'debug', $level_percentage);
        sleep(1);
-       $level_percentage = atlas::percentage_progress();
+       $level_percentage = atlas::percentageProgress();
        config::save('migration', $level_percentage);
     }
 }
 
-  public static function percentage_progress(){
+  public static function percentageProgress(){
       //$urlArray = atlas::marketImg();
       //$size = $urlArray['size'];
       $size = 5;
