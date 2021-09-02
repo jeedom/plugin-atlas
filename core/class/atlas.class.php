@@ -34,10 +34,7 @@ class atlas extends eqLogic {
     $return = array();
     $return['progress_file'] = jeedom::getTmpFolder('atlas') . '/dependance';
     $return['state'] = 'ok';
-    if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "python3\-requests|python3\-pyudev" | wc -l') < 2) {
-      $return['state'] = 'nok';
-    }
-    if (exec(system::getCmdSudo() . 'pip3 list | grep -E "nmcli" | wc -l') < 8) {
+    if (exec(system::getCmdSudo() . 'pip3 list | grep -E "nmcli" | wc -l') < 1) {
       $return['state'] = 'nok';
     }
     return $return;
@@ -68,24 +65,31 @@ class atlas extends eqLogic {
   public static function create_log_progress($target){
     log::add('atlas', 'debug', 'IN CREATE LOG');
      if(atlas::download_image()){
-       log::add('atlas', 'debug', '(sudo gzip -c /var/www/html/data/imgOs/jeedomAtlasB.gz | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
-       shell_exec('(sudo gzip -c /var/www/html/data/imgOs/jeedomAtlasB.gz | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+       log::add('atlas', 'debug', '(sudo cat /var/www/html/data/imgOs/jeedomAtlasB.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+       shell_exec('(sudo cat /var/www/html/data/imgOs/jeedomAtlasB.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
      }else{
        log::add('atlas', 'debug', 'ERREUR IMAGE MIGRATE');
      }
   }
 
+public static function marketImg(){
+  $json_rpc = repo_market::getJsonRpc();
+  if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
+			throw new Exception($jsonrpc->getErrorMessage());
+		}
+	$urlArray = $jsonrpc->getResult();
+	if($urlArray['url'] && $urlArray['SHA256'] && $urlArray['size']){
+    return $urlArray;
+  }
+  return 'nok';
+}
 
 public static function download_image(){
-  /*  $json_rpc = repo_market::getJsonRpc();*/
-  /*  if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
-			throw new Exception($jsonrpc->getErrorMessage());
-		}*/
-	/*	$urlArray = $jsonrpc->getResult();
-		$url = $urlArray['url'];
-		$size = $urlArray['SHA256'];*/
+    //$urlArray = atlas::marketImg();
+		//$url = $urlArray['url'];
+		//$size = $urlArray['SHA256'];
     log::add('atlas', 'debug', 'IN DOWNALOAD');
-    $size = '7890e7d804f0a546ae35e18faec5a2e93c9fb6169310c87b3bfbf47aca7368d3';
+    $size = '76148934213971a4e735ab92c8d9e037437197eac2c6bd4c56a5d19e4e4ce6b9';
 		exec('sudo pkill -9 wget');
     $path_imgOs = '/var/www/html/data/imgOs';
     if(!file_exists($path_imgOs)){
@@ -122,21 +126,24 @@ public static function download_image(){
 
 }
 
-// AJAX //
 public static function loop_percentage(){
     $level_percentage = atlas::percentage_progress();
+    config::save('migration', $level_percentage);
     while($level_percentage != 100){
        log::add('atlas', 'debug', $level_percentage);
        sleep(1);
        $level_percentage = atlas::percentage_progress();
+       config::save('migration', $level_percentage);
     }
 }
 
   public static function percentage_progress(){
-
+      //$urlArray = atlas::marketImg();
+      //$size = $urlArray['size'];
+      $size = 5;
       $logMigrate = log::get('migrate', 0, 1);
       $logMigrateAll = log::get('migrate', 0, 10);
-      $GO = 32;
+      $GO = $size;
       $MO = $GO*1024;
       $KO = $MO*1024;
       $BytesGlobal = $KO*1024;

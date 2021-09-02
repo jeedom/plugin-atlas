@@ -14,7 +14,7 @@ sudo apt-get install -y python3 python3-pip python3-pyudev python3-requests pyth
 echo 70 > ${PROGRESS_FILE}
 sudo pip3 install --upgrade wheel
 echo 80 > ${PROGRESS_FILE}
-sudo pip3 install -y nmcli
+sudo pip3 install nmcli
 echo 90 > ${PROGRESS_FILE}
 rm ${PROGRESS_FILE}
 echo "Everything is successfully installed!"
