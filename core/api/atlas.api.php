@@ -28,7 +28,7 @@ if (!is_object($jsonrpc)) {
 $params = $jsonrpc->getParams();
 $methode = $jsonrpc->getMethod();
 log::add('atlas', 'debug', 'Appel API Atlas > ' . $methode);
-log::add('atlas', 'debug', 'paramettres passés > ' . json_encode($params));
+log::add('atlas', 'debug', 'parametres passés > ' . json_encode($params));
 
 if($methode == 'ddUSB'){
   $usb = atlas::startPercentage('usb');
@@ -51,6 +51,10 @@ if($methode == 'ddEMMC'){
 if($methode == 'pourcMigrate'){
   atlas::loop_percentage();
   $jsonrpc->makeSuccess();
+}
+
+if($methode == 'testtest'){
+  log::add('atlas', 'debug', 'TEST OU PAS');
 }
 
 throw new Exception(__('Aucune demande', __FILE__));

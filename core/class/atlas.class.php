@@ -56,12 +56,12 @@ class atlas extends eqLogic {
         return 'ok';
       }elseif(file_exists('/dev/mmcblk1') && $target == 'emmc'){
         $path_target = '/dev/mmcblk1';
-        return 'ok';
         atlas::create_log_progress($path_target);
+        return 'ok';
       }elseif(file_exists('/dev/sda') && $target == 'usb'){
         $path_target = '/dev/sda';
-        return 'ok';
         atlas::create_log_progress($path_target);
+        return 'ok';
       }else{
         log::add('atlas', 'debug', 'ERREUR TARGET DEVICE');
         return 'nok';
@@ -72,8 +72,8 @@ class atlas extends eqLogic {
   public static function create_log_progress($target){
     log::add('atlas', 'debug', 'IN CREATE LOG');
      if(atlas::download_image()){
-       log::add('atlas', 'debug', '(sudo cat /var/www/html/data/imgOs/jeedomAtlasB.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
-       shell_exec('(sudo cat /var/www/html/data/imgOs/jeedomAtlasB.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+       log::add('atlas', 'debug', '(sudo cat /var/www/html/data/imgOs/jeedomAtlasB.img.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+       shell_exec('(sudo cat /var/www/html/data/imgOs/jeedomAtlasB.img.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
      }else{
        log::add('atlas', 'debug', 'ERREUR IMAGE MIGRATE');
      }
@@ -103,7 +103,7 @@ public static function download_image(){
        mkdir($path_imgOs, 0644);
     }
     $find = false;
-    $fichier = $path_imgOs.'/jeedomAtlasB.gz';
+    $fichier = $path_imgOs.'/jeedomAtlasB.img.gz';
     log::add('atlas', 'debug', 'fichier > '.$fichier);
     if(file_exists($fichier)){
       $sha_256 = hash_file('sha256', $fichier);
@@ -121,7 +121,7 @@ public static function download_image(){
     }
      if($find == false){
         log::add('atlas', 'debug', 'find a False');
-        shell_exec('sudo wget --progress=dot --dot=mega '.$url.' -a '.log::getPathToLog('download_image').' -O '.$path_imgOs.'/jeedomAtlasB.gz >> ' . log::getPathToLog('download_image').' 2&>1');
+        shell_exec('sudo wget --progress=dot --dot=mega '.$url.' -a '.log::getPathToLog('download_image').' -O '.$path_imgOs.'/jeedomAtlasB.img.gz >> ' . log::getPathToLog('download_image').' 2&>1');
         if($size == $sha_256){
           return true;
         }else{
