@@ -90,11 +90,16 @@ class atlas extends eqLogic {
       shell_exec('sudo mkdir /mnt/usb');
     }
     shell_exec('sudo umount /mnt/usb');
+    log::add('atlas', 'debug', 'verification de la partition de boot');
+    //shell_exec('sudo e2fsck -f -y '.$devusb.'1');
+    log::add('atlas', 'debug', 'resize de la partition de boot');
+    //shell_exec('sudo resize2fs '.$devusb.'1 8000M');
+    log::add('atlas', 'debug', 'mount de la partition');
     shell_exec('sudo mount '.$devusb.'1 /mnt/usb');
     if(!file_exists('/mnt/usb/var/www/html/data/imgOs')){
       shell_exec('sudo mkdir /mnt/usb/var/www/html/data/imgOs');
     }else{
-      if(!file_exists('/mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz')){
+      if(file_exists('/mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz')){
         shell_exec('sudo rm /mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz');
       }
     }
@@ -104,11 +109,11 @@ class atlas extends eqLogic {
     $ini_array['product_name'] = 'Jeedom Atlas Recovery';
     atlas::put_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini', $ini_array);
     log::add('atlas', 'debug', 'changement ini fait');
-    file_put_contents('/mnt/usb/etc/hostname', 'JeedomAtlasRecovery');
+    shell_exec('sudo bash -c \'echo "JeedomAtlasRecovery" > /mnt/usb/etc/hostname\'');
     log::add('atlas', 'debug', 'changement hostname fait');
     log::add('atlas', 'debug', '--------------');
-    shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlasB.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz');
     log::add('atlas', 'debug', 'cp de l\'image');
+    shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlasB.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz');
     log::add('atlas', 'debug', 'Fin');
   }
 
