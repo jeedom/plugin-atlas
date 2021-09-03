@@ -99,13 +99,16 @@ class atlas extends eqLogic {
       }
     }
     log::add('atlas', 'debug', 'montage clé usb');
-    shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlasB.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz');
-    log::add('atlas', 'debug', 'cp de l\'image');
     $ini_array = parse_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini');
     log::add('atlas', 'debug', '--------------');
     $ini_array['product_name'] = 'Jeedom Atlas Recovery';
     atlas::put_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini', $ini_array);
+    log::add('atlas', 'debug', 'changement ini fait');
     file_put_contents('/mnt/usb/etc/hostname', 'JeedomAtlasRecovery');
+    log::add('atlas', 'debug', 'changement hostname fait');
+    log::add('atlas', 'debug', '--------------');
+    shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlasB.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz');
+    log::add('atlas', 'debug', 'cp de l\'image');
     log::add('atlas', 'debug', 'Fin');
   }
 
