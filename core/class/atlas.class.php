@@ -47,7 +47,7 @@ class atlas extends eqLogic {
   }
 
   public static function put_ini_file($file, $array, $i = 0){
-      $str="";
+      $str="[core]\n";
       foreach ($array as $k => $v){
         if (is_array($v)){
           $str.=str_repeat(" ",$i*2)."[$k]".PHP_EOL;
@@ -90,10 +90,15 @@ class atlas extends eqLogic {
       shell_exec('sudo mkdir /mnt/usb');
     }
     shell_exec('sudo umount /mnt/usb');
+    log::add('atlas', 'debug', 'FSDISK -d');
+    shell_exec('sudo sfdisk -d '.$devusb.' > sda_partition_bak.dmp');
+    log::add('atlas', 'debug', 'growpart');
+    shell_exec('sudo growpart -N '.$devusb.' 1');
+    shell_exec('sudo growpart '.$devusb.' 1');
     log::add('atlas', 'debug', 'verification de la partition de boot');
-    //shell_exec('sudo e2fsck -f -y '.$devusb.'1');
+    shell_exec('sudo e2fsck -fy '.$devusb.'1');
     log::add('atlas', 'debug', 'resize de la partition de boot');
-    //shell_exec('sudo resize2fs '.$devusb.'1 8000M');
+    shell_exec('sudo resize2fs '.$devusb.'1 12G');
     log::add('atlas', 'debug', 'mount de la partition');
     shell_exec('sudo mount '.$devusb.'1 /mnt/usb');
     if(!file_exists('/mnt/usb/var/www/html/data/imgOs')){
