@@ -68,10 +68,12 @@ class atlas extends eqLogic {
       if(file_exists('/dev/mmcblk2') && $target == 'emmc'){
         $path_target = '/dev/mmcblk2';
         atlas::ddImg($path_target);
+        atlas::recoveryemmcMount($path_target);
         return 'ok';
       }elseif(file_exists('/dev/mmcblk1') && $target == 'emmc'){
         $path_target = '/dev/mmcblk1';
         atlas::ddImg($path_target);
+        atlas::recoveryemmcMount($path_target);
         return 'ok';
       }elseif(file_exists('/dev/sda') && $target == 'usb'){
         $path_target = '/dev/sda';
@@ -119,6 +121,25 @@ class atlas extends eqLogic {
     log::add('atlas', 'debug', '--------------');
     log::add('atlas', 'debug', 'cp de l\'image');
     shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlasB.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlasB.img.gz');
+    log::add('atlas', 'debug', 'Fin');
+  }
+
+  public static function recoveryemmcMount($devusb = '/dev/mmcblk1'){
+    if(!file_exists('/mnt/usb')){
+      log::add('atlas', 'debug', 'creation /mnt/usb');
+      shell_exec('sudo mkdir /mnt/usb');
+    }
+    shell_exec('sudo umount /mnt/usb');
+    log::add('atlas', 'debug', 'FSDISK -d');
+    shell_exec('sudo sfdisk -d '.$devusb.' > mmcblk1_partition_bak.dmp');
+    log::add('atlas', 'debug', 'growpart');
+    shell_exec('sudo growpart -N '.$devusb.' 1');
+    shell_exec('sudo growpart '.$devusb.' 1');
+    log::add('atlas', 'debug', 'verification de la partition de boot');
+    shell_exec('sudo e2fsck -fy '.$devusb.'1');
+    log::add('atlas', 'debug', 'resize de la partition de boot');
+    shell_exec('sudo resize2fs '.$devusb.'1');
+    log::add('atlas', 'debug', 'mount de la partition');
     log::add('atlas', 'debug', 'Fin');
   }
 
