@@ -68,12 +68,12 @@ class atlas extends eqLogic {
       if(file_exists('/dev/mmcblk2') && $target == 'emmc'){
         $path_target = '/dev/mmcblk2';
         atlas::ddImg($path_target);
-        //atlas::recoveryemmcMount($path_target);
+        atlas::recoveryemmcMount($path_target);
         return 'ok';
       }elseif(file_exists('/dev/mmcblk1') && $target == 'emmc'){
         $path_target = '/dev/mmcblk1';
         atlas::ddImg($path_target);
-        //atlas::recoveryemmcMount($path_target);
+        atlas::recoveryemmcMount($path_target);
         return 'ok';
       }elseif(file_exists('/dev/sda') && $target == 'usb'){
         $path_target = '/dev/sda';
@@ -138,7 +138,7 @@ class atlas extends eqLogic {
     log::add('atlas', 'debug', 'verification de la partition de boot');
     shell_exec('sudo e2fsck -fy '.$devusb.'1');
     log::add('atlas', 'debug', 'resize de la partition de boot');
-    shell_exec('sudo resize2fs '.$devusb.'1');
+    shell_exec('sudo resize2fs '.$devusb.'p1');
     log::add('atlas', 'debug', 'mount de la partition');
     log::add('atlas', 'debug', 'Fin');
   }
@@ -233,14 +233,14 @@ public static function loopPercentage(){
       log::add('atlas', 'debug', 'AVANCEMENT : '.$firstln);
 
       if($pos == false){
-         log::add('atlas', 'debug', 'MAJ % ACTIVE');
+         //log::add('atlas', 'debug', 'MAJ % ACTIVE');
          $valueByte = stristr($firstln, 'bytes', true);
-         log::add('atlas', 'debug', $valueByte);
+         //log::add('atlas', 'debug', $valueByte);
          $pourcentage = round((100*$valueByte)/$BytesGlobal, 2);
          log::add('atlas', 'debug', 'ETAT: ' .$pourcentage. '%');
          log::clear('migrate');
          if($valueByte == '' || $valueByte == null){
-            log::add('atlas', 'debug', 'NULL');
+            //log::add('atlas', 'debug', 'NULL');
          }else{
             return $pourcentage;
          }
@@ -254,15 +254,15 @@ public static function loopPercentage(){
 
 
   public static function posOut($needles){
-       log::add('atlas', 'debug', ' Fonction posOut : ');
+       //log::add('atlas', 'debug', ' Fonction posOut : ');
        foreach($needles as $needle){
             $rep = strpos($needle, 'records');
-            log::add('atlas', 'debug', $needle.' >>> '.$res);
+            //log::add('atlas', 'debug', $needle.' >>> '.$res);
             if($rep != false){
-              log::add('atlas', 'debug', ' RESULTAT VRAI ');
+              log::add('atlas', 'debug', ' FIN de la Migration ');
               return true;
             }else{
-              log::add('atlas', 'debug', ' RESULTAT FAUX ');
+              //log::add('atlas', 'debug', ' RESULTAT FAUX ');
             }
        }
        return false;
