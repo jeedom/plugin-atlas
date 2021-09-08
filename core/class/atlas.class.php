@@ -68,12 +68,12 @@ class atlas extends eqLogic {
       if(file_exists('/dev/mmcblk2') && $target == 'emmc'){
         $path_target = '/dev/mmcblk2';
         atlas::ddImg($path_target);
-        atlas::recoveryemmcMount($path_target);
+        //atlas::recoveryemmcMount($path_target);
         return 'ok';
       }elseif(file_exists('/dev/mmcblk1') && $target == 'emmc'){
         $path_target = '/dev/mmcblk1';
         atlas::ddImg($path_target);
-        atlas::recoveryemmcMount($path_target);
+        //atlas::recoveryemmcMount($path_target);
         return 'ok';
       }elseif(file_exists('/dev/sda') && $target == 'usb'){
         $path_target = '/dev/sda';
