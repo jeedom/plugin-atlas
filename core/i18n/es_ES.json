@@ -1,0 +1,69 @@
+{
+    "plugins\/atlas\/desktop\/modal\/modal.atlas.php": {
+        "401 - Accès non autorisé": "401 - Acceso no autorizado"
+    },
+    "plugins\/atlas\/desktop\/php\/atlas.php": {
+        "401 - Accès non autorisé": "401 - Acceso no autorizado",
+        "Gestion": "Gestión",
+        "Ajouter": "Agregar",
+        "Configuration": "Configuración",
+        "Mes templates": "Mis plantillas",
+        "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer": "No hay ningún equipo de plantilla configurado, haga clic en \"Agregar\" para comenzar",
+        "Rechercher": "Buscar",
+        "Configuration avancée": "Configuración avanzada",
+        "Dupliquer": "Duplicar",
+        "Sauvegarder": "Para salvaguardar",
+        "Supprimer": "Borrar",
+        "Equipement": "Equipo",
+        "Commandes": "Pedidos",
+        "Paramètres généraux": "Configuración general",
+        "Nom de l'équipement": "Nombre del equipo",
+        "Objet parent": "Objeto padre",
+        "Aucun": "No",
+        "Catégorie": "Categoría",
+        "Options": "Opciones",
+        "Activer": "Activar",
+        "Visible": "Visible",
+        "Paramètres spécifiques": "Parámetros específicos",
+        "Nom du paramètre n°1": "Nombre del parámetro n ° 1",
+        "Renseignez le paramètre n°1 de l'équipement": "Ingrese el parámetro n ° 1 del equipo",
+        "Paramètre n°1": "Parámetro n ° 1",
+        "Mot de passe": "Contraseña",
+        "Renseignez le mot de passe": "Complete la contraseña",
+        "Auto-actualisation": "Autorrealización",
+        "Fréquence de rafraîchissement de l'équipement": "Frecuencia de actualización del equipo",
+        "Cliquer sur ? pour afficher l'assistant cron": "Haga clic en ? para mostrar el asistente cron",
+        "Informations": "Información",
+        "Ajouter une commande": "Agregar un pedido",
+        "Id": "Identificación",
+        "Nom": "Apellido",
+        "Type": "Escribe",
+        "Paramètres": "Configuraciones",
+        "Action": "Acción"
+    },
+    "plugins\/atlas\/desktop\/js\/atlas.js": {
+        "Nom de la commande": "Nombre de la orden",
+        "Commande information liée": "Información relacionada con el comando",
+        "Aucune": "Ninguno",
+        "Icône": "Icono",
+        "Min.": "Min.",
+        "Max.": "Max.",
+        "Unité": "Unidad",
+        "Afficher": "Monitor",
+        "Historiser": "Historizar",
+        "Inverser": "Marcha atrás"
+    },
+    "plugins\/atlas\/core\/ajax\/atlas.ajax.php": {
+        "401 - Accès non autorisé": "401 - Acceso no autorizado",
+        "Aucune méthode correspondante à : ": "Ningún método correspondiente a:"
+    },
+    "plugins\/atlas\/core\/api\/atlas.api.php": {
+        "JSONRPC object not defined": "Objeto JSONRPC no definido",
+        "USB pas trouvé verifier si il est bien tout seul !": "USB no encontrado, compruebe si está solo",
+        "Emmc pas trouvé": "Emmc no encontrado",
+        "Aucune demande": "Sin solicitud"
+    },
+    "info.json": {
+        "Plugins spécialisé pour la Atlas": "Complementos especializados para Atlas"
+    }
+}

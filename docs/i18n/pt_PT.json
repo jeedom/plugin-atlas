@@ -1,0 +1,19 @@
+{
+    "changelog.md": {
+        "Changelog Atlas": "Changelog Atlas",
+        "Changelog plugin Atlas": "Plugin de registro de mudanças Atlas",
+        "Pour rappel s'il n'y a pas d'information sur la mise à jour, c'est que celle-ci concerne uniquement de la mise à jour de documentation, de traduction ou de texte": "Recorde-se que se não há informação sobre a atualização é porque se trata apenas de atualização de documentação, tradução ou texto",
+        "24\/08\/2021": "24\/08\/2021",
+        "Debut du plugin": "Início do plugin",
+        " IMPORTANT.": " IMPORTANTE.",
+        " IMPORTANT?": " IMPORTANTE?",
+        "IMPORTANT ": "IMPORTANTE ",
+        " IMPORTANT]": " IMPORTANTE]",
+        "[IMPORTANT]": "[IMPORTANTE]",
+        "*IMPORTANT*": "*IMPORTANTE*",
+        " IMPORTANT*": " IMPORTANTE*"
+    },
+    "index.md": {
+        "Plugin Atlas": "Plugin Atlas"
+    }
+}

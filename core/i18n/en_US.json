@@ -1,0 +1,69 @@
+{
+    "plugins\/atlas\/desktop\/modal\/modal.atlas.php": {
+        "401 - Accès non autorisé": "401 - Unauthorized Access"
+    },
+    "plugins\/atlas\/desktop\/php\/atlas.php": {
+        "401 - Accès non autorisé": "401 - Unauthorized Access",
+        "Gestion": "Management",
+        "Ajouter": "Add",
+        "Configuration": "Configuration",
+        "Mes templates": "My templates",
+        "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer": "No Template equipment is configured, click on \"Add\" to start",
+        "Rechercher": "To research",
+        "Configuration avancée": "Advanced configuration",
+        "Dupliquer": "Duplicate",
+        "Sauvegarder": "To safeguard",
+        "Supprimer": "To delete",
+        "Equipement": "Equipment",
+        "Commandes": "Orders",
+        "Paramètres généraux": "General settings",
+        "Nom de l'équipement": "Equipment name",
+        "Objet parent": "Parent object",
+        "Aucun": "No",
+        "Catégorie": "Category",
+        "Options": "Options",
+        "Activer": "Activate",
+        "Visible": "Visible",
+        "Paramètres spécifiques": "Specific parameters",
+        "Nom du paramètre n°1": "Parameter name n ° 1",
+        "Renseignez le paramètre n°1 de l'équipement": "Enter parameter n ° 1 of the equipment",
+        "Paramètre n°1": "Parameter n ° 1",
+        "Mot de passe": "Password",
+        "Renseignez le mot de passe": "Fill in the password",
+        "Auto-actualisation": "Self-actualization",
+        "Fréquence de rafraîchissement de l'équipement": "Equipment refresh rate",
+        "Cliquer sur ? pour afficher l'assistant cron": "Click on ? to display the cron assistant",
+        "Informations": "Information",
+        "Ajouter une commande": "Add an order",
+        "Id": "Id",
+        "Nom": "Name",
+        "Type": "Type",
+        "Paramètres": "Settings",
+        "Action": "Action"
+    },
+    "plugins\/atlas\/desktop\/js\/atlas.js": {
+        "Nom de la commande": "Order name",
+        "Commande information liée": "Command related information",
+        "Aucune": "None",
+        "Icône": "Icon",
+        "Min.": "Min.",
+        "Max.": "Max.",
+        "Unité": "Unity",
+        "Afficher": "Display",
+        "Historiser": "Historize",
+        "Inverser": "Reverse"
+    },
+    "plugins\/atlas\/core\/ajax\/atlas.ajax.php": {
+        "401 - Accès non autorisé": "401 - Unauthorized Access",
+        "Aucune méthode correspondante à : ": "No method corresponding to:"
+    },
+    "plugins\/atlas\/core\/api\/atlas.api.php": {
+        "JSONRPC object not defined": "JSONRPC object not defined",
+        "USB pas trouvé verifier si il est bien tout seul !": "USB not found check if it is all alone!",
+        "Emmc pas trouvé": "Emmc not found",
+        "Aucune demande": "No request"
+    },
+    "info.json": {
+        "Plugins spécialisé pour la Atlas": "Specialized plugins for the Atlas"
+    }
+}

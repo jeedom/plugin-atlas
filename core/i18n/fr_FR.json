@@ -1,0 +1,69 @@
+{
+    "plugins\/atlas\/desktop\/modal\/modal.atlas.php": {
+        "401 - Accès non autorisé": "401 - Accès non autorisé"
+    },
+    "plugins\/atlas\/desktop\/php\/atlas.php": {
+        "401 - Accès non autorisé": "401 - Accès non autorisé",
+        "Gestion": "Gestion",
+        "Ajouter": "Ajouter",
+        "Configuration": "Configuration",
+        "Mes templates": "Mes templates",
+        "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer": "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer",
+        "Rechercher": "Rechercher",
+        "Configuration avancée": "Configuration avancée",
+        "Dupliquer": "Dupliquer",
+        "Sauvegarder": "Sauvegarder",
+        "Supprimer": "Supprimer",
+        "Equipement": "Equipement",
+        "Commandes": "Commandes",
+        "Paramètres généraux": "Paramètres généraux",
+        "Nom de l'équipement": "Nom de l'équipement",
+        "Objet parent": "Objet parent",
+        "Aucun": "Aucun",
+        "Catégorie": "Catégorie",
+        "Options": "Options",
+        "Activer": "Activer",
+        "Visible": "Visible",
+        "Paramètres spécifiques": "Paramètres spécifiques",
+        "Nom du paramètre n°1": "Nom du paramètre n°1",
+        "Renseignez le paramètre n°1 de l'équipement": "Renseignez le paramètre n°1 de l'équipement",
+        "Paramètre n°1": "Paramètre n°1",
+        "Mot de passe": "Mot de passe",
+        "Renseignez le mot de passe": "Renseignez le mot de passe",
+        "Auto-actualisation": "Auto-actualisation",
+        "Fréquence de rafraîchissement de l'équipement": "Fréquence de rafraîchissement de l'équipement",
+        "Cliquer sur ? pour afficher l'assistant cron": "Cliquer sur ? pour afficher l'assistant cron",
+        "Informations": "Informations",
+        "Ajouter une commande": "Ajouter une commande",
+        "Id": "Id",
+        "Nom": "Nom",
+        "Type": "Type",
+        "Paramètres": "Paramètres",
+        "Action": "Action"
+    },
+    "plugins\/atlas\/desktop\/js\/atlas.js": {
+        "Nom de la commande": "Nom de la commande",
+        "Commande information liée": "Commande information liée",
+        "Aucune": "Aucune",
+        "Icône": "Icône",
+        "Min.": "Min.",
+        "Max.": "Max.",
+        "Unité": "Unité",
+        "Afficher": "Afficher",
+        "Historiser": "Historiser",
+        "Inverser": "Inverser"
+    },
+    "plugins\/atlas\/core\/ajax\/atlas.ajax.php": {
+        "401 - Accès non autorisé": "401 - Accès non autorisé",
+        "Aucune méthode correspondante à : ": "Aucune méthode correspondante à : "
+    },
+    "plugins\/atlas\/core\/api\/atlas.api.php": {
+        "JSONRPC object not defined": "JSONRPC object not defined",
+        "USB pas trouvé verifier si il est bien tout seul !": "USB pas trouvé verifier si il est bien tout seul !",
+        "Emmc pas trouvé": "Emmc pas trouvé",
+        "Aucune demande": "Aucune demande"
+    },
+    "info.json": {
+        "Plugins spécialisé pour la Atlas": "Plugins spécialisé pour la Atlas"
+    }
+}

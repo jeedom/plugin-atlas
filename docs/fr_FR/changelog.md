@@ -1,3 +1,5 @@
+# Changelog Atlas
+
 # Changelog plugin Atlas
 
 >**IMPORTANT**
