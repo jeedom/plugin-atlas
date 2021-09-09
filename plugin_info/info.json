@@ -16,7 +16,7 @@
     "licence": "AGPL",
     "author": "Jeedom SAS",
     "require": "4.1",
-    "category": "programming",
+    "category": "home automation protocol",
     "hasDependency": true,
     "hasOwnDeamon": false,
     "maxDependancyInstallTime": 0,
