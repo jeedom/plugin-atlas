@@ -141,6 +141,7 @@ class atlas extends eqLogic {
     shell_exec('sudo resize2fs '.$devusb.'p1');
     log::add('atlas', 'debug', 'mount de la partition');
     log::add('atlas', 'debug', 'Fin');
+    config::save('migration', 200);
   }
 
   public static function ddImg($target){
