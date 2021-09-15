@@ -53,6 +53,13 @@ if($methode == 'pourcMigrate'){
   $jsonrpc->makeSuccess();
 }
 
+if($methode == 'standby'){
+  config::save('migration', 0);
+	jeedom::haltSystem();
+
+  $jsonrpc->makeSuccess();
+}
+
 if($methode == 'testtest'){
   log::add('atlas', 'debug', 'TEST OU PAS');
 }

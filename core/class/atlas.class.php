@@ -125,6 +125,7 @@ class atlas extends eqLogic {
   }
 
   public static function recoveryemmcMount($devusb = '/dev/mmcblk1'){
+    config::save('migration', 101);
     if(!file_exists('/mnt/usb')){
       log::add('atlas', 'debug', 'creation /mnt/usb');
       shell_exec('sudo mkdir /mnt/usb');
@@ -171,7 +172,7 @@ public static function downloadImage(){
 		//$url = $urlArray['url'];
 		//$size = $urlArray['SHA256'];
     log::add('atlas', 'debug', 'IN DOWNALOAD');
-    $size = '76148934213971a4e735ab92c8d9e037437197eac2c6bd4c56a5d19e4e4ce6b9';
+    $size = 'a68a1a07bcccebc8898eee54a4535e2fa28ed25f58264711513cd7e8fd6d41cd';
 		exec('sudo pkill -9 wget');
     $path_imgOs = '/var/www/html/data/imgOs';
     if(!file_exists($path_imgOs)){
@@ -208,26 +209,30 @@ public static function downloadImage(){
 }
 
 public static function loopPercentage(){
-    $level_percentage = atlas::percentageProgress();
+    //$urlArray = atlas::marketImg();
+    //$size = $urlArray['size'];
+    $size = 5;
+    $GO = $size;
+    $MO = $GO*1024;
+    $KO = $MO*1024;
+    $BytesGlobal = $KO*1024;
+    $level_percentage = 0;
     config::save('migration', $level_percentage);
-    while($level_percentage != 100){
+    while(config::byKey('migration') < 100){
        log::add('atlas', 'debug', $level_percentage);
        sleep(1);
-       $level_percentage = atlas::percentageProgress();
-       config::save('migration', $level_percentage);
+       $level_percentage = atlas::percentageProgress($BytesGlobal);
+       if(config::byKey('migration') < 101){
+         config::save('migration', $level_percentage);
+       }else{
+         log::add('atlas', 'debug', 'NON save pour le 100%');
+       }
     }
 }
 
-  public static function percentageProgress(){
-      //$urlArray = atlas::marketImg();
-      //$size = $urlArray['size'];
-      $size = 5;
+  public static function percentageProgress($BytesGlobal){
       $logMigrate = log::get('migrate', 0, 1);
       $logMigrateAll = log::get('migrate', 0, 10);
-      $GO = $size;
-      $MO = $GO*1024;
-      $KO = $MO*1024;
-      $BytesGlobal = $KO*1024;
 
       $pos = self::posOut($logMigrateAll);
       $firstln = $logMigrate[0];
