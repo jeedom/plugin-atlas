@@ -16,17 +16,122 @@
  */
 
 
-/* Permet la réorganisation des commandes dans l'équipement */
-$("#table_cmd").sortable({
-  axis: "y",
-  cursor: "move",
-  items: ".cmd",
-  placeholder: "ui-state-highlight",
-  tolerance: "intersect",
-  forcePlaceholderSize: true
+printWifiList();
+printMacLan();
+printMacWifi();
+function printWifiList($forced=false){
+	$.ajax({// fonction permettant de faire de l'ajax
+            type: "POST", // methode de transmission des données au fichier php
+            url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
+            data: {
+            	action: "listWifi",
+				mode : $forced,
+            },
+            dataType: 'json',
+			async: true,
+            error: function (request, status, error) {
+            	handleAjaxError(request, status, error);
+            },
+			success: function(data) {
+			if (data.state != 'ok') {
+            	$('#div_alert').showAlert({message: data.result, level: 'danger'});
+            	return;
+            }
+            var options = '';
+            for (i in data.result){
+               options += '<option value="'+i+'">'; 
+				options += data.result[i]['ssid'] + ' - Signal : ' + data.result[i]['signal'] + ' Canal : ' + data.result[i]['channel'] + ' Sécurité - ' + data.result[i]['security']; 
+				options += '</option>';  
+            }
+            $('.eqLogicAttr[data-l1key=configuration][data-l2key=wifiSsid]').empty().html(options);
+        }
+    });
+}
+
+function printMacLan(){
+	$.ajax({// fonction permettant de faire de l'ajax
+            type: "POST", // methode de transmission des données au fichier php
+            url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
+            data: {
+            	action: "macfinder",
+				interfa : "eth0",
+            },
+            dataType: 'json',
+			async: true,
+			global : false,
+            error: function (request, status, error) {
+            	handleAjaxError(request, status, error);
+            },
+			success: function(data) {
+            if (data.state != 'ok') {
+            	$('#div_alert').showAlert({message: data.result, level: 'danger'});
+            	return;
+            }
+            $('.macLan').empty().append(data.result[0]);
+            $('.ipLan').empty().append(data.result[1]);
+        }
+    });
+}
+
+function printMacWifi(){
+	$.ajax({// fonction permettant de faire de l'ajax
+            type: "POST", // methode de transmission des données au fichier php
+            url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
+            data: {
+            	action: "macfinder",
+				interfa : "wlan0",
+            },
+            dataType: 'json',
+			async: true,
+			global : false,
+            error: function (request, status, error) {
+            	handleAjaxError(request, status, error);
+            },
+			success: function(data) {
+            if (data.state != 'ok') {
+            	$('#div_alert').showAlert({message: data.result, level: 'danger'});
+            	return;
+            }
+            $('.macWifi').empty().append(data.result[0]);
+            $('.ipWifi').empty().append(data.result[1]);
+        }
+    });
+}
+
+$('#bt_refreshWifiList').on('click',function(){
+    printWifiList(true);
 });
 
+window.setInterval(function(){
+	printMacLan();
+	printMacWifi();
+}, 5000);
 
+ $("#table_cmd").sortable({axis: "y", cursor: "move", items: ".cmd", placeholder: "ui-state-highlight", tolerance: "intersect", forcePlaceholderSize: true});
+function addCmdToTable(_cmd) {
+    if (!isset(_cmd)) {
+        var _cmd = {configuration: {}};
+    }
+    var tr = '<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">';
+    tr += '<td>';
+    tr += '<input class="cmdAttr form-control input-sm" data-l1key="id" style="display : none;">';
+    tr += '<input class="cmdAttr form-control input-sm" data-l1key="name"></td>';
+     tr += '<td>';
+    tr += '<span><label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isHistorized" checked/>{{Historiser}}</label></span> ';
+    tr += '</td>';
+    tr += '<td>';
+    tr += '<input class="cmdAttr form-control input-sm" data-l1key="type" style="display : none;">';
+    tr += '<input class="cmdAttr form-control input-sm" data-l1key="subType" style="display : none;">';
+    if (is_numeric(_cmd.id)) {
+        tr += '<a class="btn btn-default btn-xs cmdAction expertModeVisible" data-action="configure"><i class="fa fa-cogs"></i></a> ';
+        tr += '<a class="btn btn-default btn-xs cmdAction" data-action="test"><i class="fa fa-rss"></i> {{Tester}}</a>';
+    }
+    tr += '<i class="fa fa-minus-circle pull-right cmdAction cursor" data-action="remove"></i></td>';
+    tr += '</tr>';
+    $('#table_cmd tbody').append(tr);
+    $('#table_cmd tbody tr:last').setValues(_cmd, '.cmdAttr');
+    jeedom.cmd.changeType($('#table_cmd tbody tr:last'), init(_cmd.subType));
+}	
 
 function ajax_loop_percentage() {
   $.ajax({
@@ -70,7 +175,7 @@ function ajax_start_percentage() {
 }
 
 /* Fonction permettant l'affichage des commandes dans l'équipement */
-function addCmdToTable(_cmd) {
+/*function addCmdToTable(_cmd) {
   if (!isset(_cmd)) {
      var _cmd = {configuration: {}};
    }
@@ -130,4 +235,4 @@ function addCmdToTable(_cmd) {
        jeedom.cmd.changeType(tr, init(_cmd.subType));
      }
    });
- }
+ }*/

@@ -18,19 +18,40 @@
 
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
-// Fonction exécutée automatiquement après l'installation du plugin
-  function atlas_install() {
+function atlas_install() {
+	message::add('atlas','installation du device');
+	$eqLogic = atlas::byLogicalId('atlas', 'atlas');
+	if (!is_object($eqLogic)) {
+		$eqLogic = new atlas();
+		$eqLogic->setLogicalId('atlas');
+		$eqLogic->setCategory('multimedia', 1);
+		$eqLogic->setName('atlas');
+		$eqLogic->setEqType_name('atlas');
+		$eqLogic->setIsVisible(1);
+		$eqLogic->setIsEnable(1);
+		$eqLogic->save();
+	}
+    foreach (eqLogic::byType('atlas') as $atlas) {
+        $atlas->save();
+    }
+}
 
-  }
-
-// Fonction exécutée automatiquement après la mise à jour du plugin
-  function atlas_update() {
-
-  }
-
-// Fonction exécutée automatiquement après la suppression du plugin
-  function atlas_remove() {
-
-  }
+function atlas_update() {
+	message::add('atlas','mise a jour du device');
+	$eqLogic = atlas::byLogicalId('atlas', 'atlas');
+	if (!is_object($eqLogic)) {
+		$eqLogic = new atlas();
+		$eqLogic->setLogicalId('atlas');
+		$eqLogic->setCategory('multimedia', 1);
+		$eqLogic->setName('atlas');
+		$eqLogic->setEqType_name('atlas');
+		$eqLogic->setIsVisible(1);
+		$eqLogic->setIsEnable(1);
+		$eqLogic->save();
+	}
+    	foreach (eqLogic::byType('atlas') as $atlas) {
+		$atlas->save();
+    	}
+}
 
 ?>

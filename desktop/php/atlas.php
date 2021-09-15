@@ -28,7 +28,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 		<legend><i class="fas fa-table"></i> {{Mon Atlas}}</legend>
 		<?php
 		if (count($eqLogics) == 0) {
-			echo '<br/><div class="text-center" style="font-size:1.2em;font-weight:bold;">{{Coming soon - Bientot Disponible}}</div>';
+			echo count($eqLogics).'nbre <br/><div class="text-center" style="font-size:1.2em;font-weight:bold;">{{Coming soon - Bientot Disponible}}</div>';
 		} else {
 			// Champ de recherche
 			echo '<div class="input-group" style="margin:5px;">';
@@ -67,134 +67,117 @@ $eqLogics = eqLogic::byType($plugin->getId());
 			</span>
 		</div>
 		<!-- Onglets -->
-		<ul class="nav nav-tabs" role="tablist">
-			<li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fas fa-arrow-circle-left"></i></a></li>
-			<li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> {{Equipement}}</a></li>
-			<li role="presentation"><a href="#commandtab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-list"></i> {{Commandes}}</a></li>
-		</ul>
-		<div class="tab-content">
-			<!-- Onglet de configuration de l'équipement -->
-			<div role="tabpanel" class="tab-pane active" id="eqlogictab">
-				<!-- Partie gauche de l'onglet "Equipements" -->
-				<!-- Paramètres généraux de l'équipement -->
-				<form class="form-horizontal">
-					<fieldset>
-						<div class="col-lg-6">
-							<legend><i class="fas fa-wrench"></i> {{Paramètres généraux}}</legend>
-							<div class="form-group">
-								<label class="col-sm-3 control-label">{{Nom de l'équipement}}</label>
-								<div class="col-sm-7">
-									<input type="text" class="eqLogicAttr form-control" data-l1key="id" style="display : none;"/>
-									<input type="text" class="eqLogicAttr form-control" data-l1key="name" placeholder="{{Nom de l'équipement}}"/>
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="col-sm-3 control-label" >{{Objet parent}}</label>
-								<div class="col-sm-7">
-									<select id="sel_object" class="eqLogicAttr form-control" data-l1key="object_id">
-										<option value="">{{Aucun}}</option>
-										<?php
-										$options = '';
-										foreach ((jeeObject::buildTree(null, false)) as $object) {
-											$options .= '<option value="' . $object->getId() . '">' . str_repeat('&nbsp;&nbsp;', $object->getConfiguration('parentNumber')) . $object->getName() . '</option>';
-										}
-										echo $options;
-										?>
-									</select>
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="col-sm-3 control-label">{{Catégorie}}</label>
-								<div class="col-sm-7">
-									<?php
-									foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value) {
-										echo '<label class="checkbox-inline">';
-										echo '<input type="checkbox" class="eqLogicAttr" data-l1key="category" data-l2key="' . $key . '" />' . $value['name'];
-										echo '</label>';
-									}
-									?>
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="col-sm-3 control-label">{{Options}}</label>
-								<div class="col-sm-7">
-									<label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isEnable" checked/>{{Activer}}</label>
-									<label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isVisible" checked/>{{Visible}}</label>
-								</div>
-							</div>
-
-							<legend><i class="fas fa-cogs"></i> {{Paramètres spécifiques}}</legend>
-							<div class="form-group">
-								<label class="col-sm-3 control-label">{{Nom du paramètre n°1}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le paramètre n°1 de l'équipement}}"></i></sup>
-								</label>
-								<div class="col-sm-7">
-									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="param1" placeholder="{{Paramètre n°1}}"/>
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="col-sm-3 control-label"> {{Mot de passe}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le mot de passe}}"></i></sup>
-								</label>
-								<div class="col-sm-7">
-									<input type="text" class="eqLogicAttr form-control inputPassword" data-l1key="configuration" data-l2key="password"/>
-								</div>
-							</div>
-							<!-- Champ de saisie du cron d'auto-actualisation + assistant cron -->
-							<!-- La fonction cron de la classe du plugin doit contenir le code prévu pour que ce champ soit fonctionnel -->
-							<div class="form-group">
-								<label class="col-sm-3 control-label">{{Auto-actualisation}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Fréquence de rafraîchissement de l'équipement}}"></i></sup>
-								</label>
-								<div class="col-sm-7">
-									<div class="input-group">
-										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="autorefresh" placeholder="{{Cliquer sur ? pour afficher l'assistant cron}}"/>
-										<span class="input-group-btn">
-											<a class="btn btn-default cursor jeeHelper roundedRight" data-helper="cron" title="Assistant cron">
-												<i class="fas fa-question-circle"></i>
-											</a>
-										</span>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<!-- Partie droite de l'onglet "Équipement" -->
-						<!-- Affiche l'icône du plugin par défaut mais vous pouvez y afficher les informations de votre choix -->
-						<div class="col-lg-6">
-							<legend><i class="fas fa-info"></i> {{Informations}}</legend>
-							<div class="form-group">
-								<div class="text-center">
-									<img name="icon_visu" src="<?= $plugin->getPathImgIcon(); ?>" style="max-width:160px;"/>
-								</div>
-							</div>
-						</div>
-					</fieldset>
-				</form>
-				<hr>
-			</div><!-- /.tabpanel #eqlogictab-->
-
-			<!-- Onglet des commandes de l'équipement -->
-			<div role="tabpanel" class="tab-pane" id="commandtab">
-				<a class="btn btn-default btn-sm pull-right cmdAction" data-action="add" style="margin-top:5px;"><i class="fas fa-plus-circle"></i> {{Ajouter une commande}}</a>
-				<br/><br/>
-				<div class="table-responsive">
-					<table id="table_cmd" class="table table-bordered table-condensed">
-						<thead>
-							<tr>
-								<th>{{Id}}</th>
-								<th>{{Nom}}</th>
-								<th>{{Type}}</th>
-								<th>{{Paramètres}}</th>
-								<th>{{Options}}</th>
-								<th>{{Action}}</th>
-							</tr>
-						</thead>
-						<tbody>
-						</tbody>
-					</table>
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
+    <li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fa fa-tachometer"></i> {{Equipement}}</a></li>
+    <li role="presentation"><a href="#commandtab" aria-controls="profile" role="tab" data-toggle="tab"><i class="fa fa-list-alt"></i> {{Commandes}}</a></li>
+  </ul>
+		 <div role="tabpanel" class="tab-pane active" id="eqlogictab"><br/>
+      <div class="row">
+	<div class="col-sm-7">
+       <form class="form-horizontal">
+            <fieldset>
+                <legend><i class="fa fa-arrow-circle-left eqLogicAction cursor" data-action="returnToThumbnailDisplay"></i> {{Général}}<i class='fa fa-cogs eqLogicAction pull-right cursor expertModeVisible' data-action='configure'></i></legend>
+                <div class="form-group">
+                    <label class="col-lg-3 control-label">{{Nom de l'équipement}}</label>
+                    <div class="col-lg-4">
+                        <input type="text" class="eqLogicAttr form-control" data-l1key="id" style="display : none;" />
+                        <input type="text" class="eqLogicAttr form-control" data-l1key="name" placeholder="{{Nom de l'équipement}}"/>
+                    </div>
+					
+                </div>
+                <div class="form-group">
+                <label class="col-lg-3 control-label" >{{Objet parent}}</label>
+                    <div class="col-lg-4">
+                        <select id="sel_object" class="eqLogicAttr form-control" data-l1key="object_id">
+                            <option value="">{{Aucun}}</option>
+                            <?php
+                            foreach (jeeObject::all() as $object) {
+                                echo '<option value="' . $object->getId() . '">' . $object->getName() . '</option>';
+                            }
+                            ?>
+                        </select>
+                    </div>
+                </div>
+                 <div class="form-group">
+                <label class="col-sm-3 control-label"></label>
+                <div class="col-sm-9">
+                  <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isEnable" checked/>{{Activer}}</label>
+                  <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isVisible" checked/>{{Visible}}</label>
+                </div>
+              </div>
+				<legend><i class="fa fa-wifi"></i>  {{Wifi}}</legend>
+                <div class="form-group">
+				<div class="col-lg-2">
 				</div>
-			</div><!-- /.tabpanel #commandtab-->
+					<label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr ipfixwifienabled" data-l1key="configuration" data-l2key="wifiEnabled" onchange="if(this.checked == true){$('.wifi').css('display', 'block');$} else {$('.wifi').css('display', 'none');}" unchecked/>{{Activer le wifi}}</label>
+            
+				</div>
+                <div class="form-group wifi" style="display:none">
+                    <label class="col-lg-2 control-label">{{Réseau wifi}}</label>
+                    <div class="col-lg-8">
+                        <select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="wifiSsid" ></select>
+                    </div>
+					<div class="col-lg-2">
+                <a class="btn btn-info" id="bt_refreshWifiList"><i class="fa fa-refresh"></i></a>
+            </div>
+                </div>
+                <div class="form-group wifi" style="display:none">
+                    <label class="col-lg-2 control-label">{{Clef}}</label>
+                    <div class="col-lg-8">
+                         <input type="password" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="wifiPassword" />
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+		</div>
+<div class="col-sm-5">
+  <form class="form-horizontal">
+    <fieldset>
+      <legend><i class="fa fa-info-circle"></i>  {{Informations}}</legend>
+				<div class="form-group">
+                    <label class="col-lg-4 control-label">{{Adresse MAC ethernet}}</label>
+                    <div class="col-lg-4">
+                        <span class="label label-info macLan" style="font-size:1em;cursor:default;"></span>
+                    </div>
+				</div>
+				<div class="form-group">
+                    <label class="col-lg-4 control-label">{{Adresse Ip ethernet}}</label>
+                    <div class="col-lg-4">
+                        <span class="label label-info ipLan" style="font-size:1em;cursor:default;"></span>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-lg-4 control-label">{{Adresse MAC wifi}}</label>
+                    <div class="col-lg-4">
+                        <span class="label label-info macWifi" style="font-size:1em;cursor:default;"></span>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-lg-4 control-label">{{Adresse Ip wifi}}</label>
+                    <div class="col-lg-4">
+                        <span class="label label-info ipWifi" style="font-size:1em;cursor:default;"></span>
+                    </div>
+                </div>
+</fieldset>
+</form>
+</div>
+</div>
+</div><!-- /.tabpanel #eqlogictab-->
+
+<div role="tabpanel" class="tab-pane" id="commandtab">
+       <table id="table_cmd" class="table table-bordered table-condensed">
+             <thead>
+                <tr>
+                    <th>{{Nom}}</th><th>{{Options}}</th><th>{{Action}}</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+    </div>
 
 		</div><!-- /.tab-content -->
 	</div><!-- /.eqLogic -->

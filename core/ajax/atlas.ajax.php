@@ -39,6 +39,27 @@ try {
              atlas::startMigration();
              ajax::success();
         }
+  
+  	if (init('action') == 'listWifi') {
+		$forced = init('mode');
+		ajax::success(atlas::listWifi($forced));
+	}
+	
+	if (init('action') == 'macfinder') {
+		ajax::success(atlas::getMac(init('interfa')));
+	}
+	
+	if (init('action') == 'writeInterfaceFile') {
+		ajax::success(atlas::writeInterfaceFile());
+	}
+	
+	if (init('action') == 'wifiConnect') {
+		ajax::success(atlas::wifiConnect());
+	}
+	
+	if (init('action') == 'wifiDisConnect') {
+		ajax::success(atlas::wifiDisConnect());
+	}
 
 
     throw new Exception(__('Aucune méthode correspondante à : ', __FILE__) . init('action'));
