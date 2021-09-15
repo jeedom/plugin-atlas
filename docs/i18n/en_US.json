@@ -14,6 +14,8 @@
         " IMPORTANT*": " IMPORTANT*"
     },
     "index.md": {
-        "Plugin Atlas": "Atlas plugin"
+        "Plugin Atlas": "Atlas plugin",
+        "Bientôt Disponible": "Coming soon",
+        "Wifi et Recovery Mode": "Wifi and Recovery Mode"
     }
 }
