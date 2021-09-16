@@ -3,6 +3,9 @@
         "Changelog Atlas": "Changelog Atlas",
         "Changelog plugin Atlas": "Changelog plugin Atlas",
         "Pour rappel s'il n'y a pas d'information sur la mise à jour, c'est que celle-ci concerne uniquement de la mise à jour de documentation, de traduction ou de texte": "As a reminder, if there is no information on the update, it is because it concerns only the update of documentation, translation or text",
+        "16\/09\/2021": "09\/16\/2021",
+        "Ajout du Wifi": "Addition of Wifi",
+        "suppression des dépendances": "removing dependencies",
         "24\/08\/2021": "08\/24\/2021",
         "Debut du plugin": "Start of the plugin",
         " IMPORTANT.": " IMPORTANT.",
@@ -16,6 +19,12 @@
     "index.md": {
         "Plugin Atlas": "Atlas plugin",
         "Bientôt Disponible": "Coming soon",
-        "Wifi et Recovery Mode": "Wifi and Recovery Mode"
+        "Hotspot et Recovery Mode": "Hotspot and Recovery Mode",
+        "Le plugin Atlas vous permet de vous connectez depuis votre Atlas a un réseau Wifi (avec ou sans mot de passe": "The Atlas plugin allows you to connect from your Atlas to a Wifi network (with or without password",
+        "Pour ce faire, aller dans le plugin Atlas, puis sélectionner l'équipement Wifi": "To do this, go to the Atlas plugin, then select the WiFi equipment",
+        "A cette endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Here you can activate and then select the wifi you want (2",
+        "4Ghz et 5Ghz) puis taper le mot de passe": "4Ghz and 5Ghz) then type the password",
+        "puis sauvegarder": "then save",
+        "Pour le moment le plugin prend en compte uniquement les accès avec DHCP": "For the moment the plugin only takes into account access with DHCP"
     }
 }

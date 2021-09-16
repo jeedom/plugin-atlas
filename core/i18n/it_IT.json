@@ -53,7 +53,7 @@
     },
     "plugins\/atlas\/core\/class\/atlas.class.php": {
         "Connecter Wifi": "Connecter Wifi",
-        "D?connecter Wifi": "D?connecter Wifi",
+        "Déconnecter Wifi": "Déconnecter Wifi",
         "Etat Wifi": "Etat Wifi",
         "Signal": "Signal",
         "Lan IP": "Lan IP",

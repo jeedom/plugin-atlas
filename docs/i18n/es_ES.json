@@ -3,6 +3,9 @@
         "Changelog Atlas": "Atlas de registro de cambios",
         "Changelog plugin Atlas": "Complemento de registro de cambios Atlas",
         "Pour rappel s'il n'y a pas d'information sur la mise à jour, c'est que celle-ci concerne uniquement de la mise à jour de documentation, de traduction ou de texte": "Como recordatorio, si no hay información sobre la actualización es porque se trata solo de la actualización de documentación, traducción o texto",
+        "16\/09\/2021": "16\/09\/2021",
+        "Ajout du Wifi": "Adición de Wifi",
+        "suppression des dépendances": "eliminando dependencias",
         "24\/08\/2021": "24\/08\/2021",
         "Debut du plugin": "Inicio del complemento",
         " IMPORTANT.": " IMPORTANTE.",
@@ -16,6 +19,12 @@
     "index.md": {
         "Plugin Atlas": "Complemento Atlas",
         "Bientôt Disponible": "Próximamente, en breve, pronto",
-        "Wifi et Recovery Mode": "Modo Wifi y recuperación"
+        "Hotspot et Recovery Mode": "Modo de punto de acceso y recuperación",
+        "Le plugin Atlas vous permet de vous connectez depuis votre Atlas a un réseau Wifi (avec ou sans mot de passe": "El complemento Atlas le permite conectarse desde su Atlas a una red Wifi (con o sin contraseña",
+        "Pour ce faire, aller dans le plugin Atlas, puis sélectionner l'équipement Wifi": "Para hacer esto, vaya al complemento Atlas, luego seleccione el equipo WiFi",
+        "A cette endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Aquí puede activar y luego seleccionar el wifi que desee (2",
+        "4Ghz et 5Ghz) puis taper le mot de passe": "4Ghz y 5Ghz) luego escriba la contraseña",
+        "puis sauvegarder": "entonces guarda",
+        "Pour le moment le plugin prend en compte uniquement les accès avec DHCP": "Por el momento, el complemento solo tiene en cuenta el acceso con DHCP"
     }
 }
