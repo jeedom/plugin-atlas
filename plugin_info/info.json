@@ -23,14 +23,19 @@
     "changelog": "https:\/\/doc.jeedom.com\/#language#\/plugins\/home%20automation%20protocol\/atlas\/changelog",
     "documentation": "https:\/\/doc.jeedom.com\/#language#\/plugins\/home%20automation%20protocol\/atlas\/",
     "link": {
-        "forum": "https://community.jeedom.com/c/materiel-jeedom-hardware/atlas/122"
+        "forum": "https:\/\/community.jeedom.com\/c\/materiel-jeedom-hardware\/atlas\/122"
     },
     "language": [
         "fr_FR",
         "en_US",
         "es_ES",
         "de_DE",
-        "pt_PT"
+        "ru_RU",
+        "id_ID",
+        "it_IT",
+        "ja_JP",
+        "pt_PT",
+        "tr"
     ],
     "compatibility": [
         "atlas",
