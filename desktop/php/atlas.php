@@ -115,7 +115,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
                         <select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="wifiSsid" ></select>
                     </div>
 					<div class="col-lg-2">
-                <a class="btn btn-info" id="bt_refreshWifiList"><i class="fa fa-refresh"></i></a>
+                <a class="btn btn-info" id="bt_refreshWifiList"><i class="fas fa-sync-alt"></i></a>
             </div>
                 </div>
                 <div class="form-group wifi" style="display:none">

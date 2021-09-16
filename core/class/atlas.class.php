@@ -385,7 +385,7 @@ public static function cron5($_eqlogic_id = null) {
 			$disconnect = new atlasCmd();
 			$disconnect->setLogicalId('disconnect');
 			$disconnect->setIsVisible(1);
-			$disconnect->setName(__('D?connecter Wifi', __FILE__));
+			$disconnect->setName(__('Déconnecter Wifi', __FILE__));
 		}
 		$disconnect->setType('action');
 		$disconnect->setSubType('other');
