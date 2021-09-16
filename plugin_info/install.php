@@ -19,13 +19,13 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
 function atlas_install() {
-	message::add('atlas','installation du device');
-	$eqLogic = atlas::byLogicalId('atlas', 'atlas');
+	message::add('atlas','installation du Wifi');
+	$eqLogic = atlas::byLogicalId('atlas', 'wifi');
 	if (!is_object($eqLogic)) {
 		$eqLogic = new atlas();
-		$eqLogic->setLogicalId('atlas');
+		$eqLogic->setLogicalId('wifi');
 		$eqLogic->setCategory('multimedia', 1);
-		$eqLogic->setName('atlas');
+		$eqLogic->setName('Wifi');
 		$eqLogic->setEqType_name('atlas');
 		$eqLogic->setIsVisible(1);
 		$eqLogic->setIsEnable(1);
@@ -37,13 +37,13 @@ function atlas_install() {
 }
 
 function atlas_update() {
-	message::add('atlas','mise a jour du device');
-	$eqLogic = atlas::byLogicalId('atlas', 'atlas');
+	message::add('atlas','mise a jour du Wifi');
+	$eqLogic = atlas::byLogicalId('atlas', 'wifi');
 	if (!is_object($eqLogic)) {
 		$eqLogic = new atlas();
-		$eqLogic->setLogicalId('atlas');
+		$eqLogic->setLogicalId('wifi');
 		$eqLogic->setCategory('multimedia', 1);
-		$eqLogic->setName('atlas');
+		$eqLogic->setName('Wifi');
 		$eqLogic->setEqType_name('atlas');
 		$eqLogic->setIsVisible(1);
 		$eqLogic->setIsEnable(1);

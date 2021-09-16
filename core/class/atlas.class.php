@@ -30,37 +30,6 @@ class atlas extends eqLogic {
 
     /*     * ***********************Methode static*************************** */
 
-  public static function dependancy_info() {
-    $return = array();
-    $return['progress_file'] = jeedom::getTmpFolder('atlas') . '/dependance';
-    $return['state'] = 'ok';
-    if (exec(system::getCmdSudo() . 'pip3 list | grep -E "nmcli" | wc -l') < 1) {
-      $return['state'] = 'nok';
-    }
-    return $return;
-  }
-
-
-  public static function dependancy_install() {
-    log::remove(__CLASS__ . '_update');
-    return array('script' => __DIR__ . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('atlas') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
-  }
-
-  public static function put_ini_file($file, $array, $i = 0){
-      $str="[core]\n";
-      foreach ($array as $k => $v){
-        if (is_array($v)){
-          $str.=str_repeat(" ",$i*2)."[$k]".PHP_EOL;
-          $str.=put_ini_file("",$v, $i+1);
-        }else
-          $str.=str_repeat(" ",$i*2)."$k = $v".PHP_EOL;
-      }
-    if($file)
-        return file_put_contents($file,$str);
-      else
-        return $str;
-  }
-
   public static function startMigration($target = 'emmc'){
       log::clear('migrate');
       $path_target='';
@@ -239,14 +208,11 @@ public static function loopPercentage(){
       log::add('atlas', 'debug', 'AVANCEMENT : '.$firstln);
 
       if($pos == false){
-         //log::add('atlas', 'debug', 'MAJ % ACTIVE');
          $valueByte = stristr($firstln, 'bytes', true);
-         //log::add('atlas', 'debug', $valueByte);
          $pourcentage = round((100*$valueByte)/$BytesGlobal, 2);
          log::add('atlas', 'debug', 'ETAT: ' .$pourcentage. '%');
          log::clear('migrate');
          if($valueByte == '' || $valueByte == null){
-            //log::add('atlas', 'debug', 'NULL');
          }else{
             return $pourcentage;
          }
@@ -260,15 +226,11 @@ public static function loopPercentage(){
 
 
   public static function posOut($needles){
-       //log::add('atlas', 'debug', ' Fonction posOut : ');
        foreach($needles as $needle){
             $rep = strpos($needle, 'records');
-            //log::add('atlas', 'debug', $needle.' >>> '.$res);
             if($rep != false){
               log::add('atlas', 'debug', ' FIN de la Migration ');
               return true;
-            }else{
-              //log::add('atlas', 'debug', ' RESULTAT FAUX ');
             }
        }
        return false;
@@ -312,14 +274,14 @@ public static function cron5($_eqlogic_id = null) {
 			}
 		}
 	}
-	
+
 	public static function start() {
 		log::add('atlas','debug','Jeedom started checking all connections');
 		foreach (eqLogic::byType('atlas') as $atlas) {
 			$atlas->wifiConnect();
 		}
 	}
-	
+
 	public static function isWificonnected ($ssid) {
 		$result = shell_exec("sudo nmcli d | grep '" . $ssid . "'");
 		log::add('atlas','debug',$result);
@@ -328,7 +290,7 @@ public static function cron5($_eqlogic_id = null) {
 		}
 		return true;
 	}
-  
+
   	public static function isWifiProfileexist($ssid) {
 		$result = shell_exec("nmcli --fields NAME con show");
 		$countProfile = substr_count($result, $ssid);
@@ -342,7 +304,7 @@ public static function cron5($_eqlogic_id = null) {
         	return false;
         }
 	}
-	
+
 	public static function listWifi($forced = false) {
 		$eqLogic = eqLogic::byType('atlas');
 		log::add('atlas','debug','Wifi enabled : ' . $eqLogic[0]->getConfiguration('wifiEnabled'));
@@ -379,7 +341,7 @@ public static function cron5($_eqlogic_id = null) {
 		$interfaceMac = shell_exec("sudo ip addr show $_interface | grep -i 'link/ether' | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' | sed -n 1p");
 		return [$interfaceMac,$interfaceIp];
 	}
-	
+
 	public function wifiConnect() {
 		if ($this->getConfiguration('wifiEnabled') == true){
 			$ssid = $this->getConfiguration('wifiSsid','');
@@ -417,7 +379,7 @@ public static function cron5($_eqlogic_id = null) {
 		$connect->setSubType('other');
 		$connect->setEqLogic_id($this->getId());
 		$connect->save();
-		
+
 		$disconnect = $this->getCmd(null, 'disconnect');
 		if (!is_object($disconnect)) {
 			$disconnect = new atlasCmd();
@@ -429,7 +391,7 @@ public static function cron5($_eqlogic_id = null) {
 		$disconnect->setSubType('other');
 		$disconnect->setEqLogic_id($this->getId());
 		$disconnect->save();
-		
+
 		$isconnect = $this->getCmd(null, 'isconnect');
 		if (!is_object($isconnect)) {
 			$isconnect = new atlasCmd();
@@ -440,7 +402,7 @@ public static function cron5($_eqlogic_id = null) {
 		$isconnect->setType('info');
 		$isconnect->setSubType('binary');
 		$isconnect->save();
-		
+
 		$signal = $this->getCmd(null, 'signal');
 		if (!is_object($signal)) {
 			$signal = new atlasCmd();
@@ -451,7 +413,7 @@ public static function cron5($_eqlogic_id = null) {
 		$signal->setType('info');
 		$signal->setSubType('numeric');
 		$signal->save();
-		
+
 		$lanip = $this->getCmd(null, 'lanip');
 		if (!is_object($lanip)) {
 			$lanip = new atlasCmd();
@@ -462,7 +424,7 @@ public static function cron5($_eqlogic_id = null) {
 		$lanip->setType('info');
 		$lanip->setSubType('string');
 		$lanip->save();
-		
+
 		$wifiip = $this->getCmd(null, 'wifiip');
 		if (!is_object($wifiip)) {
 			$wifiip = new atlasCmd();
@@ -473,7 +435,7 @@ public static function cron5($_eqlogic_id = null) {
 		$wifiip->setType('info');
 		$wifiip->setSubType('string');
 		$wifiip->save();
-		
+
 		$ssid = $this->getCmd(null, 'ssid');
 		if (!is_object($ssid)) {
 			$ssid = new atlasCmd();
@@ -484,7 +446,7 @@ public static function cron5($_eqlogic_id = null) {
 		$ssid->setType('info');
 		$ssid->setSubType('string');
 		$ssid->save();
-		
+
 		$refresh = $this->getCmd(null, 'refresh');
 		if (!is_object($refresh)) {
 			$refresh = new atlasCmd();
