@@ -20,11 +20,10 @@
         "Plugin Atlas": "Atlas plugin",
         "Bientôt Disponible": "Coming soon",
         "Hotspot et Recovery Mode": "Hotspot and Recovery Mode",
-        "Le plugin Atlas vous permet de vous connectez depuis votre Atlas a un réseau Wifi (avec ou sans mot de passe": "The Atlas plugin allows you to connect from your Atlas to a Wifi network (with or without password",
-        "Pour ce faire, aller dans le plugin Atlas, puis sélectionner l'équipement Wifi": "To do this, go to the Atlas plugin, then select the WiFi equipment",
-        "A cette endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Here you can activate and then select the wifi you want (2",
-        "4Ghz et 5Ghz) puis taper le mot de passe": "4Ghz and 5Ghz) then type the password",
-        "puis sauvegarder": "then save",
-        "Pour le moment le plugin prend en compte uniquement les accès avec DHCP": "For the moment the plugin only takes into account access with DHCP"
+        "Le plugin Atlas vous permet de vous connecter depuis votre Atlas à un réseau Wifi (avec ou sans mot de passe": "The Atlas plugin allows you to connect from your Atlas to a Wifi network (with or without password",
+        "Pour ce faire, allez dans le plugin Atlas, puis sélectionnez l'équipement Wifi": "To do this, go to the Atlas plugin, then select the Wifi equipment",
+        "A cet endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Here you can activate and then select the wifi you want (2",
+        "4Ghz et 5Ghz), puis tapez le mot de passe et sauvegarder": "4Ghz and 5Ghz), then type the password and save",
+        "Pour le moment, le plugin prend en compte uniquement les accès avec DHCP": "For the moment, the plugin only takes into account access with DHCP"
     }
 }

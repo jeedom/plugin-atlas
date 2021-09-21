@@ -20,11 +20,10 @@
         "Plugin Atlas": "Plugin Atlas",
         "Bientôt Disponible": "Em breve",
         "Hotspot et Recovery Mode": "Ponto de acesso e modo de recuperação",
-        "Le plugin Atlas vous permet de vous connectez depuis votre Atlas a un réseau Wifi (avec ou sans mot de passe": "O plugin Atlas permite que você se conecte de seu Atlas a uma rede Wifi (com ou sem senha",
-        "Pour ce faire, aller dans le plugin Atlas, puis sélectionner l'équipement Wifi": "Para fazer isso, vá para o plugin Atlas e selecione o equipamento WiFi",
-        "A cette endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Aqui você pode ativar e selecionar o wi-fi que deseja (2",
-        "4Ghz et 5Ghz) puis taper le mot de passe": "4 GHz e 5 GHz) e digite a senha",
-        "puis sauvegarder": "então salve",
-        "Pour le moment le plugin prend en compte uniquement les accès avec DHCP": "No momento, o plugin só leva em conta o acesso com DHCP"
+        "Le plugin Atlas vous permet de vous connecter depuis votre Atlas à un réseau Wifi (avec ou sans mot de passe": "O plugin Atlas permite que você se conecte de seu Atlas a uma rede Wifi (com ou sem senha",
+        "Pour ce faire, allez dans le plugin Atlas, puis sélectionnez l'équipement Wifi": "Para fazer isso, vá para o plugin Atlas e selecione o equipamento Wifi",
+        "A cet endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Aqui você pode ativar e selecionar o wi-fi que deseja (2",
+        "4Ghz et 5Ghz), puis tapez le mot de passe et sauvegarder": "4 GHz e 5 GHz), digite a senha e salve",
+        "Pour le moment, le plugin prend en compte uniquement les accès avec DHCP": "Por enquanto, o plugin só leva em conta o acesso com DHCP"
     }
 }
