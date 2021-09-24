@@ -1,11 +1,34 @@
 {
-    "plugins\/atlas\/desktop\/modal\/modal.atlas.php": {
-        "401 - Accès non autorisé": "401 - Unbefugter Zugriff"
+    "plugins\/atlas\/desktop\/modal\/recovery.atlas.php": {
+        "401 - Accès non autorisé": "401 - Unbefugter Zugriff",
+        "Merci de brancher une clé usb de plus de 10Go": "Bitte schließen Sie einen USB-Schlüssel von mehr als 10 GB an",
+        "Erreur pas de cible trouvé (usb ou emmc)": "Fehler kein Ziel gefunden (usb oder emmc)",
+        "Lancement de la migration vers la mémoire interne": "Migration zum internen Speicher starten",
+        "Création de l\\'usb de recovery": "Erstellung des Wiederherstellungs-USB",
+        "Vérification de l\\'image Jeedom": "Jeedom-Bildüberprüfung",
+        "Création en cours... (environs 15 minutes)": "Erstellung läuft ... (ca. 15 Minuten)",
+        "erreur lors de la migtation": "Fehler während der Migration",
+        "Téléchargement de l\\'image Jeedom": "Jeedom-Bilddownload",
+        "Finalisation de la clé USB": "Finalisieren des USB-Sticks",
+        "Finalisation du recovery Jeedom": "Abschluss der Jeedom-Wiederherstellung",
+        "Recovery Fini, vous pouvez redémarrer votre jeedom en cliquant ici :": "Wiederherstellung abgeschlossen, können Sie Ihr Jeedom neu starten, indem Sie hier klicken:",
+        "Recovery Fini, merci de retirer la clé usb puis debrancher puis re-brancher la Atlas :": "Wiederherstellung abgeschlossen, bitte entfernen Sie den USB-Schlüssel, ziehen Sie den Atlas ab und schließen Sie ihn wieder an:",
+        "Commande non reconnue": "Befehl nicht erkannt",
+        "Erreur fermer puis relancer la demande.": "Fehler schließen, dann die Anfrage neu starten",
+        "redemarrage en cours, vous serez automatiquement redirigier vers la page de Login quand la box est de nouveau operationnel.": "Neustart läuft, werden Sie automatisch auf die Login-Seite weitergeleitet, wenn die Box wieder betriebsbereit ist",
+        "Impossible de trouver la box suite au redemarrage ...": "Kann die Box nach Neustart nicht finden",
+        "redirection en cours vers '+ip+' ...": "Umleitung läuft auf '+ ip +'",
+        "Recovery Mode": "Wiederherstellungsmodus",
+        "LANCER": "WERFEN",
+        "RELANCER": "NEUSTARTEN",
+        "REDEMARRER": "NEUSTARTEN"
     },
     "plugins\/atlas\/desktop\/php\/atlas.php": {
         "401 - Accès non autorisé": "401 - Unbefugter Zugriff",
         "Gestion": "Verwaltung",
         "Configuration": "Aufbau",
+        "Création clé Recovery": "Erstellung des Wiederherstellungsschlüssels",
+        "Lancement Recovery": "Wiederherstellungsstart",
         "Mes Modules Atlas": "Meine Atlas-Module",
         "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer": "Es ist kein Template-Equipment konfiguriert, klicken Sie auf \"Hinzufügen\", um zu starten",
         "Rechercher": "Forschen",
@@ -37,15 +60,8 @@
     "plugins\/atlas\/desktop\/js\/atlas.js": {
         "Historiser": "Historisieren",
         "Tester": "Prüfen",
-        "Nom de la commande": "Bestellname",
-        "Commande information liée": "Befehlsbezogene Informationen",
-        "Aucune": "Keiner",
-        "Icône": "Symbol",
-        "Min.": "Mindest.",
-        "Max.": "Max.",
-        "Unité": "Einheit",
-        "Afficher": "Anzeige",
-        "Inverser": "Umkehren"
+        "Création clé Recovery": "Erstellung des Wiederherstellungsschlüssels",
+        "Lancement Recovery": "Wiederherstellungsstart"
     },
     "plugins\/atlas\/core\/ajax\/atlas.ajax.php": {
         "401 - Accès non autorisé": "401 - Unbefugter Zugriff",

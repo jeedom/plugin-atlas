@@ -1,11 +1,34 @@
 {
-    "plugins\/atlas\/desktop\/modal\/modal.atlas.php": {
-        "401 - Accès non autorisé": "401 - Accès non autorisé"
+    "plugins\/atlas\/desktop\/modal\/recovery.atlas.php": {
+        "401 - Accès non autorisé": "401 - Accès non autorisé",
+        "Merci de brancher une clé usb de plus de 10Go": "Merci de brancher une clé usb de plus de 10Go",
+        "Erreur pas de cible trouvé (usb ou emmc)": "Erreur pas de cible trouvé (usb ou emmc)",
+        "Lancement de la migration vers la mémoire interne": "Lancement de la migration vers la mémoire interne",
+        "Création de l\\'usb de recovery": "Création de l\\'usb de recovery",
+        "Vérification de l\\'image Jeedom": "Vérification de l\\'image Jeedom",
+        "Création en cours... (environs 15 minutes)": "Création en cours... (environs 15 minutes)",
+        "erreur lors de la migtation": "erreur lors de la migtation",
+        "Téléchargement de l\\'image Jeedom": "Téléchargement de l\\'image Jeedom",
+        "Finalisation de la clé USB": "Finalisation de la clé USB",
+        "Finalisation du recovery Jeedom": "Finalisation du recovery Jeedom",
+        "Recovery Fini, vous pouvez redémarrer votre jeedom en cliquant ici :": "Recovery Fini, vous pouvez redémarrer votre jeedom en cliquant ici :",
+        "Recovery Fini, merci de retirer la clé usb puis debrancher puis re-brancher la Atlas :": "Recovery Fini, merci de retirer la clé usb puis debrancher puis re-brancher la Atlas :",
+        "Commande non reconnue": "Commande non reconnue",
+        "Erreur fermer puis relancer la demande.": "Erreur fermer puis relancer la demande",
+        "redemarrage en cours, vous serez automatiquement redirigier vers la page de Login quand la box est de nouveau operationnel.": "redemarrage en cours, vous serez automatiquement redirigier vers la page de Login quand la box est de nouveau operationnel",
+        "Impossible de trouver la box suite au redemarrage ...": "Impossible de trouver la box suite au redemarrage",
+        "redirection en cours vers '+ip+' ...": "redirection en cours vers '+ip+'",
+        "Recovery Mode": "Recovery Mode",
+        "LANCER": "LANCER",
+        "RELANCER": "RELANCER",
+        "REDEMARRER": "REDEMARRER"
     },
     "plugins\/atlas\/desktop\/php\/atlas.php": {
         "401 - Accès non autorisé": "401 - Accès non autorisé",
         "Gestion": "Gestion",
         "Configuration": "Configuration",
+        "Création clé Recovery": "Création clé Recovery",
+        "Lancement Recovery": "Lancement Recovery",
         "Mes Modules Atlas": "Mes Modules Atlas",
         "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer": "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer",
         "Rechercher": "Rechercher",
@@ -37,15 +60,8 @@
     "plugins\/atlas\/desktop\/js\/atlas.js": {
         "Historiser": "Historiser",
         "Tester": "Tester",
-        "Nom de la commande": "Nom de la commande",
-        "Commande information liée": "Commande information liée",
-        "Aucune": "Aucune",
-        "Icône": "Icône",
-        "Min.": "Min.",
-        "Max.": "Max.",
-        "Unité": "Unité",
-        "Afficher": "Afficher",
-        "Inverser": "Inverser"
+        "Création clé Recovery": "Création clé Recovery",
+        "Lancement Recovery": "Lancement Recovery"
     },
     "plugins\/atlas\/core\/ajax\/atlas.ajax.php": {
         "401 - Accès non autorisé": "401 - Accès non autorisé",

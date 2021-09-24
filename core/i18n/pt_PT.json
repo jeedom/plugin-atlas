@@ -1,11 +1,34 @@
 {
-    "plugins\/atlas\/desktop\/modal\/modal.atlas.php": {
-        "401 - Accès non autorisé": "401 - Acesso não autorizado"
+    "plugins\/atlas\/desktop\/modal\/recovery.atlas.php": {
+        "401 - Accès non autorisé": "401 - Acesso não autorizado",
+        "Merci de brancher une clé usb de plus de 10Go": "Conecte uma chave USB de mais de 10 GB",
+        "Erreur pas de cible trouvé (usb ou emmc)": "Erro, nenhum alvo encontrado (usb ou emmc)",
+        "Lancement de la migration vers la mémoire interne": "Iniciando a migração para a memória interna",
+        "Création de l\\'usb de recovery": "Criação do usb de recuperação",
+        "Vérification de l\\'image Jeedom": "Verificação de imagem Jeedom",
+        "Création en cours... (environs 15 minutes)": "Criação em andamento ... (cerca de 15 minutos)",
+        "erreur lors de la migtation": "erro durante a migração",
+        "Téléchargement de l\\'image Jeedom": "Download da imagem Jeedom",
+        "Finalisation de la clé USB": "Finalizando a chave USB",
+        "Finalisation du recovery Jeedom": "Finalização da recuperação Jeedom",
+        "Recovery Fini, vous pouvez redémarrer votre jeedom en cliquant ici :": "Recuperação concluída, você pode reiniciar seu jeedom clicando aqui:",
+        "Recovery Fini, merci de retirer la clé usb puis debrancher puis re-brancher la Atlas :": "Recuperação concluída, remova a chave USB, desconecte e reconecte o Atlas:",
+        "Commande non reconnue": "Comando não reconhecido",
+        "Erreur fermer puis relancer la demande.": "Erro ao fechar e reiniciar a solicitação",
+        "redemarrage en cours, vous serez automatiquement redirigier vers la page de Login quand la box est de nouveau operationnel.": "reiniciar em andamento, você será redirecionado automaticamente para a página de Login quando a caixa estiver operacional novamente",
+        "Impossible de trouver la box suite au redemarrage ...": "Incapaz de encontrar a caixa após reiniciar",
+        "redirection en cours vers '+ip+' ...": "redirecionamento em andamento para '+ ip +'",
+        "Recovery Mode": "Modo de recuperação",
+        "LANCER": "ARREMESSAR",
+        "RELANCER": "REINICIAR",
+        "REDEMARRER": "REINICIAR"
     },
     "plugins\/atlas\/desktop\/php\/atlas.php": {
         "401 - Accès non autorisé": "401 - Acesso não autorizado",
         "Gestion": "Gestão",
         "Configuration": "Configuração",
+        "Création clé Recovery": "Criação de chave de recuperação",
+        "Lancement Recovery": "Lançamento de recuperação",
         "Mes Modules Atlas": "Meus Módulos Atlas",
         "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer": "Nenhum equipamento de modelo está configurado, clique em \"Adicionar\" para iniciar",
         "Rechercher": "Pesquisar",
@@ -37,15 +60,8 @@
     "plugins\/atlas\/desktop\/js\/atlas.js": {
         "Historiser": "Historize",
         "Tester": "Teste",
-        "Nom de la commande": "Nome do pedido",
-        "Commande information liée": "Informações relacionadas ao comando",
-        "Aucune": "Nenhum",
-        "Icône": "Ícone",
-        "Min.": "Min.",
-        "Max.": "Máx.",
-        "Unité": "Unidade",
-        "Afficher": "Exibição",
-        "Inverser": "Reverter"
+        "Création clé Recovery": "Criação de chave de recuperação",
+        "Lancement Recovery": "Lançamento de recuperação"
     },
     "plugins\/atlas\/core\/ajax\/atlas.ajax.php": {
         "401 - Accès non autorisé": "401 - Acesso não autorizado",

@@ -1,11 +1,34 @@
 {
-    "plugins\/atlas\/desktop\/modal\/modal.atlas.php": {
-        "401 - Accès non autorisé": "401 - Unauthorized Access"
+    "plugins\/atlas\/desktop\/modal\/recovery.atlas.php": {
+        "401 - Accès non autorisé": "401 - Unauthorized Access",
+        "Merci de brancher une clé usb de plus de 10Go": "Please connect a usb key of more than 10GB",
+        "Erreur pas de cible trouvé (usb ou emmc)": "Error no target found (usb or emmc)",
+        "Lancement de la migration vers la mémoire interne": "Starting the migration to internal memory",
+        "Création de l\\'usb de recovery": "Creation of the recovery usb",
+        "Vérification de l\\'image Jeedom": "Jeedom image verification",
+        "Création en cours... (environs 15 minutes)": "Creation in progress ... (about 15 minutes)",
+        "erreur lors de la migtation": "error during migration",
+        "Téléchargement de l\\'image Jeedom": "Jeedom image download",
+        "Finalisation de la clé USB": "Finalizing the USB key",
+        "Finalisation du recovery Jeedom": "Finalization of the Jeedom recovery",
+        "Recovery Fini, vous pouvez redémarrer votre jeedom en cliquant ici :": "Recovery Finished, you can restart your jeedom by clicking here:",
+        "Recovery Fini, merci de retirer la clé usb puis debrancher puis re-brancher la Atlas :": "Recovery Finished, please remove the usb key then unplug then re-plug the Atlas:",
+        "Commande non reconnue": "Command not recognized",
+        "Erreur fermer puis relancer la demande.": "Error close then restart the request",
+        "redemarrage en cours, vous serez automatiquement redirigier vers la page de Login quand la box est de nouveau operationnel.": "restart in progress, you will be automatically redirected to the Login page when the box is operational again",
+        "Impossible de trouver la box suite au redemarrage ...": "Unable to find the box after restarting",
+        "redirection en cours vers '+ip+' ...": "redirection in progress to '+ ip +'",
+        "Recovery Mode": "Recovery Mode",
+        "LANCER": "TO THROW",
+        "RELANCER": "TO RESTART",
+        "REDEMARRER": "TO RESTART"
     },
     "plugins\/atlas\/desktop\/php\/atlas.php": {
         "401 - Accès non autorisé": "401 - Unauthorized Access",
         "Gestion": "Management",
         "Configuration": "Configuration",
+        "Création clé Recovery": "Recovery key creation",
+        "Lancement Recovery": "Recovery launch",
         "Mes Modules Atlas": "My Atlas Modules",
         "Aucun équipement Template n\\'est paramétré, cliquer sur \"Ajouter\" pour commencer": "No Template equipment is configured, click on \"Add\" to start",
         "Rechercher": "To research",
@@ -37,15 +60,8 @@
     "plugins\/atlas\/desktop\/js\/atlas.js": {
         "Historiser": "Historize",
         "Tester": "Test",
-        "Nom de la commande": "Order name",
-        "Commande information liée": "Command related information",
-        "Aucune": "None",
-        "Icône": "Icon",
-        "Min.": "Min.",
-        "Max.": "Max.",
-        "Unité": "Unity",
-        "Afficher": "Display",
-        "Inverser": "Reverse"
+        "Création clé Recovery": "Recovery key creation",
+        "Lancement Recovery": "Recovery launch"
     },
     "plugins\/atlas\/core\/ajax\/atlas.ajax.php": {
         "401 - Accès non autorisé": "401 - Unauthorized Access",
