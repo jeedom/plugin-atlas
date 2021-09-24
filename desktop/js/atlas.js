@@ -39,9 +39,9 @@ function printWifiList($forced=false){
             }
             var options = '';
             for (i in data.result){
-               options += '<option value="'+i+'">'; 
-				options += data.result[i]['ssid'] + ' - Signal : ' + data.result[i]['signal'] + ' Canal : ' + data.result[i]['channel'] + ' Sécurité - ' + data.result[i]['security']; 
-				options += '</option>';  
+               options += '<option value="'+i+'">';
+				options += data.result[i]['ssid'] + ' - Signal : ' + data.result[i]['signal'] + ' Canal : ' + data.result[i]['channel'] + ' Sécurité - ' + data.result[i]['security'];
+				options += '</option>';
             }
             $('.eqLogicAttr[data-l1key=configuration][data-l2key=wifiSsid]').empty().html(options);
         }
@@ -131,7 +131,7 @@ function addCmdToTable(_cmd) {
     $('#table_cmd tbody').append(tr);
     $('#table_cmd tbody tr:last').setValues(_cmd, '.cmdAttr');
     jeedom.cmd.changeType($('#table_cmd tbody tr:last'), init(_cmd.subType));
-}	
+}
 
 function ajax_loop_percentage() {
   $.ajax({
@@ -174,65 +174,11 @@ function ajax_start_percentage() {
   });
 }
 
-/* Fonction permettant l'affichage des commandes dans l'équipement */
-/*function addCmdToTable(_cmd) {
-  if (!isset(_cmd)) {
-     var _cmd = {configuration: {}};
-   }
-   if (!isset(_cmd.configuration)) {
-     _cmd.configuration = {};
-   }
-   var tr = '<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">';
-   tr += '<td style="width:60px;">';
-   tr += '<span class="cmdAttr" data-l1key="id"></span>';
-   tr += '</td>';
-   tr += '<td style="min-width:300px;width:350px;">';
-   tr += '<div class="row">';
-   tr += '<div class="col-xs-7">';
-   tr += '<input class="cmdAttr form-control input-sm" data-l1key="name" placeholder="{{Nom de la commande}}">';
-   tr += '<select class="cmdAttr form-control input-sm" data-l1key="value" style="display : none;margin-top : 5px;" title="{{Commande information liée}}">';
-   tr += '<option value="">{{Aucune}}</option>';
-   tr += '</select>';
-   tr += '</div>';
-   tr += '<div class="col-xs-5">';
-   tr += '<a class="cmdAction btn btn-default btn-sm" data-l1key="chooseIcon"><i class="fas fa-flag"></i> {{Icône}}</a>';
-   tr += '<span class="cmdAttr" data-l1key="display" data-l2key="icon" style="margin-left : 10px;"></span>';
-   tr += '</div>';
-   tr += '</div>';
-   tr += '</td>';
-   tr += '<td>';
-   tr += '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>';
-   tr += '<span class="subType" subType="' + init(_cmd.subType) + '"></span>';
-   tr += '</td>';
-   tr += '<td style="min-width:150px;width:350px;">';
-   tr += '<input class="cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="minValue" placeholder="{{Min.}}" title="{{Min.}}" style="width:30%;display:inline-block;"/> ';
-   tr += '<input class="cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="maxValue" placeholder="{{Max.}}" title="{{Max.}}" style="width:30%;display:inline-block;"/> ';
-   tr += '<input class="cmdAttr form-control input-sm" data-l1key="unite" placeholder="{{Unité}}" title="{{Unité}}" style="width:30%;display:inline-block;"/>';
-   tr += '</td>';
-   tr += '<td style="min-width:80px;width:350px;">';
-   tr += '<label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="isVisible" checked/>{{Afficher}}</label>';
-   tr += '<label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="isHistorized" checked/>{{Historiser}}</label>';
-   tr += '<label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="display" data-l2key="invertBinary"/>{{Inverser}}</label>';
-   tr += '</td>';
-   tr += '<td style="min-width:80px;width:200px;">';
-   if (is_numeric(_cmd.id)) {
-     tr += '<a class="btn btn-default btn-xs cmdAction" data-action="configure"><i class="fas fa-cogs"></i></a> ';
-     tr += '<a class="btn btn-default btn-xs cmdAction" data-action="test"><i class="fas fa-rss"></i> Tester</a>';
-   }
-   tr += '<i class="fas fa-minus-circle pull-right cmdAction cursor" data-action="remove"></i></td>';
-   tr += '</tr>';
-   $('#table_cmd tbody').append(tr);
-   var tr = $('#table_cmd tbody tr').last();
-   jeedom.eqLogic.builSelectCmd({
-     id:  $('.eqLogicAttr[data-l1key=id]').value(),
-     filter: {type: 'info'},
-     error: function (error) {
-       $('#div_alert').showAlert({message: error.message, level: 'danger'});
-     },
-     success: function (result) {
-       tr.find('.cmdAttr[data-l1key=value]').append(result);
-       tr.setValues(_cmd, '.cmdAttr');
-       jeedom.cmd.changeType(tr, init(_cmd.subType));
-     }
-   });
- }*/
+
+$('#bt_USBrecovery').off('click').on('click', function () {
+	$('#md_modal').dialog({title: "{{Création clé Recovery}}"}).load('index.php?v=d&plugin=atlas&modal=recovery.atlas').dialog('open');
+});
+
+$('#bt_recovery').off('click').on('click', function () {
+	$('#md_modal').dialog({title: "{{Lancement Recovery}}"}).load('index.php?v=d&plugin=atlas&modal=recovery.atlas').dialog('open');
+});

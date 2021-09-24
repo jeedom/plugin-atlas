@@ -30,33 +30,38 @@ try {
   */
     ajax::init();
 
-    if (init('action') == 'loop_percentage') {
-           atlas::loop_percentage();
-           ajax::success();
-      }
+  if (init('action') == 'loop_percentage') {
+     atlas::loopPercentage();
+     ajax::success();
+  }
 
-      if (init('action') == 'startMigration') {
-             atlas::startMigration();
-             ajax::success();
-        }
-  
-  	if (init('action') == 'listWifi') {
+  if (init('action') == 'startMigration') {
+    atlas::startMigration();
+    ajax::success();
+  }
+
+  if (init('action') == 'startUSB') {
+    atlas::startMigration('usb');
+    ajax::success();
+  }
+
+  if (init('action') == 'listWifi') {
 		$forced = init('mode');
 		ajax::success(atlas::listWifi($forced));
 	}
-	
+
 	if (init('action') == 'macfinder') {
 		ajax::success(atlas::getMac(init('interfa')));
 	}
-	
+
 	if (init('action') == 'writeInterfaceFile') {
 		ajax::success(atlas::writeInterfaceFile());
 	}
-	
+
 	if (init('action') == 'wifiConnect') {
 		ajax::success(atlas::wifiConnect());
 	}
-	
+
 	if (init('action') == 'wifiDisConnect') {
 		ajax::success(atlas::wifiDisConnect());
 	}

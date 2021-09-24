@@ -1,14 +1,7 @@
 {
   "apt" : {
-    "python3" : {},
-    "python3-pip" : {}
-  },
-  "pip3" : {
-    "pyudev" : {},
-    "requests" : {},
-    "setuptools" : {},
-    "wheel" : {},
-    "nmcli" : {}
+    "rsync" : {},
+    "cloud-guest-utils" : {}
   },
   "post-install" : {}
 }
