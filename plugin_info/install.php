@@ -19,9 +19,9 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
 function atlas_install() {
-	message::add('atlas','installation du Wifi');
 	$eqLogic = atlas::byLogicalId('atlas', 'wifi');
 	if (!is_object($eqLogic)) {
+		message::add('atlas','installation du Wifi');
 		$eqLogic = new atlas();
 		$eqLogic->setLogicalId('wifi');
 		$eqLogic->setCategory('multimedia', 1);
@@ -37,9 +37,9 @@ function atlas_install() {
 }
 
 function atlas_update() {
-	message::add('atlas','mise a jour du Wifi');
 	$eqLogic = atlas::byLogicalId('atlas', 'wifi');
 	if (!is_object($eqLogic)) {
+		message::add('atlas','mise a jour du Wifi');
 		$eqLogic = new atlas();
 		$eqLogic->setLogicalId('wifi');
 		$eqLogic->setCategory('multimedia', 1);
