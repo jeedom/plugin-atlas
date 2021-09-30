@@ -65,11 +65,13 @@ public static function put_ini_file($file, $array, $i = 0){
       log::clear('migrate');
       config::save('migrationText', 'prelancement');
       config::save('migration', 0);
+      config::save('migrationTextfine', __('Detection en cours...',__FILE__));
       $path_target='';
       log::add('atlas', 'debug', 'PATH TARGET');
       if(file_exists('/dev/mmcblk2') && $target == 'emmc'){
         $path_target = '/dev/mmcblk2';
         config::save('migrationText', 'emmc');
+        config::save('migrationTextfine', __('Emmc trouvé sur le mmcblk2.',__FILE__));
         if(atlas::ddImg($path_target)){
           atlas::recoveryemmcMount($path_target);
           return 'ok';
@@ -78,6 +80,7 @@ public static function put_ini_file($file, $array, $i = 0){
       }elseif(file_exists('/dev/mmcblk1') && $target == 'emmc'){
         $path_target = '/dev/mmcblk1';
         config::save('migrationText', 'emmc');
+        config::save('migrationTextfine', __('Emmc trouvé sur le mmcblk1.',__FILE__));
         if(atlas::ddImg($path_target)){
           atlas::recoveryemmcMount($path_target);
           return 'ok';
@@ -86,6 +89,7 @@ public static function put_ini_file($file, $array, $i = 0){
       }elseif(file_exists('/dev/sda') && $target == 'usb'){
         $path_target = '/dev/sda';
         config::save('migrationText', 'usb');
+        config::save('migrationTextfine', __('Usb trouvé sur le sda.',__FILE__));
         if(atlas::ddImg($path_target)){
           atlas::recoveryUsbMount($path_target);
           return 'ok';
@@ -107,27 +111,34 @@ public static function put_ini_file($file, $array, $i = 0){
     }
     shell_exec('sudo umount /mnt/usb');
     log::add('atlas', 'debug', 'FSDISK -d');
+    config::save('migrationTextfine', __('Vérification longueur du disque.',__FILE__));
     shell_exec('sudo sfdisk -d '.$devusb.' > sda_partition_bak.dmp');
     config::save('migration', 110);
     log::add('atlas', 'debug', 'growpart');
+    config::save('migrationTextfine', __('Création de la partition.',__FILE__));
     shell_exec('sudo growpart -N '.$devusb.' 1');
     shell_exec('sudo growpart '.$devusb.' 1');
     config::save('migration', 120);
     log::add('atlas', 'debug', 'verification de la partition de boot');
+    config::save('migrationTextfine', __('Vérification de la partition de boot.',__FILE__));
     shell_exec('sudo e2fsck -fy '.$devusb.'1');
     log::add('atlas', 'debug', 'resize de la partition de boot');
+    config::save('migrationTextfine', __('Redimentionnement de la partition de boot.',__FILE__));
     shell_exec('sudo resize2fs '.$devusb.'1 12G');
     config::save('migration', 130);
     log::add('atlas', 'debug', 'mount de la partition');
+    config::save('migrationTextfine', __('Montage de la partition pour modification.',__FILE__));
     shell_exec('sudo mount '.$devusb.'1 /mnt/usb');
     if(!file_exists('/mnt/usb/var/www/html/data/imgOs')){
       shell_exec('sudo mkdir /mnt/usb/var/www/html/data/imgOs');
     }else{
       if(file_exists('/mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz')){
+        config::save('migrationTextfine', __('Suppression ancienne image Jeedom.',__FILE__));
         shell_exec('sudo rm /mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz');
       }
     }
     log::add('atlas', 'debug', 'montage clé usb');
+    config::save('migrationTextfine', __('Ajout du fichier de configuration Recovery.',__FILE__));
     $ini_array = parse_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini');
     log::add('atlas', 'debug', '--------------');
     $ini_array['product_name'] = 'Jeedom Atlas Recovery';
@@ -136,16 +147,19 @@ public static function put_ini_file($file, $array, $i = 0){
     atlas::put_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini', $ini_array);
     config::save('migration', 140);
     log::add('atlas', 'debug', 'changement ini fait');
+    config::save('migrationTextfine', __('Changement du HostName.',__FILE__));
     shell_exec('sudo bash -c \'echo "JeedomAtlasRecovery" > /mnt/usb/etc/hostname\'');
     log::add('atlas', 'debug', 'changement hostname fait');
     shell_exec('sudo cp /var/www/html/plugins/atlas/data/recovery/atlasRecoveryWizard.json /mnt/usb/var/www/html/'.$ini_array['path_wizard']);
-    //shell_exec('sudo cp /var/www/html/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb/var/www/html/'.$ini_array['product_connection_image']);
+    shell_exec('sudo cp /var/www/html/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb/var/www/html/'.$ini_array['product_connection_image']);
     config::save('migration', 150);
     log::add('atlas', 'debug', '--------------');
     log::add('atlas', 'debug', 'cp de l\'image');
+    config::save('migrationTextfine', __('Ajout de l\'image Jeedom Atlas sur la clé.',__FILE__));
     shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlas.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz');
     log::add('atlas', 'debug', 'Fin');
     config::save('migrationText', 'endUSB');
+    config::save('migrationTextfine', __('Fin.',__FILE__));
     config::save('migration', 200);
   }
 
@@ -159,20 +173,25 @@ public static function put_ini_file($file, $array, $i = 0){
     config::save('migration', 120);
     shell_exec('sudo umount /mnt/usb');
     log::add('atlas', 'debug', 'FSDISK -d');
+    config::save('migrationTextfine', __('Vérification longueur du disque.',__FILE__));
     shell_exec('sudo sfdisk -d '.$devemmc.' > mmcblk1_partition_bak.dmp');
     log::add('atlas', 'debug', 'growpart');
+    config::save('migrationTextfine', __('Création de la partition.',__FILE__));
     config::save('migration', 140);
     shell_exec('sudo growpart -N '.$devemmc.' 1');
     shell_exec('sudo growpart '.$devemmc.' 1');
+    config::save('migrationTextfine', __('Vérification de la partition de boot.',__FILE__));
     config::save('migration', 150);
     log::add('atlas', 'debug', 'verification de la partition de boot');
     shell_exec('sudo e2fsck -fy '.$devemmc.'1');
     config::save('migration', 180);
+    config::save('migrationTextfine', __('Redimentionnement de la partition de boot.',__FILE__));
     log::add('atlas', 'debug', 'resize de la partition de boot');
     shell_exec('sudo resize2fs '.$devemmc.'p1');
     log::add('atlas', 'debug', 'mount de la partition');
     log::add('atlas', 'debug', 'Fin');
     config::save('migrationText', 'endEMMC');
+    config::save('migrationTextfine', __('Fin.',__FILE__));
     config::save('migration', 200);
   }
 
@@ -181,8 +200,10 @@ public static function put_ini_file($file, $array, $i = 0){
       config::save('migrationText', 'verifdd');
      if(atlas::downloadImage()){
        config::save('migrationText', 'dd');
+       sleep(3);
+       config::save('migrationTextfine', __('Gravure de l\'image.',__FILE__));
        log::add('atlas', 'debug', '(sudo cat /var/www/html/data/imgOs/jeedomAtlas.img.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
-       shell_exec('(sudo cat /var/www/html/data/imgOs/jeedomAtlas.img.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate').' 2>&1');
+       shell_exec('(sudo cat /var/www/html/data/imgOs/jeedomAtlas.img.gz | sudo gunzip | sudo dd of='.$target.' bs=512 status=progress) > '.log::getPathToLog('migrate'));
        return true;
      }else{
        log::add('atlas', 'debug', 'ERREUR IMAGE MIGRATE');
@@ -192,6 +213,8 @@ public static function put_ini_file($file, $array, $i = 0){
   }
 
 public static function marketImg(){
+  log::add('atlas', 'debug', 'demande info Market.');
+  config::save('migrationTextfine', __('Demande d\'information au Market.',__FILE__));
   $jsonrpc = repo_market::getJsonRpc();
   if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
 			throw new Exception($jsonrpc->getErrorMessage());
@@ -222,22 +245,29 @@ public static function downloadImage(){
     log::add('atlas', 'debug', 'fichier > '.$fichier);
     if(file_exists($fichier)){
       log::add('atlas', 'debug', 'existe');
+      config::save('migrationTextfine', __('Teste de l\'image (vérification SHA).',__FILE__));
       $sha_256 = hash_file('sha256', $fichier);
       log::add('atlas', 'debug', 'size > '.$size);
       log::add('atlas', 'debug', 'size > '.$sha_256);
       if($size == $sha_256){
           log::add('atlas', 'debug', 'SHA pareil');
+          config::save('migrationTextfine', __('Image OK.',__FILE__));
           $find = true;
       }else{
           log::add('atlas', 'debug', 'SHA pas pareil');
+          config::save('migrationTextfine', __('Image NOK.',__FILE__));
           //RM fichier
-          //unlink($fichier);
+          unlink($fichier);
       }
     }
      if($find == false){
        config::save('migrationText', 'upload');
         log::add('atlas', 'debug', 'find a False');
-        shell_exec('sudo wget --progress=dot --dot=mega '.$url.' -a '.log::getPathToLog('downloadImage').' -O '.$path_imgOs.'/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage').' 2&>1');
+        config::save('migrationTextfine', __('Téléchargement de l\'image sur nos serveurs en cours.',__FILE__));
+        log::add('atlas', 'debug', 'URL > '.$url);
+        log::add('atlas', 'debug', 'shell > sudo wget --progress=dot --dot=mega '.$url.' -a '.log::getPathToLog('downloadImage').' -O '.$path_imgOs.'/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage').' 2&>1');
+        shell_exec('sudo wget --progress=dot --dot=mega '.$url.' -a '.log::getPathToLog('downloadImage').' -O '.$path_imgOs.'/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage'));
+        sleep(10);
         $sha_256 = hash_file('sha256', $fichier);
         if($size == $sha_256){
           return true;

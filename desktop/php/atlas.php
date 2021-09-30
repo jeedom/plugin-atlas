@@ -19,16 +19,21 @@ $eqLogics = eqLogic::byType($plugin->getId());
 				<br>
 				<span>{{Configuration}}</span>
 			</div>
+			<?php
+			if(trim(shell_exec('cat /etc/hostname')) == 'JeedomAtlas'){ ?>
 			<div class="cursor logoSecondary" id="bt_USBrecovery">
 				<i class="fab fa-usb"></i>
 				<br>
 				<span>{{Création clé Recovery}}</span>
 			</div>
-			<div class="cursor logoSecondary" id="bt_recovery">
-				<i class="fas fa-clone"></i>
-				<br>
-				<span>{{Lancement Recovery}}</span>
-			</div>
+			<?php }
+				if(trim(shell_exec('cat /etc/hostname')) == 'JeedomAtlasRecovery'){ ?>
+				<div class="cursor logoSecondary" id="bt_recovery">
+					<i class="fas fa-clone"></i>
+					<br>
+					<span>{{Lancement Recovery}}</span>
+				</div>
+			<?php } ?>
 		</div>
 		<legend><i class="fas fa-table"></i> {{Mes Modules Atlas}}</legend>
 		<?php

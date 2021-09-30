@@ -33,6 +33,42 @@ if (!isConnect()) {
     var loopMigration = 1;
 		var redirect = 0;
 
+		function logDownload(){
+				$.ajax({
+					type: 'POST',
+					url: 'core/ajax/log.ajax.php',
+					data: {
+						action: 'get',
+						log: 'downloadImage'
+					},
+					dataType: 'json',
+					global: false,
+					error: function(request, status, error) {
+						setTimeout(logDownload, 1000);
+					},
+					success: function(data) {
+						if (data.state != 'ok') {
+							setTimeout(logDownload, 1000);
+							return;
+						}
+						var log = '';
+						if ($.isArray(data.result)) {
+							for (var i in data.result.reverse()) {
+								log += data.result[i] + "\n";
+								if (data.result[i].indexOf("%") != -1) {
+									var indexOfFirst = data.result[i].indexOf("%");
+									var pourcentage = data.result[i].substring((indexOfFirst - 2), indexOfFirst);
+									pourcentage = Number(pourcentage);
+									progress(pourcentage);
+								} else if (data.result[i].indexOf("Downloaded: 1 files") != -1) {
+									_autoUpdate = 0;
+									$('.textAtlasaddons').text('{{Image Téléchargée et validée !}}');
+								}
+							}
+						}
+					}
+				});
+			}
 
       function lancementUSB(){
         $.ajax({
@@ -81,18 +117,27 @@ if (!isConnect()) {
                 loop_percentage();
               }
               jeedom.config.load({
-                configuration: 'migration',
+                configuration: 'migrationTextfine',
                 error: function (error) {
                   console.log('error');
                 },
                  success: function (data) {
-                   pourcentageValue = data;
-                   afficher();
-                   if(errorFinal == 0){
-                     setTimeout(function () {
-                       migratepourcentage();
-                     }, 5000);
-                   }
+									 $('.textAtlasaddons').text(data);
+									 jeedom.config.load({
+		                 configuration: 'migration',
+		                 error: function (error) {
+		                   console.log('error');
+		                 },
+		                  success: function (data) {
+		                    pourcentageValue = data;
+		                    afficher();
+		                    if(errorFinal == 0){
+		                      setTimeout(function () {
+		                        migratepourcentage();
+		                      }, 5000);
+		                    }
+		                  }
+		                });
                  }
                });
             }
@@ -114,6 +159,7 @@ if (!isConnect()) {
            $('#div_progressbar').hide();
            $('.progress').hide();
            $('#bt_redemarrer').show();
+					 $('.textAtlasaddons').hide();
          }
 
          if(textMigrationValue == 'dd'){
@@ -127,6 +173,10 @@ if (!isConnect()) {
              progress((pourcentageValue - 100));
            }
          }
+
+				 if(textMigrationValue == 'upload'){
+					 logDownload();
+				 }
 
        }
 
@@ -285,12 +335,17 @@ if (!isConnect()) {
 
       <div class="col-md-12 text-center"><h2>{{Recovery Mode}}</h2></div>
       <div class="col-md-6 col-md-offset-3 text-center"><img class="img-responsive center-block img-atlas" src="<?php echo config::byKey('product_connection_image'); ?>" /></div>
-        <div class="col-md-12 text-center"><p class="text-center"><h3 class="textAtlas"></h3></p>
+        <div class="col-md-12 text-center">
+					<p class="text-center">
+						<h3 class="textAtlas"></h3>
+					</p>
+					<br /><br />
           <div class="col-md-12 text-center">
             <div id="contenuTextSpan" class="progress">
       	       <div class="progress-bar progress-bar-striped progress-bar-animated active" id="div_progressbar" role="progressbar" style="width: 0; height:20px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
       	      </div>
             </div>
+						<p class="text-center"><h4 class="textAtlasaddons"></h4></p>
             <button type="button" class="btn btn-primary" id="bt_go">{{LANCER}}</button>
             <button type="button" class="btn btn-primary" id="bt_relancer">{{RELANCER}}</button>
             <button type="button" class="btn btn-primary" id="bt_redemarrer">{{REDEMARRER}}</button>
