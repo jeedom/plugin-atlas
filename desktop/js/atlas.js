@@ -176,9 +176,9 @@ function ajax_start_percentage() {
 
 
 $('#bt_USBrecovery').off('click').on('click', function () {
-	$('#md_modal').dialog({title: "{{Création clé Recovery}}"}).load('index.php?v=d&plugin=atlas&modal=recovery.atlas').dialog('open');
+	$('#md_modal').dialog({title: "{{Création clé Recovery}}"}).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&typeDemande=usb').dialog('open');
 });
 
 $('#bt_recovery').off('click').on('click', function () {
-	$('#md_modal').dialog({title: "{{Lancement Recovery}}"}).load('index.php?v=d&plugin=atlas&modal=recovery.atlas').dialog('open');
+	$('#md_modal').dialog({title: "{{Lancement Recovery}}"}).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&typeDemande=emmc').dialog('open');
 });

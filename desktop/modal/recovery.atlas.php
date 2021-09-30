@@ -22,7 +22,7 @@ if (!isConnect()) {
 ?>
 
 		<script>
-		$('.textAtlas').text('{{Merci de brancher une clé usb de plus de 10Go}}');
+
     $('#bt_go').show();
     $('#div_progressbar').hide();
     $('.progress').hide();
@@ -32,6 +32,16 @@ if (!isConnect()) {
     var errorFinal = 0;
     var loopMigration = 1;
 		var redirect = 0;
+		var typeDemande = '<?php echo init('typeDemande'); ?>';
+		console.log('Type de demande > '+typeDemande);
+		var startDemande = 'startEMMC';
+
+		if(typeDemande == 'emmc'){
+			$('.textAtlas').text('{{Vous pouvez lancer un recovery de votre Atlas}}');
+		}else if (typeDemande == 'usb') {
+			startDemande = 'startUSB'
+			$('.textAtlas').text('{{Merci de brancher une clé usb de plus de 10Go}}');
+		}
 
 		function logDownload(){
 				$.ajax({
@@ -70,12 +80,12 @@ if (!isConnect()) {
 				});
 			}
 
-      function lancementUSB(){
+      function lancement(){
         $.ajax({
           type: "POST",
           url: "plugins/atlas/core/ajax/atlas.ajax.php",
           data: {
-              action: "startUSB"
+              action: startDemande
           },
           global: false,
           dataType: 'json',
@@ -156,11 +166,17 @@ if (!isConnect()) {
          if(tableauText.type == 'end'){
            progress(100);
            errorFinal = 1;
-           $('#div_progressbar').hide();
-           $('.progress').hide();
            $('#bt_redemarrer').show();
 					 $('.textAtlasaddons').hide();
          }
+
+				 if(tableauText.type == 'progress'){
+					 $('#div_progressbar').show();
+           $('.progress').show();
+				 }else{
+					 $('#div_progressbar').hide();
+           $('.progress').hide();
+				 }
 
          if(textMigrationValue == 'dd'){
            if(pourcentageValue != ''){
@@ -186,13 +202,13 @@ if (!isConnect()) {
             return {'text':'{{Erreur pas de cible trouvé (usb ou emmc)}}', 'type':'error'};
             break;
             case 'emmc':
-             return {'text':'{{Lancement de la migration vers la mémoire interne}}', 'type':'progress'};
+             return {'text':'{{Lancement de la migration vers la mémoire interne}}', 'type':'start'};
              break;
              case 'usb':
-              return {'text':'{{Création de l\'usb de recovery}}', 'type':'progress'};
+              return {'text':'{{Création de l\'usb de recovery}}', 'type':'start'};
               break;
               case 'verifdd':
-               return {'text':'{{Vérification de l\'image Jeedom}}', 'type':'progress'};
+               return {'text':'{{Vérification de l\'image Jeedom}}', 'type':'start'};
                break;
                case 'dd':
                 return {'text':'{{Création en cours... (environs 15 minutes)}}', 'type':'progress'};
@@ -286,7 +302,7 @@ if (!isConnect()) {
         $('#bt_relancer').hide();
         $('#div_progressbar').show();
         $('.progress').show();
-        lancementUSB();
+        lancement();
         setTimeout(function () {
           migratepourcentage();
         }, 3000);
