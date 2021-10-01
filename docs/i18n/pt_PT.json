@@ -21,11 +21,23 @@
     "index.md": {
         "Plugin Atlas": "Plugin Atlas",
         "Bientôt Disponible": "Em breve",
-        "Hotspot et Recovery Mode": "Ponto de acesso e modo de recuperação",
         "Le plugin Atlas vous permet de vous connecter depuis votre Atlas à un réseau Wifi (avec ou sans mot de passe": "O plugin Atlas permite que você se conecte de seu Atlas a uma rede Wifi (com ou sem senha",
         "Pour ce faire, allez dans le plugin Atlas, puis sélectionnez l'équipement Wifi": "Para fazer isso, vá para o plugin Atlas e selecione o equipamento Wifi",
         "A cet endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Aqui você pode ativar e selecionar o wi-fi que deseja (2",
         "4Ghz et 5Ghz), puis tapez le mot de passe et sauvegarder": "4 GHz e 5 GHz), digite a senha e salve",
-        "Pour le moment, le plugin prend en compte uniquement les accès avec DHCP": "Por enquanto, o plugin só leva em conta o acesso com DHCP"
+        "Pour le moment, le plugin prend en compte uniquement les accès avec DHCP": "Por enquanto, o plugin só leva em conta o acesso com DHCP",
+        "Recovery (BETA": "Recuperação (BETA",
+        "Vous devez brancher une clé usb de plus de 10Go dans le port USB de droite (Noir) en bas": "Você deve conectar uma chave USB de mais de 10 GB na porta USB direita (preta) na parte inferior",
+        "une fois fait vous pouvez lancer le recovery de la clé et de suivre les instructions": "uma vez feito isso, você pode iniciar a recuperação de chave e seguir as instruções",
+        "il suffira de mettre admin\/admin puis mettre correctement votre compte market": "será suficiente colocar admin \/ admin e então colocar corretamente sua conta de mercado",
+        "pour que votre jeedom recovery puisse restaurer la memoire interne de la box": "para que sua recuperação de jeedom possa restaurar a memória interna da caixa",
+        "il suffit de suivre les instructions": "apenas siga as instruções",
+        " Hotspot.": " Ponto de acesso.",
+        " Hotspot?": " Ponto de acesso?",
+        "Hotspot ": "Ponto de acesso ",
+        " Hotspot]": " Ponto de acesso]",
+        "[Hotspot]": "[Ponto de acesso]",
+        "*Hotspot*": "*Ponto de acesso*",
+        " Hotspot*": " Ponto de acesso*"
     }
 }

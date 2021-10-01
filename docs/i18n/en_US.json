@@ -21,11 +21,23 @@
     "index.md": {
         "Plugin Atlas": "Atlas plugin",
         "Bientôt Disponible": "Coming soon",
-        "Hotspot et Recovery Mode": "Hotspot and Recovery Mode",
         "Le plugin Atlas vous permet de vous connecter depuis votre Atlas à un réseau Wifi (avec ou sans mot de passe": "The Atlas plugin allows you to connect from your Atlas to a Wifi network (with or without password",
         "Pour ce faire, allez dans le plugin Atlas, puis sélectionnez l'équipement Wifi": "To do this, go to the Atlas plugin, then select the Wifi equipment",
         "A cet endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Here you can activate and then select the wifi you want (2",
         "4Ghz et 5Ghz), puis tapez le mot de passe et sauvegarder": "4Ghz and 5Ghz), then type the password and save",
-        "Pour le moment, le plugin prend en compte uniquement les accès avec DHCP": "For the moment, the plugin only takes into account access with DHCP"
+        "Pour le moment, le plugin prend en compte uniquement les accès avec DHCP": "For the moment, the plugin only takes into account access with DHCP",
+        "Recovery (BETA": "Recovery (BETA",
+        "Vous devez brancher une clé usb de plus de 10Go dans le port USB de droite (Noir) en bas": "You must plug a usb key of more than 10GB into the right USB port (Black) at the bottom",
+        "une fois fait vous pouvez lancer le recovery de la clé et de suivre les instructions": "once done you can launch the key recovery and follow the instructions",
+        "il suffira de mettre admin\/admin puis mettre correctement votre compte market": "it will be enough to put admin \/ admin then correctly put your market account",
+        "pour que votre jeedom recovery puisse restaurer la memoire interne de la box": "so that your jeedom recovery can restore the internal memory of the box",
+        "il suffit de suivre les instructions": "just follow the instructions",
+        " Hotspot.": " Hotspot.",
+        " Hotspot?": " Hotspot?",
+        "Hotspot ": "Hotspot ",
+        " Hotspot]": " Hotspot]",
+        "[Hotspot]": "[Hotspot]",
+        "*Hotspot*": "*Hotspot*",
+        " Hotspot*": " Hotspot*"
     }
 }
