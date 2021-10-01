@@ -24,14 +24,14 @@ $eqLogics = eqLogic::byType($plugin->getId());
 			<div class="cursor logoSecondary" id="bt_USBrecovery">
 				<i class="fab fa-usb"></i>
 				<br>
-				<span>{{Création clé Recovery}}</span>
+				<span>{{Création clé Recovery (BETA)}}</span>
 			</div>
 			<?php }
 				if(trim(shell_exec('cat /etc/hostname')) == 'JeedomAtlasRecovery'){ ?>
 				<div class="cursor logoSecondary" id="bt_recovery">
 					<i class="fas fa-clone"></i>
 					<br>
-					<span>{{Lancement Recovery}}</span>
+					<span>{{Lancement Recovery (BETA)}}</span>
 				</div>
 			<?php } ?>
 		</div>
