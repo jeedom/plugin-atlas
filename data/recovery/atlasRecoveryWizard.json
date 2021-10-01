@@ -14,7 +14,9 @@
 	  "title": "Options Atlas",
       "wizard": "atlas",
       "order": 1,
-      "custom": "",
+      "custom": {
+        "branch" : "beta"
+      },
       "visible": 1
    	}
   ,
