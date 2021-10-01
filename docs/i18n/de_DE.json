@@ -21,11 +21,23 @@
     "index.md": {
         "Plugin Atlas": "Atlas-Plugin",
         "Bientôt Disponible": "Kommt bald",
-        "Hotspot et Recovery Mode": "Hotspot und Wiederherstellungsmodus",
         "Le plugin Atlas vous permet de vous connecter depuis votre Atlas à un réseau Wifi (avec ou sans mot de passe": "Mit dem Atlas-Plugin können Sie sich von Ihrem Atlas mit einem Wifi-Netzwerk verbinden (mit oder ohne Passwort",
         "Pour ce faire, allez dans le plugin Atlas, puis sélectionnez l'équipement Wifi": "Gehen Sie dazu zum Atlas-Plugin und wählen Sie dann die Wifi-Ausrüstung aus",
         "A cet endroit vous pouvez activer puis sélectionner le wifi que vous souhaitez (2": "Hier können Sie das gewünschte WLAN aktivieren und dann auswählen (2",
         "4Ghz et 5Ghz), puis tapez le mot de passe et sauvegarder": "4Ghz und 5Ghz), dann das Passwort eingeben und speichern",
-        "Pour le moment, le plugin prend en compte uniquement les accès avec DHCP": "Im Moment berücksichtigt das Plugin nur den Zugriff mit DHCP"
+        "Pour le moment, le plugin prend en compte uniquement les accès avec DHCP": "Im Moment berücksichtigt das Plugin nur den Zugriff mit DHCP",
+        "Recovery (BETA": "Wiederherstellung (BETA",
+        "Vous devez brancher une clé usb de plus de 10Go dans le port USB de droite (Noir) en bas": "Sie müssen einen USB-Schlüssel von mehr als 10 GB in den rechten USB-Anschluss (Schwarz) unten stecken",
+        "une fois fait vous pouvez lancer le recovery de la clé et de suivre les instructions": "Sobald Sie fertig sind, können Sie die Schlüsselwiederherstellung starten und den Anweisungen folgen",
+        "il suffira de mettre admin\/admin puis mettre correctement votre compte market": "Es reicht aus, admin \/ admin einzugeben, dann geben Sie Ihr Marktkonto richtig ein",
+        "pour que votre jeedom recovery puisse restaurer la memoire interne de la box": "damit Ihre Jeedom-Wiederherstellung den internen Speicher der Box wiederherstellen kann",
+        "il suffit de suivre les instructions": "folge einfach den Anweisungen",
+        " Hotspot.": " Hotspot.",
+        " Hotspot?": " Hotspot?",
+        "Hotspot ": "Hotspot ",
+        " Hotspot]": " Hotspot]",
+        "[Hotspot]": "[Hotspot]",
+        "*Hotspot*": "*Hotspot*",
+        " Hotspot*": " Hotspot*"
     }
 }
