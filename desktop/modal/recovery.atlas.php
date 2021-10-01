@@ -34,8 +34,7 @@ if (!isConnect()) {
     var loopMigration = 1;
 		var redirect = 0;
 		var typeDemande = '<?php echo init('typeDemande'); ?>';
-		console.log('Type de demande > '+typeDemande);
-		var startDemande = 'startEMMC';
+		var startDemande = 'startMigration';
 
 		if(typeDemande == 'emmc'){
 			$('.textAtlas').text('{{Vous pouvez lancer un recovery de votre Atlas}}');
