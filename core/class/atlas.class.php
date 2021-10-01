@@ -32,7 +32,7 @@ class atlas extends eqLogic {
       $return = array();
       $return['progress_file'] = jeedom::getTmpFolder('atlas') . '/dependance';
       $return['state'] = 'ok';
-      if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "rsync|cloud\-guest\-utils" | wc -l') < 2) {
+      if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "rsync|cloud\-guest\-utils" | wc -l') < 4) {
 			     $return['state'] = 'nok';
 		  }
       return $return;
