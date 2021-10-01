@@ -27,6 +27,7 @@ if (!isConnect()) {
     $('#div_progressbar').hide();
     $('.progress').hide();
     $('#bt_redemarrer').hide();
+		$('#bt_arreter').hide();
     var textMigrationValue = '';
     var pourcentageValue = 0;
     var errorFinal = 0;
@@ -166,7 +167,11 @@ if (!isConnect()) {
          if(tableauText.type == 'end'){
            progress(100);
            errorFinal = 1;
-           $('#bt_redemarrer').show();
+					 if(typeDemande == 'usb'){
+						 $('#bt_redemarrer').show();
+					 }else{
+						 $('#bt_arreter').show();
+					 }
 					 $('.textAtlasaddons').hide();
          }
 
@@ -322,6 +327,12 @@ if (!isConnect()) {
 				redirectIP('jeedomatlasrecovery.local')
         jeedom.rebootSystem();
       });
+			$('#bt_arreter').off('click').on('click', function () {
+				$('#bt_arreter').hide();
+				$('.textAtlas').text('{{Arret effectué, il vous faut maintenant debrancher votre clé usb, puis effuctuer un débranchement puis rebranchement electrique de votre Atlas, vous serez automatiquement redirigier vers la page de Login quand la box est de nouveau operationnel.}}');
+				redirectIP('jeedomatlas.local')
+        jeedom.haltSystem();
+      });
 
 			function redirectIP(ip){
 				$('#div_progressbar').show();
@@ -365,5 +376,6 @@ if (!isConnect()) {
             <button type="button" class="btn btn-primary" id="bt_go">{{LANCER}}</button>
             <button type="button" class="btn btn-primary" id="bt_relancer">{{RELANCER}}</button>
             <button type="button" class="btn btn-primary" id="bt_redemarrer">{{REDEMARRER}}</button>
+						<button type="button" class="btn btn-primary" id="bt_arreter">{{ARRETER}}</button>
           </div>
       </div>
