@@ -1,7 +1,8 @@
 {
   "apt" : {
     "rsync" : {},
-    "cloud-guest-utils" : {}
+    "cloud-guest-utils" : {},
+    "ethtool": {}
   },
   "post-install" : {}
 }

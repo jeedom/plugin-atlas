@@ -405,13 +405,30 @@ public static function cron5($_eqlogic_id = null) {
 		}
 	}
 
-/* ----- WIFI ----- */
+  /* ----- SECURITY IP ----- */
+
+  public static function securityIp($type = 'eth0'){
+    //verif ip
+    $ipEth = trim(shell_exec('ip addr show '.$type.' | grep "inet\b" | awk '{print $2}' | cut -d/ -f1'));
+    if($ipEth == '' || !$ipEth){
+        log::add('atlas', 'debug', 'pas d\'addresse IP de vue sur '.$type.' passage de la Atlas en 100M/TX');
+        shell_exec('sudo ethtool -s '.$type.' speed 100 duplex full autoneg on');
+    }else{
+      log::add('atlas', 'debug', 'ip ok sur '.$type.' / '.$ipEth);
+    }
+  }
+
+  /* ----- START ----- */
+
 	public static function start() {
 		log::add('atlas','debug','Jeedom started checking all connections');
 		foreach (eqLogic::byType('atlas') as $atlas) {
 			$atlas->wifiConnect();
 		}
+    atlas::securityIp();
 	}
+
+  /* ----- WIFI ----- */
 
 	public static function isWificonnected ($ssid) {
 		$result = shell_exec("sudo nmcli d | grep '" . $ssid . "'");

@@ -13,5 +13,7 @@ echo 40 > ${PROGRESS_FILE}
 sudo apt-get install -y rsync
 echo 50 > ${PROGRESS_FILE}
 sudo apt-get install -y cloud-guest-utils
+echo 60 > ${PROGRESS_FILE}
+sudo apt-get install -y ethtool
 rm ${PROGRESS_FILE}
 echo "Everything is successfully installed!"
