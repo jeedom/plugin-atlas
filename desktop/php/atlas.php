@@ -121,10 +121,29 @@ $eqLogics = eqLogic::byType($plugin->getId());
                 <div class="form-group">
 				<div class="col-lg-2">
 				</div>
-					<label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr ipfixwifienabled" data-l1key="configuration" data-l2key="wifiEnabled" onchange="if(this.checked == true){$('.wifi').css('display', 'block');$} else {$('.wifi').css('display', 'none');}" unchecked/>{{Activer le wifi}}</label>
-
+					<label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr ipfixwifienabled" data-l1key="configuration" data-l2key="wifiEnabled" onchange="if(this.checked == true){$('.wifi').css('display', 'block');$('.wifihot').css('display', 'block');} else {$('.wifi').css('display', 'none');$('.wifihot').css('display', 'block');}" unchecked/>{{Activer le wifi}}</label>
 				</div>
+				<br />
+				<div class="col-lg-2">
+				</div>
+					<div class="form-group wifihot" style="display:none">
+						<label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr ipfixwifienabled" data-l1key="configuration" data-l2key="hotspotEnabled" onchange="if(this.checked == true){$('.wifihotspot').css('display', 'block');} else {$('.wifihotspot').css('display', 'none');}" unchecked/>{{Activer le hotspot}}</label>
+					</div>
+					<div class="form-group wifihotspot" style="display:none">
+						<br />
+							<label class="col-lg-2 control-label">{{Ssid du hotspot}}</label>
+							<div class="col-lg-6">
+									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="ssidHotspot" />
+							</div>
+					</div>
+					<div class="form-group wifihotspot" style="display:none">
+							<label class="col-lg-2 control-label">{{Clef du hotspot}}</label>
+							<div class="col-lg-5">
+									 <input type="password" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="mdpHotspot" />
+							</div>
+					</div>
                 <div class="form-group wifi" style="display:none">
+									<br />
                     <label class="col-lg-2 control-label">{{Réseau wifi}}</label>
                     <div class="col-lg-8">
                         <select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="wifiSsid" ></select>

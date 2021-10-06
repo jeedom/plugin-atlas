@@ -15,5 +15,7 @@ echo 50 > ${PROGRESS_FILE}
 sudo apt-get install -y cloud-guest-utils
 echo 60 > ${PROGRESS_FILE}
 sudo apt-get install -y ethtool
+echo 70 > ${PROGRESS_FILE}
+sudo apt-get install -y hostapd dnsmasq
 rm ${PROGRESS_FILE}
 echo "Everything is successfully installed!"

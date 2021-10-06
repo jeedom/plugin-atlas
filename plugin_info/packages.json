@@ -2,7 +2,9 @@
   "apt" : {
     "rsync" : {},
     "cloud-guest-utils" : {},
-    "ethtool": {}
+    "ethtool": {},
+    "hostapd": {},
+    "dnsmasq": {}
   },
   "post-install" : {}
 }

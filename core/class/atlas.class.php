@@ -422,10 +422,12 @@ public static function cron5($_eqlogic_id = null) {
 
 	public static function start() {
 		log::add('atlas','debug','Jeedom started checking all connections');
-		foreach (eqLogic::byType('atlas') as $atlas) {
-			$atlas->wifiConnect();
-		}
+
     atlas::securityIp();
+		$atlas = eqLogic::byLogicalId('wifi','atlas');
+    if(is_object(atlas)){
+      $atlas->wifiConnect();
+    }
 	}
 
   /* ----- WIFI ----- */
@@ -492,7 +494,16 @@ public static function cron5($_eqlogic_id = null) {
 
 	public function wifiConnect() {
 		if ($this->getConfiguration('wifiEnabled') == true){
-			$ssid = $this->getConfiguration('wifiSsid','');
+      if($this->getConfiguration('hotspotEnabled') == true){
+        atlas::activeHotSpot();
+        $ssid = 'JeedomAtlas';
+        $this->setConfiguration('wifiSsid', 'JeedaomAtlas');
+        $this->setConfiguration('dns', 'wlan0');
+        $this->setConfiguration('forwardingIPV4',true);
+        $this->save();
+      }else{
+        $ssid = $this->getConfiguration('wifiSsid','');
+      }
 			if (self::isWificonnected($ssid) === false) {
 				log::add('atlas','debug','Not Connected to ' . $ssid . '. Connecting ...');
 				shell_exec("sudo ip link set wlan0");
@@ -513,9 +524,74 @@ public static function cron5($_eqlogic_id = null) {
 			log::add('atlas','debug','Executing sudo nmcli dev disconnect wlan0');
 			shell_exec('sudo nmcli dev disconnect wlan0');
 		}
+    atlas::forwardingIPV4();
+    atlas::dnscreate();
 	}
 
 /* ----- FIN WIFI ----- */
+
+/* ----- HotSpot ----- */
+
+public static function activeHotSpot() {
+
+  $atlas = eqLogic::byLogicalId('wifi','atlas');
+  if(!is_object(atlas)){
+    return;
+  }
+
+  $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas');
+  $mdp = $atlas->getConfiguration('mdpHotspot', 'jeedomatlas');
+
+  if(atlas::isWifiProfileexist('JeedomAtlas') == false){
+    shell_exec('sudo nmcli c add type wifi ifname wlan0 con-name JeedomAtlas autoconnect no ssid '+$ssid);
+  }
+
+  shell_exec('sudo nmcli connection modify JeedomAtlas 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared ipv4.address1=10.1.40.1/24');
+  shell_exec('sudo nmcli connection modify JeedomAtlas wifi-sec.key-mgmt wpa-psk');
+  shell_exec('sudo nmcli connection modify JeedomAtlas wifi-sec.psk "'.$mdp.'"');
+}
+
+public static function forwardingIPV4(){
+  $atlas = eqLogic::byLogicalId('wifi','atlas');
+
+  if(is_object(atlas)){
+    $active = $atlas->getConfiguration('forwardingIPV4', false);
+  }else{
+    $active = false;
+  }
+
+  if($active == true){
+    log::add('atlas', 'debug', 'active le forwarding entre le wifi et eth');
+    shell_exec("sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf");
+    shell_exec("sudo sysctl -p");
+  }else{
+    log::add('atlas', 'debug', 'desactivation du forwarding entre le wifi et eth');
+    shell_exec("sudo sed -i 's/net.ipv4.ip_forward=1/#net.ipv4.ip_forward=1/' /etc/sysctl.conf");
+    shell_exec("sudo sysctl -p");
+  }
+}
+
+public static function dnscreate(){
+
+  $atlas = eqLogic::byLogicalId('wifi','atlas');
+  if(is_object(atlas)){
+    $type = $atlas->getConfiguration('dns', 'desactivated');
+  }else{
+    $type = 'desactivated';
+  }
+
+  if($type == 'desactivated'){
+    log::add('atlas', 'debug', 'Désactivation du DHCP');
+    shell_exec('sudo service stop dnsmasq');
+  }else{
+    log::add('atlas', 'debug', 'Configuration du DHCP');
+    shell_exec('sudo service stop dnsmasq');
+    shell_exec("sudo cp var/www/html/plugins/atlas/data/hotspot/dnsmasq'.$type.'.conf /etc/dnsmasq.conf");
+    shell_exec('sudo service start dnsmasq');
+  }
+}
+
+/* ----- FIN ----- */
 
 	public function postSave() {
 		$connect = $this->getCmd(null, 'connect');
