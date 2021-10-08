@@ -4,7 +4,10 @@
     "cloud-guest-utils" : {},
     "ethtool": {},
     "hostapd": {},
-    "dnsmasq": {}
+    "dnsmasq": {},
+    "wireless-tools": {},
+    "iw": {},
+    "wvdial": {}
   },
   "post-install" : {}
 }

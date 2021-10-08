@@ -182,3 +182,41 @@ $('#bt_USBrecovery').off('click').on('click', function () {
 $('#bt_recovery').off('click').on('click', function () {
 	$('#md_modal').dialog({title: "{{Lancement Recovery}}"}).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&typeDemande=emmc').dialog('open');
 });
+
+$('#wifiEnabledCheck').change(function () {
+	if(this.checked == true){
+		$('.wifi').css('display', 'block');
+		$('.wifihot').css('display', 'block');
+	} else {
+		$('.wifi').css('display', 'none');
+		$('.wifihot').css('display', 'none');
+		$('#hotspotEnabledCheck').prop('checked', false);
+		$('.wifihotspot').css('display', 'none');
+		$('.nohotspot').prop('disabled', false);
+		$('#dnsDesactivated').prop('selected', true);
+	}
+});
+
+$('#hotspotEnabledCheck').change(function () {
+	if(this.checked == true){
+		$('.wifihotspot').css('display', 'block');
+		$('.nohotspot').prop('disabled', true);
+		$('#dnsWlan0').prop('disabled',false);
+		$('#dnsEth0').prop('disabled',true);
+		$( "#dnsSelect option:selected" ).each(function() {
+    	if($(this).val() == 'eth0' || $(this).val() == 'desactivated'){
+				$('#dnsWlan0').prop('selected', true);
+			}
+    });
+	} else {
+		$('.wifihotspot').css('display', 'none');
+		$('.nohotspot').prop('disabled', false);
+		$('#dnsWlan0').prop('disabled',true);
+		$('#dnsEth0').prop('disabled',false);
+		$( "#dnsSelect option:selected" ).each(function() {
+    	if($(this).val() == 'wlan0'){
+				$('#dnsDesactivated').prop('selected', true);
+			}
+    });
+	}
+});
