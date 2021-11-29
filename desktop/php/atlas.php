@@ -19,7 +19,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 				<br>
 				<span>{{Configuration}}</span>
 			</div>
-			<?php
+						<?php
 			$hostname = trim(shell_exec('cat /etc/hostname'));
 			
 			if($hostname == 'JeedomAtlas'){ ?>
@@ -28,9 +28,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 				<br>
 				<span>{{Création clé Recovery (BETA)}}</span>
 			</div>
-			<?php }
-			
-				if(strpos($hostname,'JeedomAtlasRecovery') != false){ ?>
+			<?php }else if(strpos($hostname,'JeedomAtlasRecovery') !== false){ ?>
 				<div class="cursor logoSecondary" id="bt_recovery">
 					<i class="fas fa-clone"></i>
 					<br>
