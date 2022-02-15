@@ -67,7 +67,14 @@ if($methode == 'testtest'){
 if($methode == 'activeHotSpot'){
 	$atlas = eqLogic::byLogicalId('wifi','atlas');
 	$atlas->setConfiguration('hotspotEnabled', true);
-	atlas::activeHotSpot();
+	if($params['ssidHotspot']){
+		$atlas->setConfiguration('ssidHotspot', $params['ssidHotspot']);
+	}
+	if($params['mdpHotspot']){
+		$atlas->setConfiguration('mdpHotspot', $params['mdpHotspot']);
+	}
+	$atlas->save();
+	atlas::testHotspot();
 	$jsonrpc->makeSuccess();
 }
 
