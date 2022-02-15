@@ -64,5 +64,12 @@ if($methode == 'testtest'){
   log::add('atlas', 'debug', 'TEST OU PAS');
 }
 
+if($methode == 'activeHotSpot'){
+	$atlas = eqLogic::byLogicalId('wifi','atlas');
+	$atlas->setConfiguration('hotspotEnabled', true);
+	atlas::activeHotSpot();
+	$jsonrpc->makeSuccess();
+}
+
 throw new Exception(__('Aucune demande', __FILE__));
 ?>

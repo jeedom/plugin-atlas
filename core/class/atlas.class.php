@@ -543,6 +543,9 @@ public static function activeHotSpot() {
   $linkForHotspot = __DIR__ . '/../../resources/lnxrouter';
   $wlanLink = 'wlan0';
   $atlas = eqLogic::byLogicalId('wifi','atlas');
+  $interfaceInfo = atlas::getMac();
+  $macAddress = $interfaceInfo[1];
+  $wifiPostFix = substr($macAddress, -4);
   if(!is_object($atlas)){
     log::add('atlas', 'debug', 'erreur 1 hotspot');
     return;
@@ -559,10 +562,10 @@ public static function activeHotSpot() {
     log::add('atlas','debug','Hotspot > '.$log);
     $atlas->setConfiguration('dns', 'wlan0');
     $atlas->setConfiguration('forwardingIPV4', true);
-    $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas');
+    $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas'.$wifiPostFix);
     $mdp = $atlas->getConfiguration('mdpHotspot', 'jeedomatlas');
-    if($ssid == 'JeedomAtlas'){
-      $atlas->setConfiguration('ssidHotspot', 'JeedomAtlas');
+    if($ssid == 'JeedomAtlas'.$wifiPostFix){
+      $atlas->setConfiguration('ssidHotspot', 'JeedomAtlas'.$wifiPostFix);
     }
     if($mdp == 'jeedomatlas'){
       $atlas->setConfiguration('mdpHotspot', 'jeedomatlas');
