@@ -32,6 +32,7 @@ class atlas extends eqLogic {
       $return = array();
       $return['progress_file'] = jeedom::getTmpFolder('atlas') . '/dependance';
       $return['state'] = 'ok';
+      log::add('atlas','debug','sys > '.system::getCmdSudo() . system::get('cmd_check') . '-E "rsync|cloud\-guest\-utils" | wc -l');
       if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "rsync|cloud\-guest\-utils" | wc -l') < 4) {
 			     $return['state'] = 'nok';
 		  }
@@ -259,6 +260,7 @@ public static function downloadImage(){
     }
 		$url = $urlArray['url'];
 		$size = $urlArray['SHA256'];
+    //$size = 'a0159ba90745ba72822bc3fc1e6aa2943ae0dccff545b9dcf20e17a4898fe751';
     log::add('atlas', 'debug', 'IN DOWNALOAD > '.$size);
 		exec('sudo pkill -9 wget');
     $path_imgOs = '/var/www/html/data/imgOs';
@@ -526,8 +528,20 @@ public static function cron5($_eqlogic_id = null) {
 
 /* ----- HotSpot ----- */
 
+public function testHotspot() {
+  $linkForHotspot = __DIR__ . '/../../resources/lnxrouter';
+  if($this->getConfiguration('hotspotEnabled') == true){
+    $pid = shell_exec("sudo bash ".$linkForHotspot." -l");
+    if($pid != ""){
+      atlas::activeHotSpot();
+    }
+  }
+}
+
 public static function activeHotSpot() {
   log::add('atlas', 'debug', 'activation du hotspot detecté');
+  $linkForHotspot = __DIR__ . '/../../resources/lnxrouter';
+  $wlanLink = 'wlan0';
   $atlas = eqLogic::byLogicalId('wifi','atlas');
   if(!is_object($atlas)){
     log::add('atlas', 'debug', 'erreur 1 hotspot');
@@ -540,88 +554,34 @@ public static function activeHotSpot() {
 
     shell_exec('sudo nmcli dev disconnect wlan0');
     shell_exec('sudo systemctl daemon-reload');
-    shell_exec("sudo service hostapd stop");
-
+    $pid = shell_exec("sudo bash ".$linkForHotspot." -l");
+    $log = shell_exec("sudo bash ".$linkForHotspot." --stop ".$pid." > /dev/null 2>&1");
+    log::add('atlas','debug','Hotspot > '.$log);
     $atlas->setConfiguration('dns', 'wlan0');
     $atlas->setConfiguration('forwardingIPV4', true);
-    $atlas->save();
-
     $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas');
     $mdp = $atlas->getConfiguration('mdpHotspot', 'jeedomatlas');
+    if($ssid == 'JeedomAtlas'){
+      $atlas->setConfiguration('ssidHotspot', 'JeedomAtlas');
+    }
+    if($mdp == 'jeedomatlas'){
+      $atlas->setConfiguration('mdpHotspot', 'jeedomatlas');
+    }
+    $atlas->save();
 
     log::add('atlas', 'debug', 'mise en plance du Profils Hotspot');
-    shell_exec('sudo ifconfig wlan0 up');
-    shell_exec('sudo ifconfig wlan0 10.1.40.1/24');
-    shell_exec('sudo sed -i \'s#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#\' /etc/init.d/hostapd');
-    shell_exec("sudo cp /var/www/html/plugins/atlas/data/hotspot/hostapd.conf /etc/hostapd/hostapd.conf");
-
-    shell_exec("sudo sed -i 's/channel=1/channel=11/' /etc/hostapd/hostapd.conf");
-    shell_exec("sudo sed -i 's/ssid=WiFiAP/ssid=".$ssid."/' /etc/hostapd/hostapd.conf");
-    shell_exec("sudo sed -i 's/wpa_passphrase=YOUR_PASSWORD/wpa_passphrase=".$mdp."/' /etc/hostapd/hostapd.conf");
-
-    shell_exec("sudo service hostapd start");
-    atlas::forwardingIPV4();
-    atlas::dnscreate();
+    log::add('atlas','debug','Hotspot > '.$log);
+    $log = shell_exec('sudo bash '.$linkForHotspot.' --daemon --ap '.$wlanLink.' '.$ssid.' -p '.$mdp.' > /dev/null 2>&1');
+    log::add('atlas','debug','Hotspot > '.$log);
   }else{
     shell_exec('sudo systemctl daemon-reload');
     shell_exec('sudo ifconfig wlan0 up');
-    shell_exec("sudo service hostapd stop");
-    atlas::forwardingIPV4();
-    atlas::dnscreate();
+    $pid = shell_exec("sudo bash ".$linkForHotspot." -l");
+    $log = shell_exec("sudo bash ".$linkForHotspot." --stop ".$pid." > /dev/null 2>&1");
   }
 }
 
-public static function forwardingIPV4(){
-  log::add('atlas', 'debug','Forwarding IPV4 demandé.');
-  $atlas = eqLogic::byLogicalId('wifi','atlas');
 
-  if(is_object($atlas)){
-    $active = $atlas->getConfiguration('forwardingIPV4', false);
-    $type = $atlas->getConfiguration('dns', 'desactivated');
-  }else{
-    log::add('atlas', 'debug', 'erreur 1 forwarding');
-    $active = false;
-  }
-
-  if($active == true){
-    log::add('atlas', 'debug', 'active le forwarding entre le wifi et eth');
-    shell_exec("sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf");
-    shell_exec("sudo iptables -t nat -F");
-    shell_exec("sudo iptables -F");
-    if($type == 'wlan0' || $type == 'desactivated'){
-      shell_exec("sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE");
-      shell_exec("sudo iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT");
-    }else{
-      shell_exec("sudo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE");
-      shell_exec("sudo iptables -A FORWARD -i eth0 -o wlan0 -j ACCEPT");
-    }
-  }else{
-    log::add('atlas', 'debug', 'desactivation du forwarding entre le wifi et eth');
-    shell_exec("sudo sed -i 's/net.ipv4.ip_forward=1/#net.ipv4.ip_forward=1/' /etc/sysctl.conf");
-  }
-  shell_exec("sudo sysctl -p /etc/sysctl.conf");
-}
-
-public static function dnscreate(){
-  log::add('atlas', 'debug','dnscreate lancé.');
-  $atlas = eqLogic::byLogicalId('wifi','atlas');
-  if(is_object($atlas)){
-    $type = $atlas->getConfiguration('dns', 'desactivated');
-  }else{
-    log::add('atlas', 'debug', 'erreur 1 dns');
-    $type = 'desactivated';
-  }
-
-  if($type == 'desactivated'){
-    log::add('atlas', 'debug', 'Désactivation du DHCP');
-    shell_exec('sudo service dnsmasq stop');
-  }else{
-    log::add('atlas', 'debug', 'Configuration du DHCP');
-    shell_exec('sudo service dnsmasq stop');
-    shell_exec("sudo cp /var/www/html/plugins/atlas/data/hotspot/dnsmasq".$type.".conf /etc/dnsmasq.conf");
-    shell_exec('sudo service dnsmasq start');
-  }
-}
 
 /* ----- FIN ----- */
 

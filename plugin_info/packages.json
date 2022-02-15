@@ -5,9 +5,13 @@
     "ethtool": {},
     "hostapd": {},
     "dnsmasq": {},
-    "wireless-tools": {},
+    "procps": {},
+    "iproute2": {},
+    "iptables" : {},
+    "hostapd" : {},
     "iw": {},
-    "wvdial": {}
+    "haveged": {},
+    "qrencode": {}
   },
   "post-install" : {}
 }
