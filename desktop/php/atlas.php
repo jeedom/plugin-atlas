@@ -21,7 +21,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 			</div>
 						<?php
 			$hostname = trim(shell_exec('cat /etc/hostname'));
-			
+
 			if($hostname == 'JeedomAtlas'){ ?>
 			<div class="cursor logoSecondary" id="bt_USBrecovery">
 				<i class="fab fa-usb"></i>
@@ -143,7 +143,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									 <input type="password" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="mdpHotspot" />
 							</div>
 					</div>
-					<div class="form-group wifi" style="display:none">
+					<div class="form-group" style="display:none">
 						<br />
 							<label class="col-lg-2 control-label">{{DHCP Hotspot :}}</label>
 							<div class="col-lg-5">
