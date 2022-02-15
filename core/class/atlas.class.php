@@ -545,7 +545,8 @@ public static function activeHotSpot() {
   $atlas = eqLogic::byLogicalId('wifi','atlas');
   $interfaceInfo = atlas::getMac();
   $macAddress = $interfaceInfo[1];
-  $wifiPostFix = substr($macAddress, -4);
+  $strMac = str_replace(':', '', $macAddress);
+  $wifiPostFix = substr($strMac, -4);
   if(!is_object($atlas)){
     log::add('atlas', 'debug', 'erreur 1 hotspot');
     return;
@@ -562,13 +563,13 @@ public static function activeHotSpot() {
     log::add('atlas','debug','Hotspot > '.$log);
     $atlas->setConfiguration('dns', 'wlan0');
     $atlas->setConfiguration('forwardingIPV4', true);
-    $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas'.$wifiPostFix);
-    $mdp = $atlas->getConfiguration('mdpHotspot', 'jeedomatlas');
-    if($ssid == 'JeedomAtlas'.$wifiPostFix){
-      $atlas->setConfiguration('ssidHotspot', 'JeedomAtlas'.$wifiPostFix);
+    $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas-'.$wifiPostFix);
+    $mdp = $atlas->getConfiguration('mdpHotspot', $strMac);
+    if($ssid == 'JeedomAtlas-'.$wifiPostFix){
+      $atlas->setConfiguration('ssidHotspot', 'JeedomAtlas-'.$wifiPostFix);
     }
-    if($mdp == 'jeedomatlas'){
-      $atlas->setConfiguration('mdpHotspot', 'jeedomatlas');
+    if($mdp == $strMac){
+      $atlas->setConfiguration('mdpHotspot', $strMac);
     }
     $atlas->save();
 
