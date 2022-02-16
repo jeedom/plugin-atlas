@@ -55,7 +55,7 @@
         "Clef du hotspot": "Hotspot key",
         "DHCP Hotspot :": "DHCP Hotspot:",
         "Désactivé": "Deactivated",
-        "Wifi Hotspot": "Wifi Hotspot",
+        "Wifi Hotspot": "Wi-Fi Hotspot",
         "Ethernet Hotspot": "Ethernet Hotspot",
         "Réseau wifi": "Wifi network",
         "Clef": "Key",
@@ -104,7 +104,7 @@
         "Etat Wifi": "Wifi status",
         "Signal": "Signal",
         "Lan IP": "Lan IP",
-        "Wifi IP": "Wifi IP",
+        "Wifi IP": "Wi-Fi IP",
         "SSID": "SSID",
         "Rafraichir": "Refresh"
     },
