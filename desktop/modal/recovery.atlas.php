@@ -218,7 +218,7 @@ if (!isConnect()) {
                 return {'text':'{{Création en cours... (environs 15 minutes)}}', 'type':'progress'};
                 break;
                case 'errorDd':
-                return {'text':'{{erreur lors de la migtation}}', 'type':'error'};
+                return {'text':'{{Erreur lors de la migration}}', 'type':'error'};
                 break;
                 case 'upload':
                  return {'text':'{{Téléchargement de l\'image Jeedom}}', 'type':'progress'};
