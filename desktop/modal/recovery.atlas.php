@@ -203,7 +203,7 @@ if (!isConnect()) {
        function textMigration(text){
          switch (text) {
            case 'errorTarget':
-            return {'text':'{{Erreur pas de cible trouvé (usb ou emmc)}}', 'type':'error'};
+            return {'text':'{{Erreur pas de cible trouvée (usb ou emmc)}}', 'type':'error'};
             break;
             case 'emmc':
              return {'text':'{{Lancement de la migration vers la mémoire interne}}', 'type':'start'};
