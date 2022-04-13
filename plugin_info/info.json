@@ -2,7 +2,7 @@
     "id": "atlas",
     "name": "Atlas",
     "description": {
-        "fr_FR": "Plugins spécialisé pour la Atlas",
+        "fr_FR": "Plugin spécialisé pour la box Jeedom Atlas.",
         "en_US": "Specialized plugins for the Atlas",
         "es_ES": "Complementos especializados para Atlas",
         "de_DE": "Spezialisierte Plugins für den Atlas",
