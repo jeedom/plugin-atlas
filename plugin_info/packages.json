@@ -11,7 +11,8 @@
     "hostapd" : {},
     "iw": {},
     "haveged": {},
-    "qrencode": {}
+    "qrencode": {},
+    "network-manager": {}
   },
   "post-install" : {}
 }
