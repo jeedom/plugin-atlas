@@ -39,7 +39,7 @@ if (!isConnect()) {
     $('.textAtlas').text('{{Vous pouvez démarrer la restauration de votre box Jeedom Atlas.}}');
   } else if (typeDemande == 'usb') {
     startDemande = 'startUSB'
-    $('.textAtlas').text('{{Veuillez brancher une clé USB > à 10Go (port USB noir de droite).}}');
+    $('.textAtlas').text('{{Veuillez brancher une clé USB supérieure à 10Go (port USB noir de droite).}}');
   }
 
   function logDownload() {
