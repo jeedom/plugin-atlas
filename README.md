@@ -1,3 +1,3 @@
 # Plugin Atlas
 
-Ce "plugin" sert à utiliser tous les modules en plus de la **Atlas** (Wifi, Recovery, hotspot).
+Ce "plugin" sert à utiliser tous les modules supplémentaires de l'**Atlas** (Wifi, Recovery, hotspot).
