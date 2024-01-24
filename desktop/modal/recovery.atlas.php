@@ -39,7 +39,7 @@ if (!isConnect()) {
     $('.textAtlas').text('{{Vous pouvez démarrer la restauration de votre box Jeedom Atlas.}}');
   } else if (typeDemande == 'usb') {
     startDemande = 'startUSB'
-    $('.textAtlas').text('{{Veuillez brancher une clé USB de plus de 10Go.}}');
+    $('.textAtlas').text('{{Veuillez brancher une clé USB > à 10Go (port USB noir de droite).}}');
   }
 
   function logDownload() {
@@ -203,7 +203,7 @@ if (!isConnect()) {
     switch (text) {
       case 'errorTarget':
         return {
-          'text': '{{Erreur : un support n\'a pas été détecté (USB ou EMMC).}}', 'type': 'error'
+          'text': '{{Erreur : Pas de support détecté (USB ou EMMC).}}', 'type': 'error'
         };
         break;
       case 'emmc':
@@ -218,7 +218,7 @@ if (!isConnect()) {
         break;
       case 'verifdd':
         return {
-          'text': '{{Vérification de l\'image Jeedom.}}', 'type': 'start'
+          'text': '{{Vérification de l'image Jeedom.}}', 'type': 'start'
         };
         break;
       case 'dd':
@@ -233,7 +233,7 @@ if (!isConnect()) {
         break;
       case 'upload':
         return {
-          'text': '{{Téléchargement de l\'image Jeedom.}}', 'type': 'progress'
+          'text': '{{Téléchargement de l'image Jeedom.}}', 'type': 'progress'
         };
         break;
       case 'finalUSB':
@@ -267,7 +267,7 @@ if (!isConnect()) {
       $('#div_progressbar').addClass('progress-bar-danger');
       $('#div_progressbar').width('100%');
       $('#div_progressbar').attr('aria-valuenow', 100);
-      $('#div_progressbar').html('{{Erreur : veuillez fermer puis relancer la demande.}}');
+      $('#div_progressbar').html('{{Erreur : Veuillez fermer puis relancer la demande.}}');
       return;
     }
     if (ProgressPourcent == 100) {
@@ -344,13 +344,13 @@ if (!isConnect()) {
   });
   $('#bt_redemarrer').off('click').on('click', function() {
     $('#bt_redemarrer').hide();
-    $('.textAtlas').text('{{Redémarrage en cours, vous serez automatiquement redirigés vers la page de connexion quand la box sera de nouveau opérationnelle.}}');
+    $('.textAtlas').text('{{Redémarrage en cours, vous serez automatiquement redirigé vers la page de connexion quand la box Atlas sera de nouveau opérationnelle.}}');
     redirectIP('jeedomatlasrecovery.local')
     jeedom.rebootSystem();
   });
   $('#bt_arreter').off('click').on('click', function() {
     $('#bt_arreter').hide();
-    $('.textAtlas').text('{{Arrêt effectué, veuillez retirer la clé USB puis débrancher et rebrancher électriquement la box Jeedom Atlas. Vous serez automatiquement redirigés vers la page de connexion quand la box sera de nouveau opérationnelle.}}');
+    $('.textAtlas').text('{{Arrêt effectué, veuillez retirer la clé USB puis débrancher et rebrancher électriquement la box Jeedom Atlas. Vous serez automatiquement redirigé vers la page de connexion quand la box Atlas sera de nouveau opérationnelle.}}');
     redirectIP('jeedomatlas.local')
     jeedom.haltSystem();
   });
@@ -362,7 +362,7 @@ if (!isConnect()) {
     new ping(ip, function(status, e) {
       console.log(status);
       if (redirect == 100) {
-        $('.textAtlas').text('{{Impossible de trouver la box sur le réseau suite au redémarrage...}}');
+        $('.textAtlas').text('{{Impossible de trouver la box Atlas sur le réseau suite au redémarrage...}}');
         progress(-1);
       } else {
         progress(redirect);
