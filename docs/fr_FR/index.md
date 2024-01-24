@@ -12,7 +12,7 @@ Pour le moment, le plugin prend en compte uniquement les accès avec DHCP.
 > Recovery (BETA)
 
 Vous devez brancher une clé usb de plus de 10Go dans le port USB de droite (Noir) en bas. une fois fait vous pouvez lancer le recovery de la clé et suivre les instructions affichées à l'écran.
-Cela permet à votre Atlas de se lancer sur cette clé USB. Vous avez du coup accès à votre Atlas recovery mode sur http://jeedomatlasrecovery.local. il suffira de rensigner l'utilisateur: admin ainsi que le mot de passe: admin.Ensuite, il faudra reinseigner correctement votre compte market pour que votre Atlas recovery puisse restaurer la mémoire interne de la box (eMCC). il vous suffit de suivre les instructions indiquées à l'écran.
+Cela permet à votre Atlas de se lancer sur cette clé USB. Vous avez du coup accès à votre Atlas recovery mode sur http://jeedomatlasrecovery.local. il suffira de rensigner l'utilisateur: admin ainsi que le mot de passe: admin.Ensuite, il faudra reinseigner correctement votre compte market pour que votre Atlas recovery puisse restaurer sur la mémoire interne de la box (eMMC). il vous suffit de suivre les instructions indiquées à l'écran.
 > Important: Depuis janvier 2024, l'image qui sera installée contient Debian 11 ainsi que le Core Jeedom en version 4.3.21
 > 
 > Une question?, n'hésitez pas à vous rendre sur <a href="https://community.jeedom.com/" target="_blank">Community</a>
