@@ -65,7 +65,7 @@ class atlas extends eqLogic {
   public static function startMigration($target = 'emmc') {
     log::clear('migrate');
     log::clear('downloadImage');
-    config::save('migrationText', 'Prélancement');
+    config::save('migrationText', 'prelancement');
     config::save('migration', 0);
     config::save('migrationTextfine', __('Détection en cours...', __FILE__));
     sleep(5);
@@ -74,7 +74,7 @@ class atlas extends eqLogic {
     if (file_exists('/dev/mmcblk2') && $target == 'emmc') {
       $path_target = '/dev/mmcblk2';
       config::save('migrationText', 'emmc');
-      config::save('migrationTextfine', __('Support EMMC détecté sur mmcblk2.', __FILE__));
+      config::save('migrationTextfine', __('Support eMMC détecté sur mmcblk2.', __FILE__));
       sleep(3);
       if (atlas::ddImg($path_target)) {
         sleep(3);
