@@ -236,9 +236,9 @@ class atlas extends eqLogic {
   }
 
   public static function marketImg($text = true) {
-    log::add(__CLASS__, 'debug', __('Demande d'informations au Market.', __FILE__));
+    log::add(__CLASS__, 'debug', __('Informations démandées au Market.', __FILE__));
     if ($text == true) {
-      config::save('migrationTextfine', __('Demande d'informations au Market.', __FILE__));
+      config::save('migrationTextfine', __('Informations demandées au Market.', __FILE__));
       sleep(2);
     }
     $jsonrpc = repo_market::getJsonRpc();
