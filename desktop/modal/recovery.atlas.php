@@ -39,7 +39,7 @@ if (!isConnect()) {
     $('.textAtlas').text('{{Vous pouvez démarrer la restauration de votre box Jeedom Atlas.}}');
   } else if (typeDemande == 'usb') {
     startDemande = 'startUSB'
-    $('.textAtlas').text('{{Veuillez brancher une clé USB supérieure à 10Go (port USB noir de droite).}}');
+    $('.textAtlas').text('{{Veuillez brancher (sur le port noir du bas à droite) une clé USB supérieure à 10Go.}}');
   }
 
   function logDownload() {
@@ -208,7 +208,7 @@ if (!isConnect()) {
         break;
       case 'emmc':
         return {
-          'text': '{{Démarrage de migration vers la mémoire interne.}}', 'type': 'start'
+          'text': '{{Démarrage de la migration vers la mémoire interne.}}', 'type': 'start'
         };
         break;
       case 'usb':
@@ -218,7 +218,7 @@ if (!isConnect()) {
         break;
       case 'verifdd':
         return {
-          'text': '{{Vérification de l'image Jeedom.}}', 'type': 'start'
+          'text': '{{Image Jeedom en cours de vérification.}}', 'type': 'start'
         };
         break;
       case 'dd':
@@ -233,7 +233,7 @@ if (!isConnect()) {
         break;
       case 'upload':
         return {
-          'text': '{{Téléchargement de l'image Jeedom.}}', 'type': 'progress'
+          'text': '{{Image Jeedom en cours de téléchargement.}}', 'type': 'progress'
         };
         break;
       case 'finalUSB':
