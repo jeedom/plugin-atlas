@@ -120,7 +120,7 @@ class atlas extends eqLogic {
     }
     shell_exec('sudo umount /mnt/usb');
     log::add(__CLASS__, 'debug', 'FSDISK -d');
-    config::save('migrationTextfine', __('Espace de stockage en cours de vérification.', __FILE__));
+    config::save('migrationTextfine', __('Capacité de stockage en cours de vérification.', __FILE__));
     sleep(2);
     shell_exec('sudo sfdisk -d ' . $devusb . ' > sda_partition_bak.dmp');
     config::save('migration', 110);
