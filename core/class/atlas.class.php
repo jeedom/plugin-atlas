@@ -120,7 +120,7 @@ class atlas extends eqLogic {
     }
     shell_exec('sudo umount /mnt/usb');
     log::add(__CLASS__, 'debug', 'FSDISK -d');
-    config::save('migrationTextfine', __('Vérification de l'espace de stockage.', __FILE__));
+    config::save('migrationTextfine', __('Espace de stockage en cours de vérification.', __FILE__));
     sleep(2);
     shell_exec('sudo sfdisk -d ' . $devusb . ' > sda_partition_bak.dmp');
     config::save('migration', 110);
@@ -147,7 +147,7 @@ class atlas extends eqLogic {
       shell_exec('sudo mkdir /mnt/usb/var/www/html/data/imgOs');
     } else {
       if (file_exists('/mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz')) {
-        config::save('migrationTextfine', __('Suppression de l'ancienne image Jeedom.', __FILE__));
+        config::save('migrationTextfine', __('Ancienne image Jeedom en cours de suppression.', __FILE__));
         sleep(2);
         shell_exec('sudo rm /mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz');
       }
@@ -171,8 +171,8 @@ class atlas extends eqLogic {
     shell_exec('sudo cp /var/www/html/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb/var/www/html/' . $ini_array['product_connection_image']);
     config::save('migration', 150);
     log::add(__CLASS__, 'debug', '--------------');
-    log::add(__CLASS__, 'debug', __('Ajout de l'image Jeedom Atlas sur la clé USB.', __FILE__));
-    config::save('migrationTextfine', __('Ajout de l'image Jeedom Atlas sur la clé USB.', __FILE__));
+    log::add(__CLASS__, 'debug', __('Image Jeedom Atlas ajoutée sur la clé USB.', __FILE__));
+    config::save('migrationTextfine', __('Image Jeedom Atlas ajoutée sur la clé USB.', __FILE__));
     sleep(2);
     shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlas.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz');
     log::add(__CLASS__, 'debug', 'Fin');
@@ -191,7 +191,7 @@ class atlas extends eqLogic {
     config::save('migration', 120);
     shell_exec('sudo umount /mnt/usb');
     log::add(__CLASS__, 'debug', 'FSDISK -d');
-    config::save('migrationTextfine', __('Vérification de l'espace de stockage.', __FILE__));
+    config::save('migrationTextfine', __('Espace de stockage en cours de vérification.', __FILE__));
     sleep(2);
     shell_exec('sudo sfdisk -d ' . $devemmc . ' > mmcblk1_partition_bak.dmp');
     log::add(__CLASS__, 'debug', __('Création de la partition.', __FILE__));
@@ -224,7 +224,7 @@ class atlas extends eqLogic {
     if (atlas::downloadImage()) {
       config::save('migrationText', 'dd');
       sleep(3);
-      config::save('migrationTextfine', __('Gravure de l'image.', __FILE__));
+      config::save('migrationTextfine', __('Image en cours de gravure.', __FILE__));
       log::add(__CLASS__, 'debug', '(sudo cat /var/www/html/data/imgOs/jeedomAtlas.img.gz | sudo gunzip | sudo dd of=' . $target . ' bs=512 status=progress) > ' . log::getPathToLog('migrate') . ' 2>&1');
       shell_exec('(sudo cat /var/www/html/data/imgOs/jeedomAtlas.img.gz | sudo gunzip | sudo dd of=' . $target . ' bs=512 status=progress) > ' . log::getPathToLog('migrate') . ' 2>&1');
       return true;
@@ -271,8 +271,8 @@ class atlas extends eqLogic {
     $fichier = $path_imgOs . '/jeedomAtlas.img.gz';
     log::add(__CLASS__, 'debug', __('Fichier', __FILE__) . ' > ' . $fichier);
     if (file_exists($fichier)) {
-      log::add(__CLASS__, 'debug', __('Test de l'image (vérification SHA).', __FILE__));
-      config::save('migrationTextfine', __('Test de l'image (vérification SHA).', __FILE__));
+      log::add(__CLASS__, 'debug', __('Image en cours de test (vérification SHA).', __FILE__));
+      config::save('migrationTextfine', __('Image en cours de test (vérification SHA).', __FILE__));
       $sha_256 = hash_file('sha256', $fichier);
       log::add(__CLASS__, 'debug', __('Taille', __FILE__) . ' > ' . $size);
       log::add(__CLASS__, 'debug', __('SHA', __FILE__) . ' > ' . $sha_256);
@@ -292,7 +292,7 @@ class atlas extends eqLogic {
     if ($find == false) {
       config::save('migrationText', 'upload');
       log::add(__CLASS__, 'debug', 'find a False');
-      config::save('migrationTextfine', __('Téléchargement de l'image sur nos serveurs en cours.', __FILE__));
+      config::save('migrationTextfine', __('Image en cours de téléchargement sur nos serveurs.', __FILE__));
       log::add(__CLASS__, 'debug', 'URL > ' . $url);
       log::add(__CLASS__, 'debug', 'shell > sudo wget --progress=dot --dot=mega ' . $url . ' -a ' . log::getPathToLog('downloadImage') . ' -O ' . $path_imgOs . '/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage') . ' 2&>1');
       shell_exec('sudo wget --progress=dot --dot=mega ' . $url . ' -a ' . log::getPathToLog('downloadImage') . ' -O ' . $path_imgOs . '/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage'));
