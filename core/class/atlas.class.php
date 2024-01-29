@@ -253,6 +253,7 @@ class atlas extends eqLogic {
   }
 
   public static function downloadImage() {
+    jeedom:cleanFileSystemRight();
     $urlArray = atlas::marketImg();
     if (!$urlArray) {
       log::add(__CLASS__, 'debug', __('Problème avec le Market.', __FILE__));
@@ -293,6 +294,7 @@ class atlas extends eqLogic {
       config::save('migrationText', 'upload');
       log::add(__CLASS__, 'debug', 'find a False');
       config::save('migrationTextfine', __('Image en cours de téléchargement sur nos serveurs.', __FILE__));
+      jeedom::cleanFileSystemRight();
       log::add(__CLASS__, 'debug', 'URL > ' . $url);
       log::add(__CLASS__, 'debug', 'shell > sudo wget --progress=dot --dot=mega ' . $url . ' -a ' . log::getPathToLog('downloadImage') . ' -O ' . $path_imgOs . '/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage') . ' 2&>1');
       shell_exec('sudo wget --progress=dot --dot=mega ' . $url . ' -a ' . log::getPathToLog('downloadImage') . ' -O ' . $path_imgOs . '/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage'));
