@@ -253,7 +253,7 @@ class atlas extends eqLogic {
   }
 
   public static function downloadImage() {
-    jeedom:cleanFileSystemRight();
+    jeedom::cleanFileSystemRight();
     $urlArray = atlas::marketImg();
     if (!$urlArray) {
       log::add(__CLASS__, 'debug', __('Problème avec le Market.', __FILE__));
