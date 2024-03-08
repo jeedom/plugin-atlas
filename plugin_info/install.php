@@ -18,6 +18,9 @@
 
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
+$filename = '/etc/apt/sources.list.d/armbian.list';
+$cmdArmBian = "sudo sed -i 's/^deb http:\/\/apt.armbian.com/#deb http:\/\/apt.armbian.com/g' $filename";
+
 function atlas_install() {
 	$eqLogic = atlas::byLogicalId('wifi', 'atlas');
 	if (!is_object($eqLogic)) {
@@ -34,6 +37,9 @@ function atlas_install() {
 	foreach (eqLogic::byType('atlas') as $atlas) {
 		$atlas->save();
 	}
+
+	exec($cmdArmBian);
+	exec('apt-get update');
 }
 
 function atlas_update() {
@@ -52,4 +58,7 @@ function atlas_update() {
 	foreach (eqLogic::byType('atlas') as $atlas) {
 		$atlas->save();
 	}
+
+	exec($cmdArmBian);
+	exec('apt-get update');
 }
