@@ -19,7 +19,7 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
 $filename = '/etc/apt/sources.list.d/armbian.list';
-$cmdArmBian = "sudo sed -i 's|^deb http://apt.armbian.com/|#deb http://apt.armbian.com/|g' $filename";
+$cmdArmBian = "sudo sed -i 's|^deb http://apt.armbian.com|#deb http://apt.armbian.com|g' $filename";
 
 function atlas_install() {
 	$eqLogic = atlas::byLogicalId('wifi', 'atlas');
