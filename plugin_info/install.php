@@ -38,6 +38,8 @@ function atlas_install() {
 		$atlas->save();
 	}
 
+	exec('sudo systemctl stop networking');
+	exec('sudo systemctl disable networking');
 	exec($cmdArmBian);
 	exec('apt-get update');
 }
@@ -59,6 +61,8 @@ function atlas_update() {
 		$atlas->save();
 	}
 
+	exec('sudo systemctl stop networking');
+	exec('sudo systemctl disable networking');
 	exec($cmdArmBian);
 	exec('apt-get update');
 }
