@@ -52,7 +52,7 @@ class atlas extends eqLogic {
     foreach ($array as $k => $v) {
       if (is_array($v)) {
         $str .= str_repeat(" ", $i * 2) . "[$k]" . PHP_EOL;
-        $str .= put_ini_file("", $v, $i + 1);
+        $str .= self::put_ini_file("", $v, $i + 1);
       } else
         $str .= str_repeat(" ", $i * 2) . "$k = $v" . PHP_EOL;
     }
@@ -76,9 +76,9 @@ class atlas extends eqLogic {
       config::save('migrationText', 'emmc');
       config::save('migrationTextfine', __('Support eMMC détecté sur mmcblk2.', __FILE__));
       sleep(3);
-      if (atlas::ddImg($path_target)) {
+      if (self::ddImg($path_target)) {
         sleep(3);
-        atlas::recoveryemmcMount($path_target);
+        self::recoveryemmcMount($path_target);
         return 'ok';
       }
       return 'nok';
@@ -87,9 +87,9 @@ class atlas extends eqLogic {
       config::save('migrationText', 'emmc');
       config::save('migrationTextfine', __('Support eMMC détecté sur mmcblk1.', __FILE__));
       sleep(3);
-      if (atlas::ddImg($path_target)) {
+      if (self::ddImg($path_target)) {
         sleep(3);
-        atlas::recoveryemmcMount($path_target);
+        self::recoveryemmcMount($path_target);
         return 'ok';
       }
       return 'nok';
@@ -98,9 +98,9 @@ class atlas extends eqLogic {
       config::save('migrationText', 'usb');
       config::save('migrationTextfine', __('Clé USB détectée sur sda.', __FILE__));
       sleep(3);
-      if (atlas::ddImg($path_target)) {
+      if (self::ddImg($path_target)) {
         sleep(3);
-        atlas::recoveryUsbMount($path_target);
+        self::recoveryUsbMount($path_target);
         return 'ok';
       };
       return 'nok';
@@ -160,7 +160,7 @@ class atlas extends eqLogic {
     $ini_array['product_name'] = 'Jeedom Atlas Recovery';
     $ini_array['path_wizard'] = 'data/custom/atlasRecoveryWizard.json';
     $ini_array['product_connection_image'] = 'core/img/logo-jeedom-atlas-recovery-grand-nom-couleur.svg';
-    atlas::put_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini', $ini_array);
+    self::put_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini', $ini_array);
     config::save('migration', 140);
     log::add(__CLASS__, 'debug', __('Changement du HostName.', __FILE__));
     config::save('migrationTextfine', __('Changement du HostName.', __FILE__));
@@ -221,7 +221,7 @@ class atlas extends eqLogic {
   public static function ddImg($target) {
     log::add(__CLASS__, 'debug', 'IN CREATE LOG');
     config::save('migrationText', 'verifdd');
-    if (atlas::downloadImage()) {
+    if (self::downloadImage()) {
       config::save('migrationText', 'dd');
       sleep(3);
       config::save('migrationTextfine', __('Image en cours de gravure.', __FILE__));
@@ -254,7 +254,7 @@ class atlas extends eqLogic {
 
   public static function downloadImage() {
     jeedom::cleanFileSystemRight();
-    $urlArray = atlas::marketImg();
+    $urlArray = self::marketImg();
     if (!$urlArray) {
       log::add(__CLASS__, 'debug', __('Problème avec le Market.', __FILE__));
       return false;
@@ -310,7 +310,7 @@ class atlas extends eqLogic {
   }
 
   public static function loopPercentage() {
-    $urlArray = atlas::marketImg(false);
+    $urlArray = self::marketImg(false);
     $size = $urlArray['size'];
     $GO = $size;
     $MO = $GO * 1024;
@@ -321,7 +321,7 @@ class atlas extends eqLogic {
     while (config::byKey('migration') < 100) {
       log::add(__CLASS__, 'debug', $level_percentage);
       sleep(1);
-      $level_percentage = atlas::percentageProgress($BytesGlobal);
+      $level_percentage = self::percentageProgress($BytesGlobal);
       if (config::byKey('migration') < 101) {
         config::save('migration', $level_percentage);
       } else {
@@ -372,7 +372,7 @@ class atlas extends eqLogic {
     if ($_eqlogic_id !== null) {
       $eqLogics = array(eqLogic::byId($_eqlogic_id));
     } else {
-      $eqLogics = eqLogic::byType('wifip');
+      $eqLogics = eqLogic::byType('atlas');
     }
     foreach ($eqLogics as $atlas) {
       log::add(__CLASS__, 'debug', 'Pull Cron Atlas');
@@ -425,7 +425,7 @@ class atlas extends eqLogic {
 
   public static function start() {
     log::add(__CLASS__, 'debug', __('Jeedom est démarré, vérification des connexions.', __FILE__));
-    atlas::securityIp();
+    self::securityIp();
     $atlas = eqLogic::byLogicalId('wifi', __CLASS__);
     if (is_object($atlas)) {
       $atlas->wifiConnect();
@@ -448,7 +448,8 @@ class atlas extends eqLogic {
     $countProfile = substr_count($result, $ssid);
     if ($countProfile > 1) {
       log::add(__CLASS__, 'debug', __('Suppression des profils.', __FILE__));
-      shell_exec("nmcli --pretty --fields UUID,TYPE con show | grep wifi | awk '{print $1}' | while read line; do nmcli con delete uuid  $line; done");
+      // $line is generated from shell : while read p; do echo "$p"; done
+      shell_exec("nmcli --pretty --fields UUID,TYPE con show | grep wifi | awk '{print $1}' | while read line; do nmcli con delete uuid $line; done");
       return true;
     } else if ($countProfile == 1) {
       return true;
@@ -496,7 +497,7 @@ class atlas extends eqLogic {
 
   public function wifiConnect() {
     if ($this->getConfiguration('wifiEnabled') == true) {
-      atlas::activeHotSpot();
+      self::activeHotSpot();
       if ($this->getConfiguration('hotspotEnabled') == true) {
         return;
       } else {
@@ -533,7 +534,7 @@ class atlas extends eqLogic {
     if ($this->getConfiguration('hotspotEnabled') == true) {
       $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
       if ($pid != "") {
-        atlas::activeHotSpot();
+        self::activeHotSpot();
       }
     }
   }
@@ -543,7 +544,7 @@ class atlas extends eqLogic {
     $linkForHotspot = __DIR__ . '/../../resources/lnxrouter';
     $wlanLink = 'wlan0';
     $atlas = eqLogic::byLogicalId('wifi', __CLASS__);
-    $interfaceInfo = atlas::getMac();
+    $interfaceInfo = self::getMac();
     $macAddress = $interfaceInfo[1];
     $strMac = str_replace(':', '', $macAddress);
     $wifiPostFix = substr($strMac, -4);
