@@ -19,274 +19,10 @@
 if (!isConnect()) {
   throw new Exception('{{401 - Accès non autorisé}}');
 }
+sendVarToJS('_type', init('type'));
 ?>
-
-<script>
-  $('#bt_go').show();
-  $('#div_progressbar').hide();
-  $('.progress').hide();
-  $('#bt_redemarrer').hide();
-  $('#bt_arreter').hide();
-  var textMigrationValue = '';
-  var pourcentageValue = 0;
-  var errorFinal = 0;
-  var loopMigration = 1;
-  var redirect = 0;
-  var typeDemande = '<?php echo init('typeDemande'); ?>';
-  var startDemande = 'startMigration';
-
-  if (typeDemande == 'emmc') {
-    $('.textAtlas').text('{{Vous pouvez démarrer la restauration de votre box Jeedom Atlas.}}');
-  } else if (typeDemande == 'usb') {
-    startDemande = 'startUSB'
-    $('.textAtlas').text('{{Veuillez brancher (sur le port noir du bas à droite) une clé USB supérieure à 10Go.}}');
-  }
-
-  function logDownload() {
-    $.ajax({
-      type: 'POST',
-      url: 'core/ajax/log.ajax.php',
-      data: {
-        action: 'get',
-        log: 'downloadImage'
-      },
-      dataType: 'json',
-      global: false,
-      error: function(request, status, error) {
-        setTimeout(logDownload, 1000);
-      },
-      success: function(data) {
-        if (data.state != 'ok') {
-          setTimeout(logDownload, 1000);
-          return;
-        }
-        var log = '';
-        if ($.isArray(data.result)) {
-          for (var i in data.result.reverse()) {
-            log += data.result[i] + "\n";
-            if (data.result[i].indexOf("%") != -1) {
-              var indexOfFirst = data.result[i].indexOf("%");
-              var pourcentage = data.result[i].substring((indexOfFirst - 2), indexOfFirst);
-              pourcentage = Number(pourcentage);
-              progress(pourcentage);
-            } else if (data.result[i].indexOf("Downloaded: 1 files") != -1) {
-              _autoUpdate = 0;
-              $('.textAtlasaddons').text('{{Image valide téléchargée.}}');
-            }
-          }
-        }
-      }
-    });
-  }
-
-  function lancement() {
-    $.ajax({
-      type: "POST",
-      url: "plugins/atlas/core/ajax/atlas.ajax.php",
-      data: {
-        action: startDemande
-      },
-      global: false,
-      dataType: 'json',
-      error: function(request, status, error) {
-        handleAjaxError(request, status, error);
-        errorFinal = 1;
-      }
-    });
-  }
-
-  function loop_percentage() {
-    if (loopMigration == 0) {
-      loopMigration = 1;
-      $.ajax({
-        type: "POST",
-        url: "plugins/atlas/core/ajax/atlas.ajax.php",
-        data: {
-          action: "loop_percentage"
-        },
-        global: false,
-        dataType: 'json',
-        error: function(request, status, error) {
-          handleAjaxError(request, status, error);
-          errorFinal = 1;
-        }
-      });
-    }
-  }
-
-  function migratepourcentage() {
-    jeedom.config.load({
-      configuration: 'migrationText',
-      error: function(error) {
-        console.log('error');
-      },
-      success: function(data) {
-        textMigrationValue = data;
-        if (textMigrationValue == 'dd') {
-          loop_percentage();
-        }
-        jeedom.config.load({
-          configuration: 'migrationTextfine',
-          error: function(error) {
-            console.log('error');
-          },
-          success: function(data) {
-            $('.textAtlasaddons').text(data);
-            jeedom.config.load({
-              configuration: 'migration',
-              error: function(error) {
-                console.log('error');
-              },
-              success: function(data) {
-                pourcentageValue = data;
-                afficher();
-                if (errorFinal == 0) {
-                  setTimeout(function() {
-                    migratepourcentage();
-                  }, 5000);
-                }
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-
-  function afficher() {
-    var tableauText = textMigration(textMigrationValue);
-    $('.textAtlas').text(tableauText.text);
-
-    if (tableauText.type == 'error') {
-      progress(-1);
-      errorFinal = 1;
-    }
-
-    if (tableauText.type == 'end') {
-      progress(100);
-      errorFinal = 1;
-      if (typeDemande == 'usb') {
-        $('#bt_redemarrer').show();
-      } else {
-        $('#bt_arreter').show();
-      }
-      $('.textAtlasaddons').hide();
-    }
-
-    if (tableauText.type == 'progress') {
-      $('#div_progressbar').show();
-      $('.progress').show();
-    } else {
-      $('#div_progressbar').hide();
-      $('.progress').hide();
-    }
-
-    if (textMigrationValue == 'dd') {
-      if (pourcentageValue != '') {
-        progress(pourcentageValue);
-      }
-    }
-
-    if (textMigrationValue == 'finalUSB' || textMigrationValue == 'finalEMMC') {
-      if (pourcentageValue > 100 && pourcentageValue < 200) {
-        progress((pourcentageValue - 100));
-      }
-    }
-
-    if (textMigrationValue == 'upload') {
-      logDownload();
-    }
-
-  }
-
-  function textMigration(text) {
-    switch (text) {
-      case 'errorTarget':
-        return {
-          'text': '{{Erreur : Pas de support détecté (USB ou EMMC).}}', 'type': 'error'
-        };
-        break;
-      case 'emmc':
-        return {
-          'text': '{{Démarrage de la migration vers la mémoire interne.}}', 'type': 'start'
-        };
-        break;
-      case 'usb':
-        return {
-          'text': '{{Création de la clé USB de restauration.}}', 'type': 'start'
-        };
-        break;
-      case 'verifdd':
-        return {
-          'text': '{{Image Jeedom en cours de vérification.}}', 'type': 'start'
-        };
-        break;
-      case 'dd':
-        return {
-          'text': '{{Création en cours... (délai moyen : environ 15 minutes).}}', 'type': 'progress'
-        };
-        break;
-      case 'errorDd':
-        return {
-          'text': '{{Une erreur est survenue lors de la migration.}}', 'type': 'error'
-        };
-        break;
-      case 'upload':
-        return {
-          'text': '{{Image Jeedom en cours de téléchargement.}}', 'type': 'progress'
-        };
-        break;
-      case 'finalUSB':
-        return {
-          'text': '{{Finalisation de la clé USB.}}', 'type': 'progress'
-        };
-        break;
-      case 'finalEMMC':
-        return {
-          'text': '{{Finalisation de la restauration Jeedom.}}', 'type': 'progress'
-        };
-        break;
-      case 'endUSB':
-        return {
-          'text': '{{Restauration terminée, vous pouvez redémarrer Jeedom en cliquant ici}} :', 'type': 'end'
-        };
-        break;
-      case 'endEMMC':
-        return {
-          'text': '{{Restauration terminée, veuillez retirer la clé USB puis débrancher et rebrancher électriquement la box Jeedom Atlas.}}', 'type': 'end'
-        };
-        break;
-      default:
-        return '{{Commande non reconnue}}';
-    }
-  }
-
-  function progress(ProgressPourcent) {
-    if (ProgressPourcent == -1) {
-      $('#div_progressbar').removeClass('active progress-bar-success progress-bar-info progress-bar-warning');
-      $('#div_progressbar').addClass('progress-bar-danger');
-      $('#div_progressbar').width('100%');
-      $('#div_progressbar').attr('aria-valuenow', 100);
-      $('#div_progressbar').html('{{Erreur : Veuillez fermer puis relancer la demande.}}');
-      return;
-    }
-    if (ProgressPourcent == 100) {
-      $('#div_progressbar').removeClass('active progress-bar-info progress-bar-danger progress-bar-warning');
-      $('#div_progressbar').addClass('progress-bar-success');
-      $('#div_progressbar').width(ProgressPourcent + '%');
-      $('#div_progressbar').attr('aria-valuenow', ProgressPourcent);
-      $('#div_progressbar').html('{{FIN}}');
-      Good();
-      return;
-    }
-    $('#div_progressbar').removeClass('progress-bar-info progress-bar-danger progress-bar-warning');
-    $('#div_progressbar').addClass('active progress-bar-success');
-    $('#div_progressbar').width(ProgressPourcent + '%');
-    $('#div_progressbar').attr('aria-valuenow', ProgressPourcent);
-    $('#div_progressbar').html(ProgressPourcent + '%');
-  }
-
-  function Good() {
+<!-- <script>
+   function Good() {
     $('.img-atlas').attr('src', '<?php echo config::byKey('product_connection_image'); ?>');
   }
 
@@ -378,29 +114,198 @@ if (!isConnect()) {
       }
     });
   }
-</script>
+</script> -->
 
-
-<div class="col-md-12 text-center">
-  <h2>{{Recovery Mode}}</h2>
-</div>
-<div class="col-md-6 col-md-offset-3 text-center"><img class="img-responsive center-block img-atlas" src="<?php echo config::byKey('product_connection_image'); ?>" /></div>
-<div class="col-md-12 text-center">
-  <p class="text-center">
-  <h3 class="textAtlas"></h3>
-  </p>
-  <br /><br />
+<div class="col-md-12 text-center" id="recovery-modal">
+  <h2>{{Restauration système}}</h2>
+  <div class="col-md-6 col-md-offset-3 text-center">
+    <img class="img-responsive center-block img-atlas" src="<?php echo config::byKey('product_connection_image'); ?>" />
+  </div>
   <div class="col-md-12 text-center">
-    <div id="contenuTextSpan" class="progress">
-      <div class="progress-bar progress-bar-striped progress-bar-animated active" id="div_progressbar" role="progressbar" style="width: 0; height:20px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+    <h3 class="text-center" id="recovery-step"></h3>
+    <div class="label label-warning hidden" id="recovery-warn">{{Ne pas fermer la fenêtre durant la procédure}}</div>
+    <br>
+    <br>
+    <div class="col-md-offset-1 col-md-10">
+      <div class="progress hidden">
+        <div id="recovery-progress" role="progressbar" style="width:0; height:20px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12 text-center">
+      <h4 class="text-center" id="recovery-details"></h4>
+      <br>
+      <button type="button" class="btn btn-success hidden" id="bt_start"><i class="fab fa-usb"></i> {{Démarrer}}</button>
+      <button type="button" class="btn btn-danger" id="bt_cancel"><i class="fas fa-times"></i> {{Annuler}}</button>
+      <button type="button" class="btn btn-warning hidden" id="bt_restart"><i class="fas fa-redo"></i> {{Redémarrer}}</button>
+      <button type="button" class="btn btn-danger hidden" id="bt_stop"><i class="fas fa-stop"></i> {{Arrêter}}</button>
     </div>
   </div>
-  <p class="text-center">
-  <h4 class="textAtlasaddons"></h4>
-  </p>
-  <button type="button" class="btn btn-primary" id="bt_go">{{LANCER}}</button>
-  <button type="button" class="btn btn-primary" id="bt_relancer">{{RELANCER}}</button>
-  <button type="button" class="btn btn-primary" id="bt_redemarrer">{{REDEMARRER}}</button>
-  <button type="button" class="btn btn-primary" id="bt_arreter">{{ARRETER}}</button>
 </div>
-</div>
+
+<script>
+  if (_type == 'usb') {
+    usbDetect().then(() => {
+      document.getElementById('recovery-step').innerText = '{{Clé USB détectée, cliquez sur le bouton "Démarrer" pour initier la procédure de restauration système.}}'
+      document.querySelector('.progress').classList.add('hidden')
+      document.getElementById('recovery-details').innerText = ''
+      document.getElementById('bt_start').classList.remove('hidden')
+    })
+  } else if (_type == 'emmc') {
+    document.getElementById('recovery-step').innerText = '{{Cliquez sur le bouton "Démarrer" pour débuter la restauration du système.}}'
+    document.getElementById('bt_start').classList.remove('hidden')
+  }
+
+  document.getElementById('recovery-modal').addEventListener('click', function(event) {
+    var _target = null
+
+    if (_target = event.target.closest('#bt_start')) {
+      _target.classList.add('hidden')
+      document.getElementById('recovery-warn').classList.remove('hidden')
+      monitorRecovery()
+      jeedom.atlas.startRecovery({
+        global: false,
+        type: _type,
+        success: function(result) {
+          // console.log('Recovery result : ' + data)
+          document.getElementById('recovery-warn').classList.add('hidden')
+          document.getElementById('recovery-progress').classList.remove('active')
+          if (result) {
+            document.getElementById('bt_cancel').classList.add('hidden')
+            if (_type == 'usb') {
+              document.getElementById('bt_restart').classList.remove('hidden')
+            } else if (_type == 'emmc') {
+              document.getElementById('bt_stop').classList.remove('hidden')
+            }
+          }
+
+        }
+      })
+      return
+    }
+
+    if (_target = event.target.closest('#bt_cancel')) {
+      $('#md_modal').dialog('close')
+      return
+    }
+
+    if (_target = event.target.closest('#bt_restart')) {
+      // $('#md_modal').dialog('close')
+      return
+    }
+
+    if (_target = event.target.closest('#bt_stop')) {
+      // $('#md_modal').dialog('close')
+      return
+    }
+  })
+
+  function usbDetect() {
+    return new Promise(function(resolve) {
+      if (usbConnected()) {
+        return resolve(true)
+      }
+      let i = 1
+      updateRecovery({
+        step: '{{Détection de la clé USB...}}',
+        details: "{{Veuillez insérer une clé USB dans le port situé en bas à droite (8Go minimum).}}",
+        progress: i
+      })
+      let usbDetection = setInterval(function() {
+        if (usbConnected()) {
+          clearInterval(usbDetection)
+          return resolve(true)
+        }
+        if (i == 100) {
+          clearInterval(usbDetection)
+          updateRecovery({
+            details: '{{Clé USB non détectée, abandon.}}',
+            progress: -1
+          })
+        } else {
+          i++
+          updateRecovery({
+            progress: i
+          })
+        }
+      }, 10000)
+
+      $('#md_modal').bind('dialogbeforeclose', function() {
+        clearInterval(usbDetection)
+        return true
+      })
+    })
+  }
+
+  function usbConnected() {
+    var response
+    jeedom.atlas.usbConnected({
+      async: false,
+      success: function(data) {
+        // console.log('USB Detection : ' + data)
+        response = data
+      }
+    })
+    return response
+  }
+
+  function monitorRecovery() {
+    let recoveryProgress = setInterval(function() {
+      jeedom.atlas.getRecoveryProgress({
+        global: false,
+        success: function(data) {
+          if (data) {
+            data = JSON.parse(data)
+            if (isset(data.progress) && data.progress < 0) {
+              clearInterval(recoveryProgress)
+            }
+            updateRecovery(data)
+          }
+        }
+      })
+    }, 1000)
+
+    let canCloseDialog = false
+    $('#md_modal').bind('dialogbeforeclose', function() {
+      if (canCloseDialog) {
+        return true
+      }
+      jeedom.atlas.cancelRecovery({})
+      setTimeout(() => {
+        clearInterval(recoveryProgress)
+        canCloseDialog = true
+        $('#md_modal').dialog('close')
+      }, 2500);
+      return false
+    })
+  }
+
+  function updateRecovery(_data) {
+    if (isset(_data.step)) {
+      document.getElementById('recovery-step').innerText = _data.step
+    }
+    if (isset(_data.details)) {
+      document.getElementById('recovery-details').innerText = _data.details
+    }
+    if (isset(_data.progress)) {
+      document.querySelector('.progress.hidden')?.classList.remove('hidden')
+      let progressbar = document.getElementById('recovery-progress')
+      if (_data.progress < 0) {
+        progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-danger'
+        progressbar.style.width = '100%'
+        progressbar.setAttribute('aria-valuenow', 100)
+        progressbar.innerText = '{{Une erreur est survenue, veuillez réessayer}}'
+      } else if (_data.progress >= 100) {
+        progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-success active'
+        progressbar.style.width = '100%'
+        progressbar.setAttribute('aria-valuenow', 100)
+        progressbar.innerText = '100%'
+      } else {
+        progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-info active'
+        progressbar.style.width = _data.progress + '%'
+        progressbar.setAttribute('aria-valuenow', _data.progress)
+        progressbar.innerText = _data.progress + '%'
+      }
+    }
+  }
+</script>

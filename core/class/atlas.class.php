@@ -20,227 +20,178 @@
 require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
 class atlas extends eqLogic {
-  /*     * *************************Attributs****************************** */
 
-  /*
-   * Permet de définir les possibilités de personnalisation du widget (en cas d'utilisation de la fonction 'toHtml' par exemple)
-   * Tableau multidimensionnel - exemple: array('custom' => true, 'custom::layout' => false)
-	public static $_widgetPossibility = array();
-   */
+  /* ----- RECOVERY BEGIN  ----- */
 
-  public static function dependancy_info() {
-    $return = array();
-    $return['progress_file'] = jeedom::getTmpFolder(__CLASS__) . '/dependance';
-    $return['state'] = 'ok';
-    log::add(__CLASS__, 'debug', 'sys > ' . system::getCmdSudo() . system::get('cmd_check') . '-E "rsync|cloud\-guest\-utils" | wc -l');
-    if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "rsync|cloud\-guest\-utils" | wc -l') < 4) {
-      $return['state'] = 'nok';
+
+
+  public static function getRecoveryMode() {
+    $hostname = strtolower(trim(shell_exec('cat /etc/hostname')));
+    if ($hostname == 'jeedomatlas') {
+      return 'usb';
     }
-    return $return;
+    if ($hostname == 'jeedomatlasrecovery') {
+      return 'emmc';
+    }
+    return 'usb'; //false;
   }
 
-  public static function dependancy_install() {
-    log::remove(__CLASS__ . '_update');
-    return array('script' => __DIR__ . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder(__CLASS__) . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
-  }
-
-  /*     * ***********************Methode static*************************** */
-
-  /* ----- RECOVERY et MIGRATION ----- */
-  public static function put_ini_file($file, $array, $i = 0) {
-    $str = "[core]\n";
-    foreach ($array as $k => $v) {
-      if (is_array($v)) {
-        $str .= str_repeat(" ", $i * 2) . "[$k]" . PHP_EOL;
-        $str .= self::put_ini_file("", $v, $i + 1);
-      } else
-        $str .= str_repeat(" ", $i * 2) . "$k = $v" . PHP_EOL;
-    }
-    if ($file)
-      return file_put_contents($file, $str);
-    else
-      return $str;
-  }
-
-  public static function startMigration($target = 'emmc') {
-    log::clear('migrate');
-    log::clear('downloadImage');
-    config::save('migrationText', 'prelancement');
-    config::save('migration', 0);
-    config::save('migrationTextfine', __('Détection en cours...', __FILE__));
-    sleep(5);
-    $path_target = '';
-    log::add(__CLASS__, 'debug', 'PATH TARGET');
-    if (file_exists('/dev/mmcblk2') && $target == 'emmc') {
-      $path_target = '/dev/mmcblk2';
-      config::save('migrationText', 'emmc');
-      config::save('migrationTextfine', __('Support eMMC détecté sur mmcblk2.', __FILE__));
-      sleep(3);
-      if (self::ddImg($path_target)) {
-        sleep(3);
-        self::recoveryemmcMount($path_target);
-        return 'ok';
-      }
-      return 'nok';
-    } elseif (file_exists('/dev/mmcblk1') && $target == 'emmc') {
-      $path_target = '/dev/mmcblk1';
-      config::save('migrationText', 'emmc');
-      config::save('migrationTextfine', __('Support eMMC détecté sur mmcblk1.', __FILE__));
-      sleep(3);
-      if (self::ddImg($path_target)) {
-        sleep(3);
-        self::recoveryemmcMount($path_target);
-        return 'ok';
-      }
-      return 'nok';
-    } elseif (file_exists('/dev/sda') && $target == 'usb') {
-      $path_target = '/dev/sda';
-      config::save('migrationText', 'usb');
-      config::save('migrationTextfine', __('Clé USB détectée sur sda.', __FILE__));
-      sleep(3);
-      if (self::ddImg($path_target)) {
-        sleep(3);
-        self::recoveryUsbMount($path_target);
-        return 'ok';
-      };
-      return 'nok';
-    } else {
-      log::add(__CLASS__, 'debug', 'ERREUR TARGET DEVICE');
-      config::save('migrationText', 'errorTarget');
-      return 'nok';
-    }
-  }
-
-  public static function recoveryUsbMount($devusb = '/dev/sda') {
-    config::save('migrationText', 'finalUSB');
-    config::save('migration', 101);
-    if (!file_exists('/mnt/usb')) {
-      log::add(__CLASS__, 'debug', 'creation /mnt/usb');
-      shell_exec('sudo mkdir /mnt/usb');
-    }
-    shell_exec('sudo umount /mnt/usb');
-    log::add(__CLASS__, 'debug', 'FSDISK -d');
-    config::save('migrationTextfine', __('Capacité de stockage en cours de vérification.', __FILE__));
-    sleep(2);
-    shell_exec('sudo sfdisk -d ' . $devusb . ' > sda_partition_bak.dmp');
-    config::save('migration', 110);
-    log::add(__CLASS__, 'debug', __('Création de la partition.', __FILE__));
-    config::save('migrationTextfine', __('Création de la partition.', __FILE__));
-    sleep(2);
-    shell_exec('sudo growpart -N ' . $devusb . ' 1');
-    shell_exec('sudo growpart ' . $devusb . ' 1');
-    config::save('migration', 120);
-    log::add(__CLASS__, 'debug', __('Vérification de la partition de démarrage.', __FILE__));
-    config::save('migrationTextfine', __('Vérification de la partition de démarrage.', __FILE__));
-    sleep(2);
-    shell_exec('sudo e2fsck -fy ' . $devusb . '1');
-    log::add(__CLASS__, 'debug', __('Redimensionnement de la partition de démarrage.', __FILE__));
-    config::save('migrationTextfine', __('Redimensionnement de la partition de démarrage.', __FILE__));
-    sleep(2);
-    shell_exec('sudo resize2fs ' . $devusb . '1 12G');
-    config::save('migration', 130);
-    log::add(__CLASS__, 'debug', __('Montage de la partition.', __FILE__));
-    config::save('migrationTextfine', __('Montage de la partition pour modification.', __FILE__));
-    sleep(2);
-    shell_exec('sudo mount ' . $devusb . '1 /mnt/usb');
-    if (!file_exists('/mnt/usb/var/www/html/data/imgOs')) {
-      shell_exec('sudo mkdir /mnt/usb/var/www/html/data/imgOs');
-    } else {
-      if (file_exists('/mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz')) {
-        config::save('migrationTextfine', __('Ancienne image Jeedom en cours de suppression.', __FILE__));
-        sleep(2);
-        shell_exec('sudo rm /mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz');
-      }
-    }
-    log::add(__CLASS__, 'debug', __('Montage de la clé USB', __FILE__));
-    config::save('migrationTextfine', __('Ajout du fichier de configuration de restauration.', __FILE__));
-    sleep(2);
-    $ini_array = parse_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini');
-    log::add(__CLASS__, 'debug', '--------------');
-    $ini_array['product_name'] = 'Jeedom Atlas Recovery';
-    $ini_array['path_wizard'] = 'data/custom/atlasRecoveryWizard.json';
-    $ini_array['product_connection_image'] = 'core/img/logo-jeedom-atlas-recovery-grand-nom-couleur.svg';
-    self::put_ini_file('/mnt/usb/var/www/html/data/custom/custom.config.ini', $ini_array);
-    config::save('migration', 140);
-    log::add(__CLASS__, 'debug', __('Changement du HostName.', __FILE__));
-    config::save('migrationTextfine', __('Changement du HostName.', __FILE__));
-    sleep(2);
-    shell_exec('sudo bash -c \'echo "JeedomAtlasRecovery" > /mnt/usb/etc/hostname\'');
-    log::add(__CLASS__, 'debug', __('Changement du HostName réalisé.', __FILE__));
-    shell_exec('sudo cp /var/www/html/plugins/atlas/data/recovery/atlasRecoveryWizard.json /mnt/usb/var/www/html/' . $ini_array['path_wizard']);
-    shell_exec('sudo cp /var/www/html/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb/var/www/html/' . $ini_array['product_connection_image']);
-    config::save('migration', 150);
-    log::add(__CLASS__, 'debug', '--------------');
-    log::add(__CLASS__, 'debug', __('Image Jeedom Atlas ajoutée sur la clé USB.', __FILE__));
-    config::save('migrationTextfine', __('Image Jeedom Atlas ajoutée sur la clé USB.', __FILE__));
-    sleep(2);
-    shell_exec('sudo cp /var/www/html/data/imgOs/jeedomAtlas.img.gz /mnt/usb/var/www/html/data/imgOs/jeedomAtlas.img.gz');
-    log::add(__CLASS__, 'debug', 'Fin');
-    config::save('migrationText', 'endUSB');
-    config::save('migrationTextfine', __('Fin.', __FILE__));
-    config::save('migration', 200);
-  }
-
-  public static function recoveryemmcMount($devemmc = '/dev/mmcblk1') {
-    config::save('migrationText', 'finalUSB');
-    config::save('migration', 101);
-    if (!file_exists('/mnt/usb')) {
-      log::add(__CLASS__, 'debug', __('Création', __FILE__) . ' /mnt/usb');
-      shell_exec('sudo mkdir /mnt/usb');
-    }
-    config::save('migration', 120);
-    shell_exec('sudo umount /mnt/usb');
-    log::add(__CLASS__, 'debug', 'FSDISK -d');
-    config::save('migrationTextfine', __('Espace de stockage en cours de vérification.', __FILE__));
-    sleep(2);
-    shell_exec('sudo sfdisk -d ' . $devemmc . ' > mmcblk1_partition_bak.dmp');
-    log::add(__CLASS__, 'debug', __('Création de la partition.', __FILE__));
-    config::save('migrationTextfine', __('Création de la partition.', __FILE__));
-    sleep(2);
-    config::save('migration', 140);
-    shell_exec('sudo growpart -N ' . $devemmc . ' 1');
-    shell_exec('sudo growpart ' . $devemmc . ' 1');
-    config::save('migrationTextfine', __('Vérification de la partition de démarrage.', __FILE__));
-    sleep(2);
-    config::save('migration', 150);
-    log::add(__CLASS__, 'debug', __('Vérification de la partition de démarrage.', __FILE__));
-    shell_exec('sudo e2fsck -fy ' . $devemmc . '1');
-    config::save('migration', 180);
-    config::save('migrationTextfine', __('Redimentionnement de la partition de démarrage.', __FILE__));
-    sleep(2);
-    log::add(__CLASS__, 'debug', __('Redimentionnement de la partition de démarrage.', __FILE__));
-    shell_exec('sudo resize2fs ' . $devemmc . 'p1');
-    log::add(__CLASS__, 'debug', __('Montage de la partition.', __FILE__));
-    log::add(__CLASS__, 'debug', 'Fin');
-    config::save('migrationText', 'endEMMC');
-    config::save('migrationTextfine', __('Fin.', __FILE__));
-    sleep(2);
-    config::save('migration', 200);
-  }
-
-  public static function ddImg($target) {
-    log::add(__CLASS__, 'debug', 'IN CREATE LOG');
-    config::save('migrationText', 'verifdd');
-    if (self::downloadImage()) {
-      config::save('migrationText', 'dd');
-      sleep(3);
-      config::save('migrationTextfine', __('Image en cours de gravure.', __FILE__));
-      log::add(__CLASS__, 'debug', '(sudo cat /var/www/html/data/imgOs/jeedomAtlas.img.gz | sudo gunzip | sudo dd of=' . $target . ' bs=512 status=progress) > ' . log::getPathToLog('migrate') . ' 2>&1');
-      shell_exec('(sudo cat /var/www/html/data/imgOs/jeedomAtlas.img.gz | sudo gunzip | sudo dd of=' . $target . ' bs=512 status=progress) > ' . log::getPathToLog('migrate') . ' 2>&1');
+  public static function usbConnected(): bool {
+    if (file_exists('/dev/sda')) {
+      log::add(__CLASS__, 'debug', '[RECOVERY] ' . __('Clé USB détectée', __FILE__));
       return true;
+    }
+    return false;
+  }
+
+  public static function startRecovery(string $_target) {
+    cache::delete('recoveryAtlasCancellation');
+    cache::set('recoveryAtlas', false, 60);
+    if ($_target == 'usb') {
+      self::setRecoveryProgress(['step' => __("Démarrage de la création de la clé USB...", __FILE__), 'progress' => 0], 2);
+    } else if ($_target == 'emmc') {
+      self::setRecoveryProgress(['step' => __("Démarrage de la restauration système...", __FILE__), 'progress' => 0], 2);
+    }
+
+    // $targetDevice = '/dev/sda';
+    if (!($targetDevice = self::getTargetDevice($_target))) {
+      return self::recoveryFailed(__('Abandon, support de destination introuvable', __FILE__) . ' : ' . $_target);
+    }
+
+    if ($imageFilepath = self::ddImage($targetDevice)) {
+      //   if ($_target == 'usb') {
+      //     self::setRecoveryProgress(['step' => __("Finalisation de la création de la clé USB...", __FILE__), 'progress' => 0], 2);
+
+
+      //     self::setRecoveryProgress(['step' => __("La clé USB de restauration système est prête.", __FILE__), 'details' => __('Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB pour commencer la restauration système.', __FILE__), 'progress' => 100], 2);
+      //     return true;
+      //   } else if ($_target == 'emmc') {
+      //     self::setRecoveryProgress(['step' => __("Finalisation de la restauration système...", __FILE__), 'progress' => 0], 2);
+
+
+      //     self::setRecoveryProgress(['step' => __("Restauration système terminée.", __FILE__), 'details' => __('Cliquez sur le bouton "Arrêter" puis débrancher la clé USB.', __FILE__), 'progress' => 100], 2);
+      //     return true;
+      //   }
     } else {
-      log::add(__CLASS__, 'debug', 'ERREUR IMAGE MIGRATE');
-      config::save('migrationText', 'errorDd');
       return false;
     }
   }
 
-  public static function marketImg($text = true) {
-    log::add(__CLASS__, 'debug', __('Informations démandées au Market.', __FILE__));
-    if ($text == true) {
-      config::save('migrationTextfine', __('Informations demandées au Market.', __FILE__));
-      sleep(2);
+  public static function cancelRecovery() {
+    log::add(__CLASS__, 'debug', '[RECOVERY] ' . __("Annulation de la restauration système à la demande de l'utilisateur", __FILE__));
+    cache::set('recoveryAtlasCancellation', true, 60);
+  }
+
+
+  private static function recoveryFailed(string $_message) {
+    self::setRecoveryProgress(['details' => $_message, 'progress' => -1], 1);
+    return false;
+  }
+
+  private static function ddImage($_targetDevice) {
+    if ($imageFilepath = self::downloadImage()) {
+      return self::recoveryFailed(__('WIP', __FILE__) . ' ' . __FUNCTION__ . ' : Image filepath ' . $imageFilepath);
+      //   self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __("Préparation de la gravure.", __FILE__), 'progress' => 0], 2);
+
+      //   $cmd = 'sudo cat ' . $imageFilepath . ' | sudo gunzip | sudo dd of=' . $_targetDevice . ' bs=512 status=progress';
+      //   $descriptorspec = array(
+      //     0 => array("pipe", "r"),
+      //     1 => array("pipe", "w"),
+      //     2 => array("pipe", "a")
+      //   );
+      //   $pipes = array();
+      //   $process = proc_open($cmd, $descriptorspec, $pipes, null, null);
+
+      //   if (is_resource($process)) {
+      //     self::setRecoveryProgress(['details' => __("Début de la gravure.", __FILE__)], 1);
+      //     do {
+      //       $progress = fgets($pipes[1]);
+      //       // Calcul progress from realtime pipe
+      //       self::setRecoveryProgress(['details' => $progress], 1);
+      //       $arr = proc_get_status($process);
+      //     } while ($arr['running']);
+      //   } else {
+      //     fclose($pipes[0]);
+      //     fclose($pipes[1]);
+      //     fclose($pipes[2]);
+      //     proc_close($process);
+      //     return self::recoveryFailed(__("Erreur lors du démarrage de la gravure.", __FILE__));
+      //   }
+
+      //   fclose($pipes[0]);
+      //   fclose($pipes[1]);
+      //   fclose($pipes[2]);
+      //   proc_close($process);
+
+      //   // if terminated 100%
+      //   self::setRecoveryProgress(['details' => __("Gravure terminée avec succès.", __FILE__), 'progress' => 100], 2);
+      //   return $imageFilepath;
+      //   // else
+      //   // return self::recoveryFailed(__("Erreur lors de la gravure.", __FILE__));
+    } else {
+      return false;
     }
+  }
+
+  private static function downloadImage() {
+    self::setRecoveryProgress(['step' => __("Téléchargement/Validation de l'image système...", __FILE__), 'details' => __("Collecte des informations.", __FILE__), 'progress' => 0], 2);
+    jeedom::cleanFileSystemRight();
+    $imgInfos = self::getImgInfosFromMarket();
+    if (!$imgInfos) {
+      return self::recoveryFailed(__("Impossible de récupérer les informations de l'image système.", __FILE__));
+    }
+    //$imgInfos['SHA256'] = 'a0159ba90745ba72822bc3fc1e6aa2943ae0dccff545b9dcf20e17a4898fe751';
+    $downloadPath = realpath(__DIR__ . '/../../../../data') . '/imgOs';
+    if (!file_exists($downloadPath)) {
+      mkdir($downloadPath, 0644);
+    }
+
+    $downloadFilepath = $downloadPath . '/' . basename($imgInfos['url']);
+    if (file_exists($downloadFilepath)) {
+      self::setRecoveryProgress(['details' => __("Image système trouvée, en cours de validation.", __FILE__)], 1);
+      if (self::validateImage($downloadFilepath, $imgInfos['SHA256'])) {
+        self::setRecoveryProgress(['details' => __("Image système validée avec succès.", __FILE__), 'progress' => 100], 2);
+        return $downloadFilepath;
+      }
+      self::setRecoveryProgress(['details' => __('Image système invalide, reprise du téléchargement.', __FILE__)], 1);
+    }
+
+    self::setRecoveryProgress(['details' => __("Début du téléchargement.", __FILE__)], 1);
+    $ch = curl_init();
+    $fp = fopen($downloadFilepath, 'wb');
+
+    curl_setopt_array($ch, [
+      CURLOPT_URL => $imgInfos['url'],
+      CURLOPT_HEADER => false,
+      CURLOPT_FOLLOWLOCATION => true,
+      CURLOPT_FILE => $fp,
+      CURLOPT_PROGRESSFUNCTION => ['self', 'downloadImageProgress'],
+      CURLOPT_NOPROGRESS => false,
+      CURLOPT_SSL_VERIFYPEER => false,
+      CURLOPT_FAILONERROR => true
+    ]);
+
+    curl_exec($ch);
+
+    if (curl_errno($ch)) {
+      curl_close($ch);
+      fclose($fp);
+      unlink($downloadFilepath);
+      return self::recoveryFailed(__("Erreur lors du téléchargement", __FILE__) . ' : ' . curl_error($ch));
+    }
+
+    curl_close($ch);
+    fclose($fp);
+
+    self::setRecoveryProgress(['details' => __("Téléchargement terminé, en cours de validation.", __FILE__)], 1);
+    if (self::validateImage($downloadFilepath, $imgInfos['SHA256'])) {
+      self::setRecoveryProgress(['details' => __("Image système téléchargée avec succès.", __FILE__), 'progress' => 100], 2);
+      return $downloadFilepath;
+    }
+    return self::recoveryFailed(__('Image système invalide, abandon.', __FILE__));
+  }
+
+  private static function getImgInfosFromMarket() {
     $jsonrpc = repo_market::getJsonRpc();
     if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
       throw new Exception($jsonrpc->getErrorMessage());
@@ -252,120 +203,84 @@ class atlas extends eqLogic {
     return false;
   }
 
-  public static function downloadImage() {
-    jeedom::cleanFileSystemRight();
-    $urlArray = self::marketImg();
-    if (!$urlArray) {
-      log::add(__CLASS__, 'debug', __('Problème avec le Market.', __FILE__));
+  private static function downloadImageProgress($_resource, $_downloadSize, $_downloaded) {
+    if (cache::exist('recoveryAtlasCancellation')) {
+      return 1;
+    }
+
+    if ($_downloaded > 0 && $_downloadSize > 0) {
+      $progress = round(($_downloaded / $_downloadSize) * 100, 1);
+      if ($progress > self::getRecoveryProgress('progress')) {
+        $downloaded = cmd::autoValueArray($_downloaded, 2, 'o');
+        $downloadSize = cmd::autoValueArray($_downloadSize, 2, 'o');
+        $downloadSpeed = cmd::autoValueArray(curl_getinfo($_resource, CURLINFO_SPEED_DOWNLOAD), 2, 'o');
+        self::setRecoveryProgress(['details' => $downloaded[0] . $downloaded[1] . '/' . $downloadSize[0] . $downloadSize[1] . ' (' . $downloadSpeed[0] . $downloadSpeed[1] . '/s)', 'progress' => $progress]);
+      }
+    }
+  }
+
+  private static function validateImage(string $_filepath, string $_sha256): bool {
+    $sha256 = hash_file('sha256', $_filepath);
+    if ($sha256 == $_sha256) {
+      return true;
+    }
+    log::add(__CLASS__, 'debug', __("Erreur lors de la vérification de l'image système", __FILE__) . ' : ' . $sha256 . ' != ' . $_sha256);
+    log::add(__CLASS__, 'debug', __('Suppression du fichier', __FILE__) . ' : ' . $_filepath);
+    unlink($_filepath);
+    return false;
+  }
+
+  private static function setRecoveryProgress(array $_progress, int $_pause = null) {
+    cache::byKey('recoveryAtlas')->setValue(json_encode($_progress))->setLifetime(60)->save();
+    if ($_pause) {
+      log::add(__CLASS__, 'debug', '[RECOVERY] ' . print_r($_progress, true));
+      sleep($_pause);
+    }
+  }
+
+  public static function getRecoveryProgress(string $_field = null) {
+    $recoveryProgress = cache::byKey('recoveryAtlas')->getValue();
+    if ($_field) {
+      if (isset($recoveryProgress[$_field])) {
+        return $recoveryProgress[$_field];
+      }
       return false;
     }
-    $url = $urlArray['url'];
-    $size = $urlArray['SHA256'];
-    //$size = 'a0159ba90745ba72822bc3fc1e6aa2943ae0dccff545b9dcf20e17a4898fe751';
-    log::add(__CLASS__, 'debug', __('Téléchargement', __FILE__) . ' > ' . $size);
-    exec('sudo pkill -9 wget');
-    $path_imgOs = '/var/www/html/data/imgOs';
-    if (!file_exists($path_imgOs)) {
-      mkdir($path_imgOs, 0644);
-    }
-    $find = false;
-    $fichier = $path_imgOs . '/jeedomAtlas.img.gz';
-    log::add(__CLASS__, 'debug', __('Fichier', __FILE__) . ' > ' . $fichier);
-    if (file_exists($fichier)) {
-      log::add(__CLASS__, 'debug', __('Image en cours de test (vérification SHA).', __FILE__));
-      config::save('migrationTextfine', __('Image en cours de test (vérification SHA).', __FILE__));
-      $sha_256 = hash_file('sha256', $fichier);
-      log::add(__CLASS__, 'debug', __('Taille', __FILE__) . ' > ' . $size);
-      log::add(__CLASS__, 'debug', __('SHA', __FILE__) . ' > ' . $sha_256);
-      if ($size == $sha_256) {
-        log::add(__CLASS__, 'debug', __('Image OK.', __FILE__));
-        config::save('migrationTextfine', __('Image OK.', __FILE__));
-        sleep(2);
-        $find = true;
-      } else {
-        log::add(__CLASS__, 'debug', __('Image NOK.', __FILE__));
-        config::save('migrationTextfine', __('Image NOK.', __FILE__));
-        sleep(2);
-        //RM fichier
-        unlink($fichier);
-      }
-    }
-    if ($find == false) {
-      config::save('migrationText', 'upload');
-      log::add(__CLASS__, 'debug', 'find a False');
-      config::save('migrationTextfine', __('Image en cours de téléchargement sur nos serveurs.', __FILE__));
-      jeedom::cleanFileSystemRight();
-      log::add(__CLASS__, 'debug', 'URL > ' . $url);
-      log::add(__CLASS__, 'debug', 'shell > sudo wget --progress=dot --dot=mega ' . $url . ' -a ' . log::getPathToLog('downloadImage') . ' -O ' . $path_imgOs . '/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage') . ' 2&>1');
-      shell_exec('sudo wget --progress=dot --dot=mega ' . $url . ' -a ' . log::getPathToLog('downloadImage') . ' -O ' . $path_imgOs . '/jeedomAtlas.img.gz >> ' . log::getPathToLog('downloadImage'));
-      sleep(10);
-      $sha_256 = hash_file('sha256', $fichier);
-      if ($size == $sha_256) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-    return true;
+    return $recoveryProgress;
   }
 
-  public static function loopPercentage() {
-    $urlArray = self::marketImg(false);
-    $size = $urlArray['size'];
-    $GO = $size;
-    $MO = $GO * 1024;
-    $KO = $MO * 1024;
-    $BytesGlobal = $KO * 1024;
-    $level_percentage = 0;
-    config::save('migration', $level_percentage);
-    while (config::byKey('migration') < 100) {
-      log::add(__CLASS__, 'debug', $level_percentage);
-      sleep(1);
-      $level_percentage = self::percentageProgress($BytesGlobal);
-      if (config::byKey('migration') < 101) {
-        config::save('migration', $level_percentage);
-      } else {
-        log::add(__CLASS__, 'debug', 'NON save pour le 100%');
-      }
+  private static function getTargetDevice($_target) {
+    if ($_target == 'usb' && self::usbConnected()) {
+      return '/dev/sda';
     }
-  }
-
-  public static function percentageProgress($BytesGlobal) {
-    $logMigrate = log::get('migrate', 0, 1);
-    $logMigrateAll = log::get('migrate', 0, 10);
-
-    $pos = self::posOut($logMigrateAll);
-    $firstln = $logMigrate[0];
-    log::add(__CLASS__, 'debug', __('AVANCEMENT', __FILE__) . ' : ' . $firstln);
-
-    if ($pos == false) {
-      $valueByte = stristr($firstln, 'bytes', true);
-      $pourcentage = round((100 * $valueByte) / $BytesGlobal, 2);
-      log::add(__CLASS__, 'debug', __('ETAT', __FILE__) . ' : ' . $pourcentage . '%');
-      log::clear('migrate');
-      if ($valueByte == '' || $valueByte == null) {
-      } else {
-        return $pourcentage;
+    if ($_target == 'emmc') {
+      if (file_exists('/dev/mmcblk2')) {
+        return '/dev/mmcblk2';
       }
-    } else {
-      log::add(__CLASS__, 'debug', __('FIN', __FILE__) . ' 100%');
-      return 100;
-    }
-  }
-
-
-  public static function posOut($needles) {
-    foreach ($needles as $needle) {
-      $rep = strpos($needle, 'records');
-      if ($rep != false) {
-        log::add(__CLASS__, 'debug', __('Fin de migration.', __FILE__));
-        return true;
+      if (file_exists('/dev/mmcblk1')) {
+        return '/dev/mmcblk1';
       }
     }
     return false;
   }
 
-  /* ------ FIN RECOVERY et MIGRATION ------ */
+  // private static function put_ini_file($_file, $_array, $_i = 0) {
+  //   $str = "[core]\n";
+  //   foreach ($_array as $k => $v) {
+  //     if (is_array($v)) {
+  //       $str .= str_repeat(" ", $_i * 2) . "[$k]" . PHP_EOL;
+  //       $str .= self::put_ini_file("", $v, $_i + 1);
+  //     } else
+  //       $str .= str_repeat(" ", $_i * 2) . "$k = $v" . PHP_EOL;
+  //   }
+  //   if ($_file)
+  //     return file_put_contents($_file, $str);
+  //   else
+  //     return $str;
+  // }
+
+
+  /* ----- RECOVERY END  ----- */
 
 
   public static function cron5($_eqlogic_id = null) {

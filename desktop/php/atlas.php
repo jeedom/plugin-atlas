@@ -2,46 +2,38 @@
 if (!isConnect('admin')) {
 	throw new Exception('{{401 - Accès non autorisé}}');
 }
-// Déclaration des variables obligatoires
 $plugin = plugin::byId('atlas');
 sendVarToJS('eqType', $plugin->getId());
 $eqLogics = eqLogic::byType($plugin->getId());
+$recoveryMode = atlas::getRecoveryMode();
 ?>
 
 <div class="row row-overflow">
-	<!-- Page d'accueil du plugin -->
 	<div class="col-xs-12 eqLogicThumbnailDisplay">
 		<legend><i class="fas fa-cog"></i> {{Gestion}}</legend>
-		<!-- Boutons de gestion du plugin -->
 		<div class="eqLogicThumbnailContainer">
+			<?php
+			if ($recoveryMode) {
+			?>
+				<div class="cursor logoPrimary" data-type="<?= $recoveryMode ?>" id="bt_recovery">
+					<i class="fas fa-upload"></i>
+					<br>
+					<span>{{Restauration système}}</span>
+				</div>
+			<?php
+			}
+			?>
 			<div class="cursor eqLogicAction logoSecondary" data-action="gotoPluginConf">
 				<i class="fas fa-wrench"></i>
 				<br>
 				<span>{{Configuration}}</span>
 			</div>
-			<?php
-			$hostname = trim(shell_exec('cat /etc/hostname'));
-
-			if ($hostname == 'JeedomAtlas' || $hostname == 'jeedomAtlas') { ?>
-				<div class="cursor logoSecondary" id="bt_USBrecovery">
-					<i class="fab fa-usb"></i>
-					<br>
-					<span>{{Création clé Recovery (BETA)}}</span>
-				</div>
-			<?php } else if (strpos($hostname, 'JeedomAtlasRecovery') !== false) { ?>
-				<div class="cursor logoSecondary" id="bt_recovery">
-					<i class="fas fa-clone"></i>
-					<br>
-					<span>{{Lancement Recovery (BETA)}}</span>
-				</div>
-			<?php } ?>
 		</div>
 		<legend><i class="fas fa-table"></i> {{Mes Modules Atlas}}</legend>
 		<?php
 		if (count($eqLogics) == 0) {
 			echo '<br><div class="text-center" style="font-size:1.2em;font-weight:bold;">{{Aucun équipement Atlas n\'a été trouvé}}</div>';
 		} else {
-			// Champ de recherche
 			echo '<div class="input-group" style="margin:5px;">';
 			echo '<input class="form-control roundedLeft" placeholder="{{Rechercher}}" id="in_searchEqlogic">';
 			echo '<div class="input-group-btn">';
@@ -49,7 +41,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 			echo '<a class="btn roundedRight hidden" id="bt_pluginDisplayAsTable" data-coreSupport="1" data-state="0"><i class="fas fa-grip-lines"></i></a>';
 			echo '</div>';
 			echo '</div>';
-			// Liste des équipements du plugin
 			echo '<div class="eqLogicThumbnailContainer">';
 			foreach ($eqLogics as $eqLogic) {
 				$opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
@@ -65,32 +56,24 @@ $eqLogics = eqLogic::byType($plugin->getId());
 			echo '</div>';
 		}
 		?>
-	</div> <!-- /.eqLogicThumbnailDisplay -->
-
-	<!-- Page de présentation de l'équipement -->
+	</div>
 	<div class="col-xs-12 eqLogic" style="display: none;">
-		<!-- barre de gestion de l'équipement -->
 		<div class="input-group pull-right" style="display:inline-flex;">
 			<span class="input-group-btn">
-				<!-- Les balises <a></a> sont volontairement fermées à la ligne suivante pour éviter les espaces entre les boutons. Ne pas modifier -->
 				<a class="btn btn-sm btn-default eqLogicAction roundedLeft" data-action="configure"><i class="fas fa-cogs"></i><span class="hidden-xs"> {{Configuration avancée}}</span>
-				</a><a class="btn btn-sm btn-default eqLogicAction" data-action="copy"><i class="fas fa-copy"></i><span class="hidden-xs"> {{Dupliquer}}</span>
-				</a><a class="btn btn-sm btn-success eqLogicAction" data-action="save"><i class="fas fa-check-circle"></i> {{Sauvegarder}}
-				</a><a class="btn btn-sm btn-danger eqLogicAction roundedRight" data-action="remove"><i class="fas fa-minus-circle"></i> {{Supprimer}}
+					<!-- </a><a class="btn btn-sm btn-default eqLogicAction" data-action="copy"><i class="fas fa-copy"></i><span class="hidden-xs"> {{Dupliquer}}</span> -->
+				</a><a class="btn btn-sm btn-success eqLogicAction roundedRight" data-action="save"><i class="fas fa-check-circle"></i> {{Sauvegarder}}
+					<!-- </a><a class="btn btn-sm btn-danger eqLogicAction roundedRight" data-action="remove"><i class="fas fa-minus-circle"></i> {{Supprimer}} -->
 				</a>
 			</span>
 		</div>
-		<!-- Onglets -->
 		<ul class="nav nav-tabs" role="tablist">
 			<li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fas fa-arrow-circle-left"></i></a></li>
 			<li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> {{Equipement}}</a></li>
 			<li role="presentation"><a href="#commandtab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-list"></i> {{Commandes}}</a></li>
 		</ul>
 		<div class="tab-content">
-			<!-- Onglet de configuration de l'équipement -->
 			<div role="tabpanel" class="tab-pane active" id="eqlogictab">
-				<!-- Partie gauche de l'onglet "Equipements" -->
-				<!-- Paramètres généraux et spécifiques de l'équipement -->
 				<form class="form-horizontal">
 					<fieldset>
 						<div class="col-lg-6">
@@ -153,7 +136,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								</div>
 							</div>
 							<div class="form-group wifi" style="display:none">
-								<label class="col-sm-4 control-label">{{Clef}}</label>
+								<label class="col-sm-4 control-label">{{Mot de passe wifi}}</label>
 								<div class="col-sm-6">
 									<input type="password" class="eqLogicAttr form-control nohotspot" data-l1key="configuration" data-l2key="wifiPassword" />
 								</div>
@@ -187,8 +170,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								</div>
 							</div>
 						</div>
-						<!-- Partie droite de l'onglet "Équipement" -->
-						<!-- Affiche un champ de commentaire par défaut mais vous pouvez y mettre ce que vous voulez -->
+
 						<div class="col-lg-6">
 							<legend><i class="fas fa-info"></i> {{Informations}}</legend>
 							<div class="form-group">
@@ -218,9 +200,8 @@ $eqLogics = eqLogic::byType($plugin->getId());
 						</div>
 					</fieldset>
 				</form>
-			</div><!-- /.tabpanel #eqlogictab-->
+			</div>
 
-			<!-- Onglet des commandes de l'équipement -->
 			<div role="tabpanel" class="tab-pane" id="commandtab">
 				<!-- <a class="btn btn-default btn-sm pull-right cmdAction" data-action="add" style="margin-top:5px;"><i class="fas fa-plus-circle"></i> {{Ajouter une commande}}</a> -->
 				<br><br>
@@ -247,7 +228,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 	</div>
 </div>
 
-<!-- Inclusion du fichier javascript du plugin (dossier, nom_du_fichier, extension_du_fichier, id_du_plugin) -->
+<?php include_file('core', 'atlas', 'class.js', 'atlas'); ?>
 <?php include_file('desktop', 'atlas', 'js', 'atlas'); ?>
-<!-- Inclusion du fichier javascript du core - NE PAS MODIFIER NI SUPPRIMER -->
 <?php include_file('core', 'plugin.template', 'js'); ?>

@@ -140,9 +140,9 @@ function addCmdToTable(_cmd) {
   tr += '<input class="tooltips cmdAttr form-control input-sm" data-l1key="unite" placeholder="Unité" title="{{Unité}}" style="width:30%;max-width:80px;display:inline-block;margin-right:2px;">'
   tr += '</div>'
   tr += '</td>'
-  tr += '<td>';
-  tr += '<span class="cmdAttr" data-l1key="htmlstate"></span>';
-  tr += '</td>';
+  tr += '<td>'
+  tr += '<span class="cmdAttr" data-l1key="htmlstate"></span>'
+  tr += '</td>'
   tr += '<td>'
   if (is_numeric(_cmd.id)) {
     tr += '<a class="btn btn-default btn-xs cmdAction" data-action="configure"><i class="fas fa-cogs"></i></a> '
@@ -155,54 +155,13 @@ function addCmdToTable(_cmd) {
   jeedom.cmd.changeType($('#table_cmd tbody tr:last'), init(_cmd.subType))
 }
 
-function ajax_loop_percentage() {
-  $.ajax({
-    type: "POST",
-    url: "plugins/atlas/core/ajax/atlas.ajax.php",
-    data: {
-      action: "loop_percentage"
-    },
-    dataType: 'json',
-    error: function(request, status, error) {
-      handleAjaxError(request, status, error)
-    },
-    success: function(data) {
-      if (data.state != 'ok') {
-        $('#div_alert').showAlert({ message: data.result, level: 'danger' })
-        return
-      }
-    }
-  })
-}
-
-
-function ajax_start_percentage() {
-  $.ajax({
-    type: "POST",
-    url: "plugins/atlas/core/ajax/atlas.ajax.php",
-    data: {
-      action: "start_percentage"
-    },
-    dataType: 'json',
-    error: function(request, status, error) {
-      handleAjaxError(request, status, error)
-    },
-    success: function(data) {
-      if (data.state != 'ok') {
-        $('#div_alert').showAlert({ message: data.result, level: 'danger' })
-        return
-      }
-    }
-  })
-}
-
-
-$('#bt_USBrecovery').off('click').on('click', function() {
-  $('#md_modal').dialog({ title: "{{Création de la clé USB de restauration}}" }).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&typeDemande=usb').dialog('open')
-})
-
-$('#bt_recovery').off('click').on('click', function() {
-  $('#md_modal').dialog({ title: "{{Démarrage de la restauration}}" }).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&typeDemande=emmc').dialog('open')
+document.getElementById('bt_recovery')?.addEventListener('click', function() {
+  let type = this.getAttribute('data-type')
+  let title = '{{Création clé USB de restauration système}}'
+  if (type == 'emmc') {
+    title = '{{Restauration système}}'
+  }
+  $('#md_modal').dialog({ title: title }).dialog({ beforeClose: function(_event) { } }).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&type=' + type).dialog('open')
 })
 
 $('#wifiEnabledCheck').change(function() {
