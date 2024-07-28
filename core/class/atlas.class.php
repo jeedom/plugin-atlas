@@ -25,14 +25,10 @@ class atlas extends eqLogic {
 
   public static function getRecoveryMode() {
     $hostname = strtolower(trim(shell_exec('cat /etc/hostname')));
-    if ($hostname == 'jeedomatlas') {
-      return 'usb';
-    }
     if ($hostname == 'jeedomatlasrecovery') {
       return 'emmc';
     }
-    return false;
-    // return 'usb';
+    return 'usb';
   }
 
   public static function usbConnected(): bool {
@@ -128,11 +124,11 @@ class atlas extends eqLogic {
           $downloadSpeed = $progressArr[$progressArrSize - 2] . str_replace('B', 'o', $progressArr[$progressArrSize - 1]);
           self::setRecoveryProgress(['details' => $downloaded[0] . $downloaded[1] . '/' . $downloadSize[0] . $downloadSize[1] . ' (' . $downloadSpeed . '/s)', 'progress' => $progress]);
         } else {
-          self::setRecoveryProgress(['details' => 'dd other ' . $line]);
-          log::add(__CLASS__, 'debug', '[RECOVERY WIP] ddImage progress :' . $line);
+          self::setRecoveryProgress(['details' => 'dd other : ' . $line]);
+          log::add(__CLASS__, 'debug', '[RECOVERY WIP] ddImage other :' . $line);
         }
-        $arr = proc_get_status($process);
-      } while ($arr['running']);
+        $procStatus = proc_get_status($process);
+      } while ($procStatus['running']);
     } else {
       $error = __("Erreur lors du démarrage de la gravure", __FILE__);
     }

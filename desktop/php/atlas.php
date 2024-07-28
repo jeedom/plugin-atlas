@@ -5,24 +5,17 @@ if (!isConnect('admin')) {
 $plugin = plugin::byId('atlas');
 sendVarToJS('eqType', $plugin->getId());
 $eqLogics = eqLogic::byType($plugin->getId());
-$recoveryMode = atlas::getRecoveryMode();
 ?>
 
 <div class="row row-overflow">
 	<div class="col-xs-12 eqLogicThumbnailDisplay">
 		<legend><i class="fas fa-cog"></i> {{Gestion}}</legend>
 		<div class="eqLogicThumbnailContainer">
-			<?php
-			if ($recoveryMode) {
-			?>
-				<div class="cursor logoPrimary" data-type="<?= $recoveryMode ?>" id="bt_recovery">
-					<i class="fas fa-upload"></i>
-					<br>
-					<span>{{Restauration système}}</span>
-				</div>
-			<?php
-			}
-			?>
+			<div class="cursor logoPrimary" data-type="<?= atlas::getRecoveryMode() ?>" id="bt_recovery">
+				<i class="fas fa-upload"></i>
+				<br>
+				<span>{{Restauration système}}</span>
+			</div>
 			<div class="cursor eqLogicAction logoSecondary" data-action="gotoPluginConf">
 				<i class="fas fa-wrench"></i>
 				<br>
