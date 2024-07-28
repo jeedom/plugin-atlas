@@ -250,6 +250,7 @@ sendVarToJS('_type', init('type'));
   }
 
   function monitorRecovery() {
+    let canCloseDialog = false
     let recoveryProgress = setInterval(function() {
       jeedom.atlas.getRecoveryProgress({
         global: false,
@@ -258,6 +259,7 @@ sendVarToJS('_type', init('type'));
             data = JSON.parse(data)
             if (isset(data.progress) && data.progress < 0) {
               clearInterval(recoveryProgress)
+              canCloseDialog = true
             }
             updateRecovery(data)
           }
@@ -265,7 +267,6 @@ sendVarToJS('_type', init('type'));
       })
     }, 1000)
 
-    let canCloseDialog = false
     $('#md_modal').bind('dialogbeforeclose', function() {
       if (canCloseDialog) {
         return true
