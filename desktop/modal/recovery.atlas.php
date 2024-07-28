@@ -116,14 +116,14 @@ sendVarToJS('_type', init('type'));
   }
 </script> -->
 
-<div class="col-md-12 text-center" id="recovery-modal">
+<div class="col-md-12 text-center" id="atlas-recovery">
   <h2>{{Restauration système}}</h2>
   <div class="col-md-6 col-md-offset-3 text-center">
     <img class="img-responsive center-block img-atlas" src="<?php echo config::byKey('product_connection_image'); ?>" />
   </div>
   <div class="col-md-12 text-center">
     <h3 class="text-center" id="recovery-step"></h3>
-    <div class="label label-warning hidden" id="recovery-warn">{{Ne pas fermer la fenêtre durant la procédure}}</div>
+    <div class="label label-warning hidden" id="recovery-warn"><i class="fas fa-exclamation-triangle"></i> {{Ne pas fermer la fenêtre durant l'opération}}</div>
     <br>
     <br>
     <div class="col-md-offset-1 col-md-10">
@@ -146,17 +146,17 @@ sendVarToJS('_type', init('type'));
 <script>
   if (_type == 'usb') {
     usbDetect().then(() => {
-      document.getElementById('recovery-step').innerText = '{{Clé USB détectée, cliquez sur le bouton "Démarrer" pour initier la procédure de restauration système.}}'
+      document.getElementById('recovery-step').innerText = '{{Clé USB détectée, cliquez sur le bouton "Démarrer" pour initier la procédure de restauration système}}'
       document.querySelector('.progress').classList.add('hidden')
       document.getElementById('recovery-details').innerText = ''
       document.getElementById('bt_start').classList.remove('hidden')
     })
   } else if (_type == 'emmc') {
-    document.getElementById('recovery-step').innerText = '{{Cliquez sur le bouton "Démarrer" pour débuter la restauration du système.}}'
+    document.getElementById('recovery-step').innerText = '{{Cliquez sur le bouton "Démarrer" pour débuter la restauration du système}}'
     document.getElementById('bt_start').classList.remove('hidden')
   }
 
-  document.getElementById('recovery-modal').addEventListener('click', function(event) {
+  document.getElementById('atlas-recovery').addEventListener('click', function(event) {
     var _target = null
 
     if (_target = event.target.closest('#bt_start')) {
@@ -208,7 +208,7 @@ sendVarToJS('_type', init('type'));
       let i = 1
       updateRecovery({
         step: '{{Détection de la clé USB...}}',
-        details: "{{Veuillez insérer une clé USB dans le port situé en bas à droite (8Go minimum).}}",
+        details: "{{Veuillez insérer une clé USB dans le port situé en bas à droite (8Go minimum)}}",
         progress: i
       })
       let usbDetection = setInterval(function() {
@@ -219,7 +219,7 @@ sendVarToJS('_type', init('type'));
         if (i == 100) {
           clearInterval(usbDetection)
           updateRecovery({
-            details: '{{Clé USB non détectée, abandon.}}',
+            details: '{{Abandon, clé USB non détectée.}}',
             progress: -1
           })
         } else {
@@ -242,7 +242,6 @@ sendVarToJS('_type', init('type'));
     jeedom.atlas.usbConnected({
       async: false,
       success: function(data) {
-        // console.log('USB Detection : ' + data)
         response = data
       }
     })
@@ -257,7 +256,7 @@ sendVarToJS('_type', init('type'));
         success: function(data) {
           if (data) {
             data = JSON.parse(data)
-            if (isset(data.progress) && data.progress < 0) {
+            if (isset(data.progress) && (data.progress < 0 || data.progress > 999)) {
               clearInterval(recoveryProgress)
               canCloseDialog = true
             }
@@ -265,7 +264,7 @@ sendVarToJS('_type', init('type'));
           }
         }
       })
-    }, 1000)
+    }, 950)
 
     $('#md_modal').bind('dialogbeforeclose', function() {
       if (canCloseDialog) {
