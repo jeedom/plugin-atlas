@@ -23,8 +23,6 @@ class atlas extends eqLogic {
 
   /* ----- RECOVERY BEGIN  ----- */
 
-
-
   public static function getRecoveryMode() {
     $hostname = strtolower(trim(shell_exec('cat /etc/hostname')));
     if ($hostname == 'jeedomatlas') {
@@ -58,22 +56,13 @@ class atlas extends eqLogic {
       return self::recoveryFailed(__('Abandon, support de destination introuvable', __FILE__) . ' : ' . $_target);
     }
 
-    if ($imageFilepath = self::ddImage($targetDevice)) {
-      //   if ($_target == 'usb') {
-      //     self::setRecoveryProgress(['step' => __("Finalisation de la création de la clé USB...", __FILE__), 'progress' => 0], 2);
-
-
-      //     self::setRecoveryProgress(['step' => __("La clé USB de restauration système est prête.", __FILE__), 'details' => __('Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB pour commencer la restauration système.', __FILE__), 'progress' => 100], 2);
-      //     return true;
-      //   } else if ($_target == 'emmc') {
-      //     self::setRecoveryProgress(['step' => __("Finalisation de la restauration système...", __FILE__), 'progress' => 0], 2);
-
-
-      //     self::setRecoveryProgress(['step' => __("Restauration système terminée.", __FILE__), 'details' => __('Cliquez sur le bouton "Arrêter" puis débrancher la clé USB.', __FILE__), 'progress' => 100], 2);
-      //     return true;
-      //   }
-    } else {
-      return false;
+    try {
+      $imageFilepath = self::downloadImage();
+      self::ddImage($imageFilepath, $targetDevice);
+      self::finalizeRecovery($_target, $imageFilepath);
+      return true;
+    } catch (Exception $e) {
+      return self::recoveryFailed($e->getMessage());
     }
   }
 
@@ -82,65 +71,78 @@ class atlas extends eqLogic {
     cache::set('recoveryAtlasCancellation', true, 60);
   }
 
-
   private static function recoveryFailed(string $_message) {
     self::setRecoveryProgress(['details' => $_message, 'progress' => -1], 1);
     return false;
   }
 
-  private static function ddImage($_targetDevice) {
-    if ($imageFilepath = self::downloadImage()) {
-      return self::recoveryFailed(__('WIP', __FILE__) . ' ' . __FUNCTION__ . ' : Image filepath ' . $imageFilepath);
-      //   self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __("Préparation de la gravure.", __FILE__), 'progress' => 0], 2);
+  private static function finalizeRecovery($_target, $_imageFilepath) {
+    throw new Exception(__('WIP', __FILE__) . ' ' . __FUNCTION__);
+    //   if ($_target == 'usb') {
+    //     self::setRecoveryProgress(['step' => __("Finalisation de la création de la clé USB...", __FILE__), 'progress' => 0], 2);
 
-      //   $cmd = 'sudo cat ' . $imageFilepath . ' | sudo gunzip | sudo dd of=' . $_targetDevice . ' bs=512 status=progress';
-      //   $descriptorspec = array(
-      //     0 => array("pipe", "r"),
-      //     1 => array("pipe", "w"),
-      //     2 => array("pipe", "a")
-      //   );
-      //   $pipes = array();
-      //   $process = proc_open($cmd, $descriptorspec, $pipes, null, null);
 
-      //   if (is_resource($process)) {
-      //     self::setRecoveryProgress(['details' => __("Début de la gravure.", __FILE__)], 1);
-      //     do {
-      //       $progress = fgets($pipes[1]);
-      //       // Calcul progress from realtime pipe
-      //       self::setRecoveryProgress(['details' => $progress], 1);
-      //       $arr = proc_get_status($process);
-      //     } while ($arr['running']);
-      //   } else {
-      //     fclose($pipes[0]);
-      //     fclose($pipes[1]);
-      //     fclose($pipes[2]);
-      //     proc_close($process);
-      //     return self::recoveryFailed(__("Erreur lors du démarrage de la gravure.", __FILE__));
-      //   }
+    //     self::setRecoveryProgress(['step' => __("La clé USB de restauration système est prête.", __FILE__), 'details' => __('Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB pour commencer la restauration système.', __FILE__), 'progress' => 100], 2);
+    //     return true;
+    //   } else if ($_target == 'emmc') {
+    //     self::setRecoveryProgress(['step' => __("Finalisation de la restauration système...", __FILE__), 'progress' => 0], 2);
 
-      //   fclose($pipes[0]);
-      //   fclose($pipes[1]);
-      //   fclose($pipes[2]);
-      //   proc_close($process);
 
-      //   // if terminated 100%
-      //   self::setRecoveryProgress(['details' => __("Gravure terminée avec succès.", __FILE__), 'progress' => 100], 2);
-      //   return $imageFilepath;
-      //   // else
-      //   // return self::recoveryFailed(__("Erreur lors de la gravure.", __FILE__));
-    } else {
-      return false;
-    }
+    //     self::setRecoveryProgress(['step' => __("Restauration système terminée.", __FILE__), 'details' => __('Cliquez sur le bouton "Arrêter" puis débrancher la clé USB.', __FILE__), 'progress' => 100], 2);
+    //     return true;
+    //   }
+  }
+
+  private static function ddImage($_imageFilepath, $_targetDevice) {
+    throw new Exception(__('WIP', __FILE__) . ' ' . __FUNCTION__);
+    //   self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __("Préparation de la gravure.", __FILE__), 'progress' => 0], 2);
+
+    //   $cmd = 'sudo cat ' . $imageFilepath . ' | sudo gunzip | sudo dd of=' . $_targetDevice . ' bs=512 status=progress';
+    //   $descriptorspec = array(
+    //     0 => array("pipe", "r"),
+    //     1 => array("pipe", "w"),
+    //     2 => array("pipe", "a")
+    //   );
+    //   $pipes = array();
+    //   $process = proc_open($cmd, $descriptorspec, $pipes, null, null);
+
+    //   if (is_resource($process)) {
+    //     self::setRecoveryProgress(['details' => __("Démarrage de la gravure.", __FILE__)], 2);
+    //     do {
+    //       $progress = fgets($pipes[1]);
+    //       // Calcul progress from realtime pipe
+    //       self::setRecoveryProgress(['details' => $progress], 1);
+    //       $arr = proc_get_status($process);
+    //     } while ($arr['running']);
+    //   } else {
+    //     fclose($pipes[0]);
+    //     fclose($pipes[1]);
+    //     fclose($pipes[2]);
+    //     proc_close($process);
+    // throw new Exception(__("Erreur lors du démarrage de la gravure.", __FILE__));
+    //   }
+
+    //   fclose($pipes[0]);
+    //   fclose($pipes[1]);
+    //   fclose($pipes[2]);
+    //   proc_close($process);
+
+    //   // if terminated 100%
+    //   self::setRecoveryProgress(['details' => __("Gravure terminée avec succès.", __FILE__), 'progress' => 100], 2);
+    //   return $imageFilepath;
+    //   // else
+    // throw new Exception(__("Erreur lors de la gravure.", __FILE__));
+    // } else {
+    //   return false;
+    // }
   }
 
   private static function downloadImage() {
     self::setRecoveryProgress(['step' => __("Téléchargement/Validation de l'image système...", __FILE__), 'details' => __("Collecte des informations.", __FILE__), 'progress' => 0], 2);
     jeedom::cleanFileSystemRight();
     $imgInfos = self::getImgInfosFromMarket();
-    if (!$imgInfos) {
-      return self::recoveryFailed(__("Impossible de récupérer les informations de l'image système.", __FILE__));
-    }
     //$imgInfos['SHA256'] = 'a0159ba90745ba72822bc3fc1e6aa2943ae0dccff545b9dcf20e17a4898fe751';
+
     $downloadPath = realpath(__DIR__ . '/../../../../data') . '/imgOs';
     if (!file_exists($downloadPath)) {
       mkdir($downloadPath, 0644);
@@ -177,7 +179,7 @@ class atlas extends eqLogic {
       curl_close($ch);
       fclose($fp);
       unlink($downloadFilepath);
-      return self::recoveryFailed(__("Erreur lors du téléchargement", __FILE__) . ' : ' . curl_error($ch));
+      throw new Exception(__("Erreur lors du téléchargement", __FILE__) . ' : ' . curl_error($ch));
     }
 
     curl_close($ch);
@@ -188,19 +190,19 @@ class atlas extends eqLogic {
       self::setRecoveryProgress(['details' => __("Image système téléchargée avec succès.", __FILE__), 'progress' => 100], 2);
       return $downloadFilepath;
     }
-    return self::recoveryFailed(__('Image système invalide, abandon.', __FILE__));
+    throw new Exception(__('Image système invalide, abandon.', __FILE__));
   }
 
   private static function getImgInfosFromMarket() {
     $jsonrpc = repo_market::getJsonRpc();
     if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
-      throw new Exception($jsonrpc->getErrorMessage());
+      throw new Exception(__("Abandon, impossible de récupérer les informations sur l'image système", __FILE__) . ' : ' . $jsonrpc->getErrorMessage());
     }
     $urlArray = $jsonrpc->getResult();
-    if ($urlArray['url'] && $urlArray['SHA256'] && $urlArray['size']) {
+    if ($urlArray['url'] && $urlArray['SHA256']) {
       return $urlArray;
     }
-    return false;
+    throw new Exception(__("Abandon, informations sur l'image système manquantes", __FILE__) . ' : ' . print_r($urlArray, true));
   }
 
   private static function downloadImageProgress($_resource, $_downloadSize, $_downloaded) {
@@ -634,6 +636,4 @@ class atlasCmd extends cmd {
     }
     $eqLogic->cron5($eqLogic->getId());
   }
-
-  /*     * **********************Getteur Setteur*************************** */
 }
