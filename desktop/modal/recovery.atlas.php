@@ -19,7 +19,8 @@
 if (!isConnect()) {
   throw new Exception('{{401 - Accès non autorisé}}');
 }
-sendVarToJS('_type', init('type'));
+sendVarToJS('_mode', init('mode'));
+include_file('core', 'atlas', 'class.js', 'atlas');
 ?>
 <!-- <script>
    function Good() {
@@ -144,14 +145,16 @@ sendVarToJS('_type', init('type'));
 </div>
 
 <script>
-  if (_type == 'usb') {
+  var requestCancel = false
+
+  if (_mode == 'usb') {
     usbDetect().then(() => {
       document.getElementById('recovery-step').innerText = '{{Clé USB détectée, cliquez sur le bouton "Démarrer" pour initier la procédure de restauration système}}'
       document.querySelector('.progress').classList.add('hidden')
       document.getElementById('recovery-details').innerText = ''
       document.getElementById('bt_start').classList.remove('hidden')
     })
-  } else if (_type == 'emmc') {
+  } else if (_mode == 'emmc') {
     document.getElementById('recovery-step').innerText = '{{Cliquez sur le bouton "Démarrer" pour débuter la restauration du système}}'
     document.getElementById('bt_start').classList.remove('hidden')
   }
@@ -165,16 +168,15 @@ sendVarToJS('_type', init('type'));
       monitorRecovery()
       jeedom.atlas.startRecovery({
         global: false,
-        type: _type,
+        type: _mode,
         success: function(result) {
-          // console.log('Recovery result : ' + data)
           document.getElementById('recovery-warn').classList.add('hidden')
           document.getElementById('recovery-progress').classList.remove('active')
           if (result) {
             document.getElementById('bt_cancel').classList.add('hidden')
-            if (_type == 'usb') {
+            if (_mode == 'usb') {
               document.getElementById('bt_restart').classList.remove('hidden')
-            } else if (_type == 'emmc') {
+            } else if (_mode == 'emmc') {
               document.getElementById('bt_stop').classList.remove('hidden')
             }
           }
@@ -185,7 +187,17 @@ sendVarToJS('_type', init('type'));
     }
 
     if (_target = event.target.closest('#bt_cancel')) {
-      $('#md_modal').dialog('close')
+      bootbox.confirm("{{Etes-vous sûr de vouloir annuler la restauration système ?}}", function(ok) {
+        if (ok) {
+          requestCancel = true
+          updateRecovery({
+            details: '',
+            progress: -1
+          })
+          jeedom.atlas.cancelRecovery({})
+          document.getElementById('bt_cancel').classList.add('hidden')
+        }
+      })
       return
     }
 
@@ -212,16 +224,19 @@ sendVarToJS('_type', init('type'));
         progress: i
       })
       let usbDetection = setInterval(function() {
+        if (requestCancel) {
+          return $('#md_modal').dialog('close')
+        }
         if (usbConnected()) {
           clearInterval(usbDetection)
           return resolve(true)
         }
         if (i == 100) {
-          clearInterval(usbDetection)
           updateRecovery({
             details: '{{Abandon, clé USB non détectée.}}',
             progress: -1
           })
+          clearInterval(usbDetection)
         } else {
           i++
           updateRecovery({
@@ -258,9 +273,19 @@ sendVarToJS('_type', init('type'));
             data = JSON.parse(data)
             if (isset(data.progress) && (data.progress < 0 || data.progress > 999)) {
               clearInterval(recoveryProgress)
-              canCloseDialog = true
+              if (requestCancel && data.progress < 0) {
+                updateRecovery(data)
+                return setTimeout(() => {
+                  canCloseDialog = true
+                  $('#md_modal').dialog('close')
+                }, 3000);
+              } else {
+                canCloseDialog = true
+              }
             }
-            updateRecovery(data)
+            if (!requestCancel) {
+              updateRecovery(data)
+            }
           }
         }
       })
@@ -270,12 +295,7 @@ sendVarToJS('_type', init('type'));
       if (canCloseDialog) {
         return true
       }
-      jeedom.atlas.cancelRecovery({})
-      setTimeout(() => {
-        clearInterval(recoveryProgress)
-        canCloseDialog = true
-        $('#md_modal').dialog('close')
-      }, 2500);
+      document.getElementById('bt_cancel').triggerEvent('click')
       return false
     })
   }
@@ -290,11 +310,12 @@ sendVarToJS('_type', init('type'));
     if (isset(_data.progress)) {
       document.querySelector('.progress.hidden')?.classList.remove('hidden')
       let progressbar = document.getElementById('recovery-progress')
+
       if (_data.progress < 0) {
         progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-danger'
         progressbar.style.width = '100%'
         progressbar.setAttribute('aria-valuenow', 100)
-        progressbar.innerText = '{{Une erreur est survenue, veuillez réessayer}}'
+        progressbar.innerText = (requestCancel) ? "{{Annulation demandée, veuillez patienter}}" : '{{Une erreur est survenue, veuillez réessayer}}'
       } else if (_data.progress >= 100) {
         progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-success active'
         progressbar.style.width = '100%'

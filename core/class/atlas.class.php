@@ -38,30 +38,28 @@ class atlas extends eqLogic {
     return false;
   }
 
-  public static function startRecovery(string $_target) {
+  public static function startRecovery(string $_mode) {
     cache::delete('atlasRecoveryCancellation');
     cache::set('atlasRecovery', false, 60);
-    if ($_target == 'usb') {
+    if ($_mode == 'usb') {
       self::setRecoveryProgress(['step' => __("Démarrage de la création de la clé USB...", __FILE__), 'progress' => 0], 2);
-    } else if ($_target == 'emmc') {
+    } else if ($_mode == 'emmc') {
       self::setRecoveryProgress(['step' => __("Démarrage de la restauration système...", __FILE__), 'progress' => 0], 2);
     }
 
     try {
-      $targetDevice = self::getTargetDevice($_target);
+      $targetDevice = self::getTargetDevice($_mode);
       $imageFilepath = self::downloadImage();
-      // $targetDevice = '/var/www/html/data/imgOs/test';
-      // $imageFilepath = '/var/www/html/data/imgOs/jeedomAtlas.img.gz';
       self::ddImage($imageFilepath, $targetDevice);
-      self::finalizeRecovery($_target, $imageFilepath);
+      self::finalizeRecovery($_mode, $imageFilepath);
     } catch (Exception $e) {
       self::setRecoveryProgress(['details' => $e->getMessage() . '.', 'progress' => -1], 1);
       return false;
     }
 
-    if ($_target == 'usb') {
+    if ($_mode == 'usb') {
       self::setRecoveryProgress(['step' => __("La clé USB de restauration système est prête.", __FILE__), 'details' => __('Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB pour commencer la restauration système.', __FILE__), 'progress' => 1000], 1);
-    } else if ($_target == 'emmc') {
+    } else if ($_mode == 'emmc') {
       self::setRecoveryProgress(['step' => __("Restauration système terminée.", __FILE__), 'details' => __('Cliquez sur le bouton "Arrêter" puis débrancher la clé USB.', __FILE__), 'progress' => 1000], 1);
     }
     return true;
@@ -71,17 +69,17 @@ class atlas extends eqLogic {
     cache::set('atlasRecoveryCancellation', true, 60);
   }
 
-  private static function finalizeRecovery($_target, $_imageFilepath) {
+  private static function finalizeRecovery($_mode, $_imageFilepath) {
     self::setRecoveryProgress(['step' => __("Finalisation...", __FILE__), 'progress' => 0], 2);
     throw new Exception(__('WIP', __FILE__) . ' ' . __FUNCTION__);
 
-    if ($_target == 'usb') {
-    } else if ($_target == 'emmc') {
+    if ($_mode == 'usb') {
+    } else if ($_mode == 'emmc') {
     }
   }
 
   private static function ddImage($_imageFilepath, $_targetDevice) {
-    self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __("Initialisation", __FILE__), 'progress' => 0], 2);
+    self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __('Initialisation', __FILE__), 'progress' => 0], 2);
 
     $ext = pathinfo($_imageFilepath, PATHINFO_EXTENSION);
     if ($ext = 'gz') {
@@ -91,20 +89,24 @@ class atlas extends eqLogic {
     } else {
       throw new Exception(__("Abandon, impossible de décompresser l'image système", __FILE__) . ' : ' . $ext);
     }
+
+    if (cache::exist('atlasRecoveryCancellation')) {
+      throw new Exception(__("Annulation de la gravure à la demande de l'utilisateur", __FILE__));
+    }
+    self::setRecoveryProgress(['details' => __('Préparation de la gravure (veuillez patienter)', __FILE__)]);
+    $uncompressed = shell_exec($extract . ' -l ' . $_imageFilepath . " | awk -v col=uncompressed '" . 'NR==1{IGNORECASE=1;for(i=1;i<=NF;i++){if($i==col){c=i;break}}};NR==2{print $c}' . "'");
+    $total = cmd::autoValueArray($uncompressed, 2, 'o');
+
+    self::setRecoveryProgress(['details' => __("Démarrage de la gravure", __FILE__)], 2);
     $cmd = 'sudo cat ' . $_imageFilepath . ' | sudo ' . $extract . ' | sudo dd of=' . $_targetDevice . ' bs=512 status=progress 2>&1';
     $pipes = array();
     $error = false;
-
-    self::setRecoveryProgress(['details' => __("Préparation de la gravure (veuillez patienter)", __FILE__)]);
-    $uncompressedSize = shell_exec($extract . ' -l ' . $_imageFilepath . " | awk -v col=uncompressed '" . 'NR==1{IGNORECASE=1;for(i=1;i<=NF;i++){if($i==col){c=i;break}}};NR==2{print $c}' . "'");
-    $downloadSize = cmd::autoValueArray($uncompressedSize, 2, 'o');
-
-    self::setRecoveryProgress(['details' => __("Démarrage de la gravure", __FILE__)], 2);
     $process = proc_open($cmd, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'a']], $pipes);
 
     if (is_resource($process)) {
       do {
         if (cache::exist('atlasRecoveryCancellation')) {
+          proc_terminate($process);
           $error = __("Annulation de la gravure à la demande de l'utilisateur", __FILE__);
           break;
         }
@@ -116,19 +118,19 @@ class atlas extends eqLogic {
           break;
         }
 
-        $progressArr = explode(' ', $line);
-        $progressArrSize = count($progressArr);
-        if ($progressArrSize == 11) {
-          $progress = round(($progressArr[0] / $uncompressedSize) * 100, 1);
-          $downloaded = cmd::autoValueArray($progressArr[0], 2, 'o');
-          $downloadSpeed = $progressArr[$progressArrSize - 2] . str_replace('B', 'o', $progressArr[$progressArrSize - 1]);
-          self::setRecoveryProgress(['details' => $downloaded[0] . $downloaded[1] . '/' . $downloadSize[0] . $downloadSize[1] . ' (' . $downloadSpeed . '/s)', 'progress' => $progress]);
+        if (substr($line, -1) == 'B') {
+          $lineInArray = explode(' ', $line);
+          $lineInArraySize = count($lineInArray);
+          $percent = self::calculPercentProgress($lineInArray[0], $uncompressed);
+          $done = cmd::autoValueArray($lineInArray[0], 2, 'o');
+          $speed = $lineInArray[$lineInArraySize - 2] . str_replace('B', 'o', $lineInArray[$lineInArraySize - 1]);
+          self::setRecoveryProgress(['details' => $done[0] . $done[1] . '/' . $total[0] . $total[1] . ' (' . $speed . '/s)', 'progress' => $percent]);
         } else {
-          self::setRecoveryProgress(['details' => 'dd other : ' . $line]);
+          self::setRecoveryProgress(['details' => $line]);
           log::add(__CLASS__, 'debug', '[RECOVERY WIP] ddImage other :' . $line);
         }
-        $procStatus = proc_get_status($process);
-      } while ($procStatus['running']);
+        $processStatus = proc_get_status($process);
+      } while ($processStatus['running']);
     } else {
       $error = __("Erreur lors du démarrage de la gravure", __FILE__);
     }
@@ -146,7 +148,7 @@ class atlas extends eqLogic {
   }
 
   private static function downloadImage() {
-    self::setRecoveryProgress(['step' => __("Téléchargement/Validation de l'image système...", __FILE__), 'details' => __("Collecte des informations", __FILE__), 'progress' => 0], 2);
+    self::setRecoveryProgress(['step' => __("Téléchargement de l'image système...", __FILE__), 'details' => __("Collecte des informations", __FILE__), 'progress' => 0], 2);
 
     jeedom::cleanFileSystemRight();
     $imgInfos = self::getImgInfosFromMarket();
@@ -159,15 +161,16 @@ class atlas extends eqLogic {
 
     $downloadFilepath = $downloadPath . '/' . basename($imgInfos['url']);
     if (file_exists($downloadFilepath)) {
-      self::setRecoveryProgress(['details' => __("Image système trouvée, en cours de validation", __FILE__)], 1);
+      self::setRecoveryProgress(['details' => __("Image système trouvée, en cours de validation", __FILE__), 'progress' => 99], 1);
       if (self::validateImage($downloadFilepath, $imgInfos['SHA256'])) {
         self::setRecoveryProgress(['details' => __("Image système validée avec succès", __FILE__), 'progress' => 100], 2);
         return $downloadFilepath;
       }
-      self::setRecoveryProgress(['details' => __('Image système invalide, reprise du téléchargement', __FILE__)], 1);
+      self::setRecoveryProgress(['details' => __('Image système invalide, reprise du téléchargement', __FILE__), 'progress' => 0], 1);
     }
 
-    self::setRecoveryProgress(['details' => __("Début du téléchargement", __FILE__)], 1);
+    self::setRecoveryProgress(['details' => __("Début du téléchargement", __FILE__), 'progress' => 0], 1);
+    $error = false;
     $ch = curl_init();
     $fp = fopen($downloadFilepath, 'wb');
 
@@ -185,16 +188,18 @@ class atlas extends eqLogic {
     curl_exec($ch);
 
     if (curl_errno($ch)) {
-      curl_close($ch);
-      fclose($fp);
       unlink($downloadFilepath);
-      throw new Exception(__("Erreur lors du téléchargement", __FILE__) . ' : ' . curl_error($ch));
+      $error = __("Erreur lors du téléchargement", __FILE__) . ' : ' . curl_error($ch);
     }
 
     curl_close($ch);
     fclose($fp);
 
-    self::setRecoveryProgress(['details' => __("Téléchargement terminé, en cours de validation", __FILE__)], 1);
+    if ($error) {
+      throw new Exception($error);
+    }
+
+    self::setRecoveryProgress(['details' => __("Téléchargement terminé, en cours de validation", __FILE__), 'progress' => 99], 1);
     if (self::validateImage($downloadFilepath, $imgInfos['SHA256'])) {
       self::setRecoveryProgress(['details' => __("Image système téléchargée avec succès", __FILE__), 'progress' => 100], 2);
       return $downloadFilepath;
@@ -220,29 +225,39 @@ class atlas extends eqLogic {
     }
 
     if ($_downloaded > 0 && $_downloadSize > 0) {
-      $progress = round(($_downloaded / $_downloadSize) * 100, 1);
+      $percent = self::calculPercentProgress($_downloaded, $_downloadSize, 99);
       $downloaded = cmd::autoValueArray($_downloaded, 2, 'o');
       $downloadSize = cmd::autoValueArray($_downloadSize, 2, 'o');
       $downloadSpeed = cmd::autoValueArray(curl_getinfo($_resource, CURLINFO_SPEED_DOWNLOAD), 2, 'o');
-      self::setRecoveryProgress(['details' => $downloaded[0] . $downloaded[1] . '/' . $downloadSize[0] . $downloadSize[1] . ' (' . $downloadSpeed[0] . $downloadSpeed[1] . '/s)', 'progress' => $progress]);
+      self::setRecoveryProgress(['details' => $downloaded[0] . $downloaded[1] . '/' . $downloadSize[0] . $downloadSize[1] . ' (' . $downloadSpeed[0] . $downloadSpeed[1] . '/s)', 'progress' => $percent]);
     }
   }
 
-  private static function validateImage(string $_filepath, string $_sha256): bool {
-    $sha256 = hash_file('sha256', $_filepath);
-    if ($sha256 == $_sha256) {
-      return true;
+  private static function validateImage(string $_filepath, string $_sha256) {
+    if (cache::exist('atlasRecoveryCancellation')) {
+      unlink($_filepath);
+      throw new Exception(__("Annulation du téléchargement à la demande de l'utilisateur", __FILE__));
     }
-    log::add(__CLASS__, 'debug', __("Erreur lors de la vérification de l'image système", __FILE__) . ' : ' . $sha256 . ' != ' . $_sha256);
-    log::add(__CLASS__, 'debug', __('Suppression du fichier', __FILE__) . ' : ' . $_filepath);
-    unlink($_filepath);
-    return false;
+
+    $sha256 = hash_file('sha256', $_filepath);
+    if ($sha256 != $_sha256) {
+      unlink($_filepath);
+      throw new Exception(__("Erreur lors de la vérification de l'image système", __FILE__) . ' : ' . $sha256 . ' != ' . $_sha256);
+    }
   }
 
   private static function setRecoveryProgress(array $_progress, int $_pause = null) {
     cache::byKey('atlasRecovery')->setValue(json_encode($_progress))->setLifetime(60)->save();
     if ($_pause) {
-      log::add(__CLASS__, 'debug', '[RECOVERY] ' . print_r($_progress, true));
+      $level = 'debug';
+      if (isset($_progress['progress']) && $_progress['progress'] < 0) {
+        if (cache::exist('atlasRecoveryCancellation')) {
+          $level = 'warning';
+        } else {
+          $level = 'error';
+        }
+      }
+      log::add(__CLASS__, $level, '[ATLAS RECOVERY] ' . print_r($_progress, true));
       sleep($_pause);
     }
   }
@@ -251,11 +266,11 @@ class atlas extends eqLogic {
     return cache::byKey('atlasRecovery')->getValue();
   }
 
-  private static function getTargetDevice($_target) {
-    if ($_target == 'usb' && self::usbConnected()) {
+  private static function getTargetDevice($_mode) {
+    if ($_mode == 'usb' && self::usbConnected()) {
       return '/dev/sda';
     }
-    if ($_target == 'emmc') {
+    if ($_mode == 'emmc') {
       if (file_exists('/dev/mmcblk2')) {
         return '/dev/mmcblk2';
       }
@@ -263,9 +278,19 @@ class atlas extends eqLogic {
         return '/dev/mmcblk1';
       }
     }
-    throw new Exception(__('Abandon, support de destination introuvable', __FILE__) . ' : ' . $_target);
+    throw new Exception(__('Abandon, support de destination introuvable', __FILE__) . ' : ' . $_mode);
   }
 
+  private static function calculPercentProgress($_done, $_total, int $_max = 100) {
+    $percent = round(($_done / $_total) * 100, 1);
+    if ($percent < 0) {
+      return 0;
+    }
+    if ($percent > $_max) {
+      return $_max;
+    }
+    return $percent;
+  }
   // private static function put_ini_file($_file, $_array, $_i = 0) {
   //   $str = "[core]\n";
   //   foreach ($_array as $k => $v) {

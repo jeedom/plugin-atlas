@@ -156,12 +156,12 @@ function addCmdToTable(_cmd) {
 }
 
 document.getElementById('bt_recovery')?.addEventListener('click', function() {
-  let type = this.getAttribute('data-type')
+  let mode = this.getAttribute('data-mode')
   let title = '{{Création clé USB de restauration système}}'
-  if (type == 'emmc') {
+  if (mode == 'emmc') {
     title = '{{Restauration système}}'
   }
-  $('#md_modal').dialog({ title: title }).dialog({ beforeClose: function(_event) { } }).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&type=' + type).dialog('open')
+  $('#md_modal').dialog({ title: title }).dialog({ beforeClose: function(_event) { } }).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&mode=' + mode).dialog('open')
 })
 
 $('#wifiEnabledCheck').change(function() {
