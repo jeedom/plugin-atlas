@@ -191,6 +191,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         if (ok) {
           requestCancel = true
           updateRecovery({
+            step: "{{Annulation en cours...}}",
             details: '',
             progress: -1
           })

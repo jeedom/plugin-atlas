@@ -162,10 +162,10 @@ class atlas extends eqLogic {
     $downloadFilepath = $downloadPath . '/' . basename($imgInfos['url']);
     if (file_exists($downloadFilepath)) {
       self::setRecoveryProgress(['details' => __("Image système trouvée, en cours de validation", __FILE__), 'progress' => 99], 1);
-      if (self::validateImage($downloadFilepath, $imgInfos['SHA256'])) {
-        self::setRecoveryProgress(['details' => __("Image système validée avec succès", __FILE__), 'progress' => 100], 2);
-        return $downloadFilepath;
-      }
+      self::validateImage($downloadFilepath, $imgInfos['SHA256']);
+      self::setRecoveryProgress(['details' => __("Image système validée avec succès", __FILE__), 'progress' => 100], 2);
+      return $downloadFilepath;
+
       self::setRecoveryProgress(['details' => __('Image système invalide, reprise du téléchargement', __FILE__), 'progress' => 0], 1);
     }
 
@@ -200,11 +200,9 @@ class atlas extends eqLogic {
     }
 
     self::setRecoveryProgress(['details' => __("Téléchargement terminé, en cours de validation", __FILE__), 'progress' => 99], 1);
-    if (self::validateImage($downloadFilepath, $imgInfos['SHA256'])) {
-      self::setRecoveryProgress(['details' => __("Image système téléchargée avec succès", __FILE__), 'progress' => 100], 2);
-      return $downloadFilepath;
-    }
-    throw new Exception(__('Abandon, image système invalide', __FILE__));
+    self::validateImage($downloadFilepath, $imgInfos['SHA256']);
+    self::setRecoveryProgress(['details' => __("Image système téléchargée avec succès", __FILE__), 'progress' => 100], 2);
+    return $downloadFilepath;
   }
 
   private static function getImgInfosFromMarket() {
