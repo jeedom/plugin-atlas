@@ -187,7 +187,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         if (ok) {
           requestCancel = true
           updateRecovery({
-            step: "{{Annulation en cours...}}",
+            step: "{{Annulation...}}",
             details: '',
             progress: -1
           })
@@ -233,13 +233,12 @@ include_file('core', 'atlas', 'class.js', 'atlas');
             details: '{{Abandon, clé USB non détectée.}}',
             progress: -1
           })
-          clearInterval(usbDetection)
-        } else {
-          i++
-          updateRecovery({
-            progress: i
-          })
+          return clearInterval(usbDetection)
         }
+        i++
+        updateRecovery({
+          progress: i
+        })
       }, 10000)
 
       $('#md_modal').bind('dialogbeforeclose', function() {
@@ -275,10 +274,9 @@ include_file('core', 'atlas', 'class.js', 'atlas');
                 return setTimeout(() => {
                   canCloseDialog = true
                   $('#md_modal').dialog('close')
-                }, 3000);
-              } else {
-                canCloseDialog = true
+                }, 2750);
               }
+              canCloseDialog = true
             }
             if (!requestCancel) {
               updateRecovery(data)

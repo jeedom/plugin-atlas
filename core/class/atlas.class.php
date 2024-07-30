@@ -188,7 +188,6 @@ class atlas extends eqLogic {
     curl_exec($ch);
 
     if (curl_errno($ch)) {
-      unlink($downloadFilepath);
       $error = __("Erreur lors du téléchargement", __FILE__) . ' : ' . curl_error($ch);
     }
 
@@ -196,6 +195,7 @@ class atlas extends eqLogic {
     fclose($fp);
 
     if ($error) {
+      unlink($downloadFilepath);
       throw new Exception($error);
     }
 
@@ -210,11 +210,11 @@ class atlas extends eqLogic {
     if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
       throw new Exception(__("Abandon, impossible de récupérer les informations sur l'image système", __FILE__) . ' : ' . $jsonrpc->getErrorMessage());
     }
-    $urlArray = $jsonrpc->getResult();
-    if ($urlArray['url'] && $urlArray['SHA256']) {
-      return $urlArray;
+    $imgInfos = $jsonrpc->getResult();
+    if ($imgInfos['url'] && $imgInfos['SHA256']) {
+      return $imgInfos;
     }
-    throw new Exception(__("Abandon, informations sur l'image système manquantes", __FILE__) . ' : ' . print_r($urlArray, true));
+    throw new Exception(__("Abandon, informations sur l'image système manquantes", __FILE__) . ' : ' . print_r($imgInfos, true));
   }
 
   private static function downloadImageProgress($_resource, $_downloadSize, $_downloaded) {
