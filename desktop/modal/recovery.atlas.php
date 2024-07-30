@@ -268,15 +268,16 @@ include_file('core', 'atlas', 'class.js', 'atlas');
           if (data) {
             data = JSON.parse(data)
             if (isset(data.progress) && (data.progress < 0 || data.progress > 999)) {
-              clearInterval(recoveryProgress)
               if (requestCancel && data.progress < 0) {
                 updateRecovery(data)
                 return setTimeout(() => {
                   canCloseDialog = true
                   $('#md_modal').dialog('close')
-                }, 2750);
+                }, 2750)
               }
-              canCloseDialog = true
+              setTimeout(() => {
+                canCloseDialog = true
+              }, 2000)
             }
             if (!requestCancel) {
               updateRecovery(data)
@@ -288,6 +289,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
 
     $('#md_modal').bind('dialogbeforeclose', function() {
       if (canCloseDialog) {
+        clearInterval(recoveryProgress)
         return true
       }
       document.getElementById('bt_cancel').triggerEvent('click')
