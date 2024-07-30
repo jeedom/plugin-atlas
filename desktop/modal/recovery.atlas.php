@@ -124,8 +124,6 @@ include_file('core', 'atlas', 'class.js', 'atlas');
   </div>
   <div class="col-md-12 text-center">
     <h3 class="text-center" id="recovery-step"></h3>
-    <div class="label label-warning hidden" id="recovery-warn"><i class="fas fa-exclamation-triangle"></i> {{Ne pas fermer la fenêtre durant l'opération}}</div>
-    <br>
     <br>
     <div class="col-md-offset-1 col-md-10">
       <div class="progress hidden">
@@ -164,13 +162,11 @@ include_file('core', 'atlas', 'class.js', 'atlas');
 
     if (_target = event.target.closest('#bt_start')) {
       _target.classList.add('hidden')
-      document.getElementById('recovery-warn').classList.remove('hidden')
       monitorRecovery()
       jeedom.atlas.startRecovery({
         global: false,
         type: _mode,
         success: function(result) {
-          document.getElementById('recovery-warn').classList.add('hidden')
           document.getElementById('recovery-progress').classList.remove('active')
           if (result) {
             document.getElementById('bt_cancel').classList.add('hidden')
