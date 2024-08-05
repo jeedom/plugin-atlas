@@ -54,7 +54,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
 </div>
 
 <script>
-  var _inProgress = _requestCancel = false
+  var _cancelRecovery = _inProgress = false
 
   if (_mode == 'usb') {
     usbDetect().then(() => {
@@ -80,7 +80,6 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         success: function(result) {
           _inProgress = false
           document.getElementById('recovery-progress').classList.remove('active')
-          document.getElementById('bt_cancel').classList.add('hidden')
           if (result) {
             if (_mode == 'usb') {
               document.getElementById('bt_restart').classList.remove('hidden')
@@ -95,20 +94,22 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     }
 
     if (_target = event.target.closest('#bt_cancel')) {
-      bootbox.confirm("{{Annuler la restauration système ?}}", function(ok) {
-        if (ok) {
-          _target.classList.add('hidden')
-          _requestCancel = true
-          updateRecovery({
-            step: "{{Annulation...}}",
-            details: '',
-            progress: -1
-          })
-          if (_inProgress) {
-            jeedom.atlas.cancelRecovery({})
+      if (!_cancelRecovery) {
+        bootbox.confirm("{{Annuler la restauration système ?}}", function(ok) {
+          if (ok) {
+            _target.classList.add('hidden')
+            _cancelRecovery = true
+            updateRecovery({
+              step: "{{Annulation...}}",
+              details: '',
+              progress: -1
+            })
+            if (_inProgress) {
+              jeedom.atlas.cancelRecovery({})
+            }
           }
-        }
-      })
+        })
+      }
       return
     }
 
@@ -139,7 +140,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         progress: i
       })
       let usbDetection = setInterval(function() {
-        if (_requestCancel) {
+        if (_cancelRecovery) {
           return $('#md_modal').dialog('close')
         }
 
@@ -163,6 +164,11 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       }, 10000)
 
       $('#md_modal').bind('dialogbeforeclose', function() {
+        if (!_cancelRecovery) {
+          document.getElementById('bt_cancel').triggerEvent('click')
+          return false
+        }
+
         clearInterval(usbDetection)
         return true
       })
@@ -186,7 +192,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     let recoveryProgress = setInterval(function() {
       if (!_inProgress) {
         clearInterval(recoveryProgress)
-        if (_requestCancel) {
+        if (_cancelRecovery) {
           return setTimeout(() => {
             $('#md_modal').dialog('close')
           }, 2000)
@@ -198,7 +204,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         success: function(data) {
           if (data) {
             data = JSON.parse(data)
-            if (!_requestCancel || isset(data.progress) && data.progress < 0) {
+            if (!_cancelRecovery || isset(data.progress) && data.progress < 0) {
               updateRecovery(data)
             }
           }
@@ -207,12 +213,13 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     }, 950)
 
     $('#md_modal').bind('dialogbeforeclose', function() {
-      if (!_inProgress) {
-        return true
+      if (!_cancelRecovery) {
+        document.getElementById('bt_cancel').triggerEvent('click')
+        return false
       }
 
-      document.getElementById('bt_cancel').triggerEvent('click')
-      return false
+      clearInterval(recoveryProgress)
+      return true
     })
   }
 
@@ -231,7 +238,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-danger'
         progressbar.style.width = '100%'
         progressbar.setAttribute('aria-valuenow', 100)
-        progressbar.innerText = (_requestCancel) ? "{{Annulation demandée, veuillez patienter}}" : '{{Une erreur est survenue, veuillez réessayer}}'
+        progressbar.innerText = (_cancelRecovery) ? "{{Annulation demandée, veuillez patienter}}" : '{{Une erreur est survenue, veuillez réessayer}}'
       } else if (_data.progress >= 100) {
         progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-success active'
         progressbar.style.width = '100%'
@@ -247,7 +254,6 @@ include_file('core', 'atlas', 'class.js', 'atlas');
   }
 
   function redirect(_url) {
-    document.getElementById('bt_cancel').classList.remove('hidden')
     let i = 1
     updateRecovery({
       step: '{{Redémarrage...}}',
@@ -256,7 +262,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     })
 
     let atlasDetection = setInterval(function() {
-      if (_requestCancel) {
+      if (_cancelRecovery) {
         return $('#md_modal').dialog('close')
       }
 
@@ -288,6 +294,11 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     }, 5000)
 
     $('#md_modal').bind('dialogbeforeclose', function() {
+      if (!_cancelRecovery) {
+        document.getElementById('bt_cancel').triggerEvent('click')
+        return false
+      }
+
       clearInterval(atlasDetection)
       return true
     })
