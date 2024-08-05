@@ -22,11 +22,6 @@ if (!isConnect()) {
 sendVarToJS('_mode', init('mode'));
 include_file('core', 'atlas', 'class.js', 'atlas');
 ?>
-<!-- <script>
-   function Good() {
-    $('.img-atlas').attr('src', '<?php echo config::byKey('product_connection_image'); ?>');
-  }
-</script> -->
 
 <div class="col-md-12 text-center" id="atlas-recovery">
   <h2>{{Restauration système}}</h2>
@@ -77,17 +72,19 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       jeedom.atlas.startRecovery({
         global: false,
         type: _mode,
-        success: function(result) {
+        success: function(_result) {
           _inProgress = false
           document.getElementById('recovery-progress').classList.remove('active')
-          if (result) {
+          if (_result) {
             if (_mode == 'usb') {
               document.getElementById('bt_restart').classList.remove('hidden')
             } else if (_mode == 'emmc') {
               document.getElementById('bt_stop').classList.remove('hidden')
             }
+          } else {
+            document.getElementById('bt_cancel').classList.add('hidden')
+            _cancelRecovery = true
           }
-
         }
       })
       return
@@ -154,6 +151,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
             details: '{{Abandon, clé USB non détectée.}}',
             progress: -1
           })
+          _cancelRecovery = true
           return clearInterval(usbDetection)
         }
 
@@ -179,8 +177,8 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     var response
     jeedom.atlas.usbConnected({
       async: false,
-      success: function(data) {
-        response = data
+      success: function(_data) {
+        response = _data
       }
     })
     return response
@@ -201,9 +199,9 @@ include_file('core', 'atlas', 'class.js', 'atlas');
 
       jeedom.atlas.getRecoveryProgress({
         global: false,
-        success: function(data) {
-          if (data) {
-            data = JSON.parse(data)
+        success: function(_data) {
+          if (_data) {
+            data = JSON.parse(_data)
             if (!_cancelRecovery || isset(data.progress) && data.progress < 0) {
               updateRecovery(data)
             }
@@ -283,6 +281,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
             details: '{{Abandon, impossible de trouver la box sur le réseau suite au redémarrage.}}',
             progress: -1
           })
+          _cancelRecovery = true
           return clearInterval(atlasDetection)
         }
 
@@ -316,4 +315,8 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       image.src = _url + '/favicon.ico'
     })
   }
+
+  // function Good() {
+  //   $('.img-atlas').attr('src', '<?php echo config::byKey('product_connection_image'); ?>');
+  // }
 </script>
