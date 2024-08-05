@@ -143,7 +143,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
 </div>
 
 <script>
-  var requestCancel = false
+  var _inProgress = _requestCancel = false
 
   if (_mode == 'usb') {
     usbDetect().then(() => {
@@ -167,9 +167,10 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         global: false,
         type: _mode,
         success: function(result) {
+          _inProgress = false
           document.getElementById('recovery-progress').classList.remove('active')
+          document.getElementById('bt_cancel').classList.add('hidden')
           if (result) {
-            document.getElementById('bt_cancel').classList.add('hidden')
             if (_mode == 'usb') {
               document.getElementById('bt_restart').classList.remove('hidden')
             } else if (_mode == 'emmc') {
@@ -183,9 +184,9 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     }
 
     if (_target = event.target.closest('#bt_cancel')) {
-      bootbox.confirm("{{Etes-vous sûr de vouloir annuler la restauration système ?}}", function(ok) {
+      bootbox.confirm("{{Annuler la restauration système ?}}", function(ok) {
         if (ok) {
-          requestCancel = true
+          _requestCancel = true
           updateRecovery({
             step: "{{Annulation...}}",
             details: '',
@@ -199,12 +200,10 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     }
 
     if (_target = event.target.closest('#bt_restart')) {
-      // $('#md_modal').dialog('close')
       return
     }
 
     if (_target = event.target.closest('#bt_stop')) {
-      // $('#md_modal').dialog('close')
       return
     }
   })
@@ -221,13 +220,15 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         progress: i
       })
       let usbDetection = setInterval(function() {
-        if (requestCancel) {
+        if (_requestCancel) {
           return $('#md_modal').dialog('close')
         }
+
         if (usbConnected()) {
           clearInterval(usbDetection)
           return resolve(true)
         }
+
         if (i == 100) {
           updateRecovery({
             details: '{{Abandon, clé USB non détectée.}}',
@@ -235,6 +236,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
           })
           return clearInterval(usbDetection)
         }
+
         i++
         updateRecovery({
           progress: i
@@ -260,26 +262,24 @@ include_file('core', 'atlas', 'class.js', 'atlas');
   }
 
   function monitorRecovery() {
-    let canCloseDialog = false
+    _inProgress = true
+
     let recoveryProgress = setInterval(function() {
+      if (!_inProgress) {
+        clearInterval(recoveryProgress)
+        if (_requestCancel) {
+          return setTimeout(() => {
+            $('#md_modal').dialog('close')
+          }, 2000)
+        }
+      }
+
       jeedom.atlas.getRecoveryProgress({
         global: false,
         success: function(data) {
           if (data) {
             data = JSON.parse(data)
-            if (isset(data.progress) && (data.progress < 0 || data.progress > 999)) {
-              if (requestCancel && data.progress < 0) {
-                updateRecovery(data)
-                return setTimeout(() => {
-                  canCloseDialog = true
-                  $('#md_modal').dialog('close')
-                }, 2750)
-              }
-              setTimeout(() => {
-                canCloseDialog = true
-              }, 2000)
-            }
-            if (!requestCancel) {
+            if (!_requestCancel || isset(data.progress) && data.progress < 0) {
               updateRecovery(data)
             }
           }
@@ -288,10 +288,10 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     }, 950)
 
     $('#md_modal').bind('dialogbeforeclose', function() {
-      if (canCloseDialog) {
-        clearInterval(recoveryProgress)
+      if (!_inProgress) {
         return true
       }
+
       document.getElementById('bt_cancel').triggerEvent('click')
       return false
     })
@@ -312,7 +312,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-danger'
         progressbar.style.width = '100%'
         progressbar.setAttribute('aria-valuenow', 100)
-        progressbar.innerText = (requestCancel) ? "{{Annulation demandée, veuillez patienter}}" : '{{Une erreur est survenue, veuillez réessayer}}'
+        progressbar.innerText = (_requestCancel) ? "{{Annulation demandée, veuillez patienter}}" : '{{Une erreur est survenue, veuillez réessayer}}'
       } else if (_data.progress >= 100) {
         progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-success active'
         progressbar.style.width = '100%'
