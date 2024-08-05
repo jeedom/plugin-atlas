@@ -26,95 +26,6 @@ include_file('core', 'atlas', 'class.js', 'atlas');
    function Good() {
     $('.img-atlas').attr('src', '<?php echo config::byKey('product_connection_image'); ?>');
   }
-
-  function ping(ip, callback) {
-    if (!this.inUse) {
-      this.status = 'unchecked';
-      this.inUse = true;
-      this.callback = callback;
-      this.ip = ip;
-      var _that = this;
-      this.img = new Image();
-      this.img.onload = function() {
-        _that.inUse = false;
-        _that.callback('responded');
-
-      };
-      this.img.onerror = function(e) {
-        if (_that.inUse) {
-          _that.inUse = false;
-          _that.callback('responded', e);
-        }
-
-      };
-      this.start = new Date().getTime();
-      this.img.src = "http://" + ip;
-      this.timer = setTimeout(function() {
-        if (_that.inUse) {
-          _that.inUse = false;
-          _that.callback('timeout');
-        }
-      }, 1500);
-    }
-  }
-
-  $('#bt_go').off('click').on('click', function() {
-    loopMigration = 0;
-    progress(0);
-    $('#bt_go').hide();
-    $('#bt_relancer').hide();
-    $('#div_progressbar').show();
-    $('.progress').show();
-    lancement();
-    setTimeout(function() {
-      migratepourcentage();
-    }, 3000);
-  });
-  $('#bt_relancer').off('click').on('click', function() {
-    loopMigration = 1;
-    progress(0);
-    $('#bt_go').hide();
-    $('#bt_relancer').hide();
-    $('#div_progressbar').show();
-    $('.progress').show();
-    migratepourcentage();
-  });
-  $('#bt_redemarrer').off('click').on('click', function() {
-    $('#bt_redemarrer').hide();
-    $('.textAtlas').text('{{Redémarrage en cours, vous serez automatiquement redirigé vers la page de connexion quand la box Atlas sera de nouveau opérationnelle.}}');
-    redirectIP('jeedomatlasrecovery.local')
-    jeedom.rebootSystem();
-  });
-  $('#bt_arreter').off('click').on('click', function() {
-    $('#bt_arreter').hide();
-    $('.textAtlas').text('{{Arrêt effectué, veuillez retirer la clé USB puis débrancher et rebrancher électriquement la box Jeedom Atlas. Vous serez automatiquement redirigé vers la page de connexion quand la box Atlas sera de nouveau opérationnelle.}}');
-    redirectIP('jeedomatlas.local')
-    jeedom.haltSystem();
-  });
-
-  function redirectIP(ip) {
-    $('#div_progressbar').show();
-    $('.progress').show();
-    redirect++;
-    new ping(ip, function(status, e) {
-      console.log(status);
-      if (redirect == 100) {
-        $('.textAtlas').text('{{Impossible de trouver la box Atlas sur le réseau suite au redémarrage...}}');
-        progress(-1);
-      } else {
-        progress(redirect);
-        if (status == 'timeout') {
-          setTimeout(function() {
-            redirectIP(ip);
-          }, 10000);
-        } else if (status == 'responded') {
-          $('.textAtlas').text('{{Redirection en cours vers}} ' + ip + '...');
-          progress(100);
-          top.location.href = 'http://' + ip;
-        }
-      }
-    });
-  }
 </script> -->
 
 <div class="col-md-12 text-center" id="atlas-recovery">
@@ -137,7 +48,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       <button type="button" class="btn btn-success hidden" id="bt_start"><i class="fab fa-usb"></i> {{Démarrer}}</button>
       <button type="button" class="btn btn-danger" id="bt_cancel"><i class="fas fa-times"></i> {{Annuler}}</button>
       <button type="button" class="btn btn-warning hidden" id="bt_restart"><i class="fas fa-redo"></i> {{Redémarrer}}</button>
-      <button type="button" class="btn btn-danger hidden" id="bt_stop"><i class="fas fa-stop"></i> {{Arrêter}}</button>
+      <button type="button" class="btn btn-warning hidden" id="bt_stop"><i class="fas fa-stop"></i> {{Arrêter}}</button>
     </div>
   </div>
 </div>
@@ -186,24 +97,32 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     if (_target = event.target.closest('#bt_cancel')) {
       bootbox.confirm("{{Annuler la restauration système ?}}", function(ok) {
         if (ok) {
+          _target.classList.add('hidden')
           _requestCancel = true
           updateRecovery({
             step: "{{Annulation...}}",
             details: '',
             progress: -1
           })
-          jeedom.atlas.cancelRecovery({})
-          document.getElementById('bt_cancel').classList.add('hidden')
+          if (_inProgress) {
+            jeedom.atlas.cancelRecovery({})
+          }
         }
       })
       return
     }
 
     if (_target = event.target.closest('#bt_restart')) {
+      _target.classList.add('hidden')
+      redirect('http://jeedomatlasrecovery.local')
+      jeedom.rebootSystem()
       return
     }
 
     if (_target = event.target.closest('#bt_stop')) {
+      _target.classList.add('hidden')
+      redirect('http://jeedomatlas.local')
+      jeedom.haltSystem()
       return
     }
   })
@@ -325,5 +244,65 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         progressbar.innerText = _data.progress + '%'
       }
     }
+  }
+
+  function redirect(_url) {
+    document.getElementById('bt_cancel').classList.remove('hidden')
+    let i = 1
+    updateRecovery({
+      step: '{{Redémarrage...}}',
+      details: "{{Détection automatique de la box sur le réseau (veuillez patienter)}}",
+      progress: i
+    })
+
+    let atlasDetection = setInterval(function() {
+      if (_requestCancel) {
+        return $('#md_modal').dialog('close')
+      }
+
+      ping(_url).then((_ping) => {
+        if (_ping) {
+          clearInterval(atlasDetection)
+          updateRecovery({
+            details: '{{Box opérationnelle suite au redémarrage, redirection vers la page de connexion.}}',
+            progress: 100
+          })
+          return setTimeout(function() {
+            top.location.href = _url
+          }, 2000)
+        }
+
+        if (i == 100) {
+          updateRecovery({
+            details: '{{Abandon, impossible de trouver la box sur le réseau suite au redémarrage.}}',
+            progress: -1
+          })
+          return clearInterval(atlasDetection)
+        }
+
+        i++
+        updateRecovery({
+          progress: i
+        })
+      })
+    }, 5000)
+
+    $('#md_modal').bind('dialogbeforeclose', function() {
+      clearInterval(atlasDetection)
+      return true
+    })
+  }
+
+  function ping(_url) {
+    return new Promise((resolve) => {
+      let image = new Image();
+      image.onload = function() {
+        resolve(true)
+      }
+      image.onerror = function() {
+        resolve(false)
+      }
+      image.src = _url + '/favicon.ico'
+    })
   }
 </script>
