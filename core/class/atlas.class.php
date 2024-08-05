@@ -51,16 +51,16 @@ class atlas extends eqLogic {
       $targetDevice = self::getTargetDevice($_mode);
       $imageFilepath = self::downloadImage();
       self::ddImage($imageFilepath, $targetDevice);
-      self::finalizeRecovery($_mode, $imageFilepath);
+      self::finalizeRecovery($targetDevice, $imageFilepath);
     } catch (Exception $e) {
       self::setRecoveryProgress(['details' => $e->getMessage() . '.', 'progress' => -1], 1);
       return false;
     }
 
     if ($_mode == 'usb') {
-      self::setRecoveryProgress(['step' => __("La clé USB de restauration système est prête.", __FILE__), 'details' => __('Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB pour commencer la restauration système.', __FILE__), 'progress' => 1000], 1);
+      self::setRecoveryProgress(['step' => __("La clé USB de restauration système est prête.", __FILE__), 'details' => __('Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB.', __FILE__), 'progress' => 100], 1);
     } else if ($_mode == 'emmc') {
-      self::setRecoveryProgress(['step' => __("Restauration système terminée.", __FILE__), 'details' => __('Cliquez sur le bouton "Arrêter" puis débrancher la clé USB.', __FILE__), 'progress' => 1000], 1);
+      self::setRecoveryProgress(['step' => __("Restauration système terminée.", __FILE__), 'details' => __('Cliquez sur le bouton "Arrêter" puis débrancher la clé USB avant de redémarrer la box électriquement.', __FILE__), 'progress' => 100], 1);
     }
     return true;
   }
@@ -69,12 +69,71 @@ class atlas extends eqLogic {
     cache::set('atlasRecoveryCancellation', true, 60);
   }
 
-  private static function finalizeRecovery($_mode, $_imageFilepath) {
-    self::setRecoveryProgress(['step' => __("Finalisation...", __FILE__), 'progress' => 0], 2);
-    throw new Exception(__('WIP', __FILE__) . ' ' . __FUNCTION__);
+  private static function finalizeRecovery($_targetDevice, $_imageFilepath) {
+    self::setRecoveryProgress(['step' => __("(WIP) Finalisation...", __FILE__), 'progress' => 0], 2);
 
-    if ($_mode == 'usb') {
-    } else if ($_mode == 'emmc') {
+    self::setRecoveryProgress(['details' => __("Préparation", __FILE__), 'progress' => 1], 1);
+    if (!file_exists('/mnt/usb')) {
+      shell_exec('sudo mkdir /mnt/usb');
+    }
+    shell_exec('sudo umount /mnt/usb');
+
+    $device = str_replace('/dev/', '', $_targetDevice);
+
+    if (substr($device, 0, 3) == 'mmc') {
+      self::setRecoveryProgress(['details' => __("Vérification de l'espace de stockage", __FILE__) . ' ' . $device, 'progress' => 20], 1);
+      shell_exec('sudo sfdisk -d ' . $_targetDevice . ' > ' . $device . '_partition_bak.dmp');
+
+      self::setRecoveryProgress(['details' => __("Création de la partition", __FILE__), 'progress' => 40], 1);
+      shell_exec('sudo growpart -N ' . $_targetDevice . ' 1');
+      shell_exec('sudo growpart ' . $_targetDevice . ' 1');
+
+      self::setRecoveryProgress(['details' => __("Vérification de la partition", __FILE__), 'progress' => 60], 1);
+      // To check : added 'p' before '1' at end
+      shell_exec('sudo e2fsck -fy ' . $_targetDevice . 'p1');
+
+      self::setRecoveryProgress(['details' => __("Redimensionnement  de la partition", __FILE__), 'progress' => 80], 1);
+      shell_exec('sudo resize2fs ' . $_targetDevice . 'p1');
+    } else if (substr($device, 0, 2) == 'sd') {
+      self::setRecoveryProgress(['details' => __("Vérification de la clé USB", __FILE__) . ' ' . $device, 'progress' => 15], 1);
+      shell_exec('sudo sfdisk -d ' . $_targetDevice . ' > ' . $device . '_partition_bak.dmp');
+
+      self::setRecoveryProgress(['details' => __("Création de la partition", __FILE__), 'progress' => 30], 1);
+      shell_exec('sudo growpart -N ' . $_targetDevice . ' 1');
+      shell_exec('sudo growpart ' . $_targetDevice . ' 1');
+
+      self::setRecoveryProgress(['details' => __("Vérification de la partition", __FILE__), 'progress' => 45], 1);
+      shell_exec('sudo e2fsck -fy ' . $_targetDevice . '1');
+
+      self::setRecoveryProgress(['details' => __("Redimensionnement  de la partition", __FILE__), 'progress' => 60], 1);
+      shell_exec('sudo resize2fs ' . $_targetDevice . '1 8G');
+
+      self::setRecoveryProgress(['details' => __("Montage de la clé USB", __FILE__), 'progress' => 70], 1);
+      shell_exec('sudo mount ' . $_targetDevice . '1 /mnt/usb');
+
+      $imgDir = pathinfo($_imageFilepath, PATHINFO_DIRNAME);
+      if (!file_exists('/mnt/usb' . $imgDir)) {
+        shell_exec('sudo mkdir /mnt/usb' . $imgDir);
+      } else {
+        if (file_exists('/mnt/usb' . $_imageFilepath)) {
+          shell_exec('sudo rm /mnt/usb' . $_imageFilepath);
+        }
+      }
+
+      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 80], 1);
+      $coreDir = str_replace('/data/imgOs', '', $imgDir);
+      $iniFile = '/mnt/usb' . $coreDir . '/data/custom/custom.config.ini';
+      $iniArray = parse_ini_file($iniFile);
+      $iniArray['product_name'] = 'Jeedom Atlas Recovery';
+      $iniArray['path_wizard'] = 'data/custom/atlasRecoveryWizard.json';
+      $iniArray['product_connection_image'] = 'core/img/logo-jeedom-atlas-recovery-grand-nom-couleur.svg';
+      self::put_ini_file($iniFile, $iniArray);
+      shell_exec('sudo bash -c \'echo "JeedomAtlasRecovery" > /mnt/usb/etc/hostname\'');
+      shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/atlasRecoveryWizard.json /mnt/usb' . $coreDir . '/' . $iniArray['path_wizard']);
+      shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb' . $coreDir . '/' . $iniArray['product_connection_image']);
+
+      self::setRecoveryProgress(['details' => __("Copie de l'image", __FILE__), 'progress' => 90], 1);
+      shell_exec('sudo cp ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
     }
   }
 
@@ -127,7 +186,7 @@ class atlas extends eqLogic {
           self::setRecoveryProgress(['details' => $done[0] . $done[1] . '/' . $total[0] . $total[1] . ' (' . $speed . '/s)', 'progress' => $percent]);
         } else {
           self::setRecoveryProgress(['details' => $line]);
-          log::add(__CLASS__, 'debug', '[RECOVERY WIP] ddImage other :' . $line);
+          log::add(__CLASS__, 'debug', '[RECOVERY WIP] ddImage : ' . $line);
         }
         $processStatus = proc_get_status($process);
       } while ($processStatus['running']);
@@ -210,10 +269,12 @@ class atlas extends eqLogic {
     if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
       throw new Exception(__("Abandon, impossible de récupérer les informations sur l'image système", __FILE__) . ' : ' . $jsonrpc->getErrorMessage());
     }
+
     $imgInfos = $jsonrpc->getResult();
     if ($imgInfos['url'] && $imgInfos['SHA256']) {
       return $imgInfos;
     }
+
     throw new Exception(__("Abandon, informations sur l'image système manquantes", __FILE__) . ' : ' . print_r($imgInfos, true));
   }
 
@@ -268,6 +329,7 @@ class atlas extends eqLogic {
     if ($_mode == 'usb' && self::usbConnected()) {
       return '/dev/sda';
     }
+
     if ($_mode == 'emmc') {
       if (file_exists('/dev/mmcblk2')) {
         return '/dev/mmcblk2';
@@ -276,6 +338,7 @@ class atlas extends eqLogic {
         return '/dev/mmcblk1';
       }
     }
+
     throw new Exception(__('Abandon, support de destination introuvable', __FILE__) . ' : ' . $_mode);
   }
 
@@ -284,25 +347,28 @@ class atlas extends eqLogic {
     if ($percent < 0) {
       return 0;
     }
+
     if ($percent > $_max) {
       return $_max;
     }
+
     return $percent;
   }
-  // private static function put_ini_file($_file, $_array, $_i = 0) {
-  //   $str = "[core]\n";
-  //   foreach ($_array as $k => $v) {
-  //     if (is_array($v)) {
-  //       $str .= str_repeat(" ", $_i * 2) . "[$k]" . PHP_EOL;
-  //       $str .= self::put_ini_file("", $v, $_i + 1);
-  //     } else
-  //       $str .= str_repeat(" ", $_i * 2) . "$k = $v" . PHP_EOL;
-  //   }
-  //   if ($_file)
-  //     return file_put_contents($_file, $str);
-  //   else
-  //     return $str;
-  // }
+
+  private static function put_ini_file($_file, $_array, $_i = 0) {
+    $str = "[core]\n";
+    foreach ($_array as $k => $v) {
+      if (is_array($v)) {
+        $str .= str_repeat(" ", $_i * 2) . "[$k]" . PHP_EOL;
+        $str .= self::put_ini_file("", $v, $_i + 1);
+      } else
+        $str .= str_repeat(" ", $_i * 2) . "$k = $v" . PHP_EOL;
+    }
+    if ($_file)
+      return file_put_contents($_file, $str);
+    else
+      return $str;
+  }
 
   /* ----- RECOVERY END  ----- */
 
