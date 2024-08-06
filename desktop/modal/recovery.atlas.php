@@ -40,10 +40,10 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     <div class="col-md-12 text-center">
       <h4 class="text-center" id="recovery-details"></h4>
       <br>
-      <button type="button" class="btn btn-success hidden" id="bt_start"><i class="fab fa-usb"></i> {{Démarrer}}</button>
-      <button type="button" class="btn btn-danger" id="bt_cancel"><i class="fas fa-times"></i> {{Annuler}}</button>
-      <button type="button" class="btn btn-warning hidden" id="bt_restart"><i class="fas fa-redo"></i> {{Redémarrer}}</button>
-      <button type="button" class="btn btn-warning hidden" id="bt_stop"><i class="fas fa-stop"></i> {{Arrêter}}</button>
+      <a class="btn btn-success hidden" id="bt_start"><i class="fab fa-usb"></i> {{Démarrer}}</a>
+      <a class="btn btn-danger" id="bt_cancel"><i class="fas fa-times"></i> {{Annuler}}</a>
+      <a class="btn btn-warning hidden" id="bt_restart"><i class="fas fa-redo"></i> {{Redémarrer}}</a>
+      <a class="btn btn-warning hidden" id="bt_stop"><i class="fas fa-stop"></i> {{Arrêter}}</a>
     </div>
   </div>
 </div>
@@ -92,7 +92,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
 
     if (_target = event.target.closest('#bt_cancel')) {
       if (!_cancelRecovery) {
-        bootbox.confirm("{{Annuler la restauration système ?}}", function(ok) {
+        bootbox.confirm("<div class='text-center'><span class='label label-warning'><i class='fas fa-exclamation-triangle'></i> {{Il est déconseillé d'annuler durant la phase de gravure.}}</span><br>{{Annuler la restauration système ?}}</strong>", function(ok) {
           if (ok) {
             _target.classList.add('hidden')
             _cancelRecovery = true
@@ -255,7 +255,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     let i = 1
     updateRecovery({
       step: '{{Redémarrage...}}',
-      details: "{{Détection automatique de la box sur le réseau (veuillez patienter)}}",
+      details: "{{Détection automatique de la box sur le réseau}}",
       progress: i
     })
 
@@ -290,7 +290,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
           progress: i
         })
       })
-    }, 5000)
+    }, 10000)
 
     $('#md_modal').bind('dialogbeforeclose', function() {
       if (!_cancelRecovery) {
@@ -312,11 +312,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       image.onerror = function() {
         resolve(false)
       }
-      image.src = _url + '/favicon.ico'
+      image.src = _url + '/favicon.ico?t=' + new Date().getTime()
     })
   }
-
-  // function Good() {
-  //   $('.img-atlas').attr('src', '<?php echo config::byKey('product_connection_image'); ?>');
-  // }
 </script>

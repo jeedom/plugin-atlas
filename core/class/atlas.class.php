@@ -70,45 +70,42 @@ class atlas extends eqLogic {
   }
 
   private static function finalizeRecovery($_targetDevice, $_imageFilepath) {
-    self::setRecoveryProgress(['step' => __("(WIP) Finalisation...", __FILE__), 'progress' => 0], 2);
+    self::setRecoveryProgress(['step' => __("Finalisation...", __FILE__), 'details' => '', 'progress' => 0], 2);
 
-    self::setRecoveryProgress(['details' => __("Préparation", __FILE__), 'progress' => 1], 1);
-    if (!file_exists('/mnt/usb')) {
-      shell_exec('sudo mkdir /mnt/usb');
+    // EMMC
+    if (stripos($_targetDevice, '/dev/mmc') !== false) {
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__), 'progress' => 15], 1);
+      $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' 1');
+      self::setRecoveryProgress(['details' => $cmd, 'progress' => 30], 1);
+
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 45], 1);
+      $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . 'p1');
+      self::setRecoveryProgress(['details' => $cmd, 'progress' => 60], 1);
+
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 75], 1);
+      $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . 'p1');
+      self::setRecoveryProgress(['details' => $cmd, 'progress' => 90], 1);
     }
-    shell_exec('sudo umount /mnt/usb');
 
-    $device = str_replace('/dev/', '', $_targetDevice);
+    // USB
+    if (stripos($_targetDevice, '/dev/sd') !== false) {
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__), 'progress' => 10], 1);
+      $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' 1');
+      self::setRecoveryProgress(['details' => $cmd, 'progress' => 20], 1);
 
-    if (substr($device, 0, 3) == 'mmc') {
-      self::setRecoveryProgress(['details' => __("Vérification de l'espace de stockage", __FILE__) . ' ' . $device, 'progress' => 20], 1);
-      shell_exec('sudo sfdisk -d ' . $_targetDevice . ' > ' . $device . '_partition_bak.dmp');
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 30], 1);
+      $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . '1');
+      self::setRecoveryProgress(['details' => $cmd, 'progress' => 40], 1);
 
-      self::setRecoveryProgress(['details' => __("Création de la partition", __FILE__), 'progress' => 40], 1);
-      shell_exec('sudo growpart -N ' . $_targetDevice . ' 1');
-      shell_exec('sudo growpart ' . $_targetDevice . ' 1');
-
-      self::setRecoveryProgress(['details' => __("Vérification de la partition", __FILE__), 'progress' => 60], 1);
-      // To check : added 'p' before '1' at end
-      shell_exec('sudo e2fsck -fy ' . $_targetDevice . 'p1');
-
-      self::setRecoveryProgress(['details' => __("Redimensionnement  de la partition", __FILE__), 'progress' => 80], 1);
-      shell_exec('sudo resize2fs ' . $_targetDevice . 'p1');
-    } else if (substr($device, 0, 2) == 'sd') {
-      self::setRecoveryProgress(['details' => __("Vérification de la clé USB", __FILE__) . ' ' . $device, 'progress' => 15], 1);
-      shell_exec('sudo sfdisk -d ' . $_targetDevice . ' > ' . $device . '_partition_bak.dmp');
-
-      self::setRecoveryProgress(['details' => __("Création de la partition", __FILE__), 'progress' => 30], 1);
-      shell_exec('sudo growpart -N ' . $_targetDevice . ' 1');
-      shell_exec('sudo growpart ' . $_targetDevice . ' 1');
-
-      self::setRecoveryProgress(['details' => __("Vérification de la partition", __FILE__), 'progress' => 45], 1);
-      shell_exec('sudo e2fsck -fy ' . $_targetDevice . '1');
-
-      self::setRecoveryProgress(['details' => __("Redimensionnement  de la partition", __FILE__), 'progress' => 60], 1);
-      shell_exec('sudo resize2fs ' . $_targetDevice . '1 8G');
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 50], 1);
+      $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . '1 7G');
+      self::setRecoveryProgress(['details' => $cmd, 'progress' => 60], 1);
 
       self::setRecoveryProgress(['details' => __("Montage de la clé USB", __FILE__), 'progress' => 70], 1);
+      if (!file_exists('/mnt/usb')) {
+        shell_exec('sudo mkdir /mnt/usb');
+      }
+      // shell_exec('sudo umount /mnt/usb');
       shell_exec('sudo mount ' . $_targetDevice . '1 /mnt/usb');
 
       $imgDir = pathinfo($_imageFilepath, PATHINFO_DIRNAME);
@@ -133,31 +130,35 @@ class atlas extends eqLogic {
       shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb' . $coreDir . '/' . $iniArray['product_connection_image']);
 
       self::setRecoveryProgress(['details' => __("Copie de l'image", __FILE__), 'progress' => 90], 1);
-      shell_exec('sudo cp ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
+      $cmd = shell_exec('sudo cp ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
+      if (stripos($cmd, 'error') !== false) {
+        throw new Exception(__("Erreur lors de la copie de l'image", __FILE__) . ' : ' . $cmd);
+      }
     }
   }
 
   private static function ddImage($_imageFilepath, $_targetDevice) {
-    self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __('Initialisation', __FILE__), 'progress' => 0], 2);
+    self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __('Préparation de la gravure', __FILE__), 'progress' => 0], 2);
 
     $ext = pathinfo($_imageFilepath, PATHINFO_EXTENSION);
     if ($ext = 'gz') {
       $extract = 'gunzip';
+      $uncompressed = shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $2}'");
     } else if ($ext = 'xz') {
       $extract = 'xz';
+      $uncompressed = round(shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $5}'") * 1024 * 1024);
     } else {
       throw new Exception(__("Abandon, impossible de décompresser l'image système", __FILE__) . ' : ' . $ext);
     }
+    $total = cmd::autoValueArray($uncompressed, 2, 'o');
 
     if (cache::exist('atlasRecoveryCancellation')) {
       throw new Exception(__("Annulation de la gravure à la demande de l'utilisateur", __FILE__));
     }
-    self::setRecoveryProgress(['details' => __('Préparation de la gravure (veuillez patienter)', __FILE__)]);
-    $uncompressed = shell_exec($extract . ' -l ' . $_imageFilepath . " | awk -v col=uncompressed '" . 'NR==1{IGNORECASE=1;for(i=1;i<=NF;i++){if($i==col){c=i;break}}};NR==2{print $c}' . "'");
-    $total = cmd::autoValueArray($uncompressed, 2, 'o');
 
     self::setRecoveryProgress(['details' => __("Démarrage de la gravure", __FILE__)], 2);
-    $cmd = 'sudo cat ' . $_imageFilepath . ' | sudo ' . $extract . ' | sudo dd of=' . $_targetDevice . ' bs=512 status=progress 2>&1';
+    // To check : removed bs=512
+    $cmd = 'sudo dd if=' . $_imageFilepath . ' | sudo ' . $extract . ' | sudo dd of=' . $_targetDevice . ' status=progress 2>&1';
     $pipes = array();
     $error = false;
     $process = proc_open($cmd, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'a']], $pipes);
@@ -179,15 +180,15 @@ class atlas extends eqLogic {
 
         if (substr($line, -1) == 'B') {
           $lineInArray = explode(' ', $line);
-          $lineInArraySize = count($lineInArray);
-          $percent = self::calculPercentProgress($lineInArray[0], $uncompressed);
-          $done = cmd::autoValueArray($lineInArray[0], 2, 'o');
-          $speed = $lineInArray[$lineInArraySize - 2] . str_replace('B', 'o', $lineInArray[$lineInArraySize - 1]);
-          self::setRecoveryProgress(['details' => $done[0] . $done[1] . '/' . $total[0] . $total[1] . ' (' . $speed . '/s)', 'progress' => $percent]);
-        } else {
-          self::setRecoveryProgress(['details' => $line]);
-          log::add(__CLASS__, 'debug', '[RECOVERY WIP] ddImage : ' . $line);
+          if ($lineInArray[0] > 0) {
+            $lineInArraySize = count($lineInArray);
+            $percent = self::calculPercentProgress($lineInArray[0], $uncompressed);
+            $done = cmd::autoValueArray($lineInArray[0], 2, 'o');
+            $speed = $lineInArray[$lineInArraySize - 2] . str_replace('B', 'o', $lineInArray[$lineInArraySize - 1]);
+            self::setRecoveryProgress(['details' => $done[0] . $done[1] . '/' . $total[0] . $total[1] . ' (' . $speed . '/s)', 'progress' => $percent]);
+          }
         }
+
         $processStatus = proc_get_status($process);
       } while ($processStatus['running']);
     } else {
