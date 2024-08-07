@@ -41,11 +41,6 @@ class atlas extends eqLogic {
   public static function startRecovery(string $_mode) {
     cache::delete('atlasRecoveryCancellation');
     cache::set('atlasRecovery', false, 60);
-    if ($_mode == 'usb') {
-      self::setRecoveryProgress(['step' => __("Démarrage de la création de la clé USB...", __FILE__), 'progress' => 0], 2);
-    } else if ($_mode == 'emmc') {
-      self::setRecoveryProgress(['step' => __("Démarrage de la restauration système...", __FILE__), 'progress' => 0], 2);
-    }
 
     try {
       $targetDevice = self::getTargetDevice($_mode);
@@ -53,14 +48,8 @@ class atlas extends eqLogic {
       self::ddImage($imageFilepath, $targetDevice);
       self::finalizeRecovery($targetDevice, $imageFilepath);
     } catch (Exception $e) {
-      self::setRecoveryProgress(['details' => $e->getMessage() . '.', 'progress' => -1], 1);
+      self::setRecoveryProgress(['details' => $e->getMessage() . '.', 'progress' => -1], 2);
       return false;
-    }
-
-    if ($_mode == 'usb') {
-      self::setRecoveryProgress(['step' => __("La clé USB de restauration système est prête.", __FILE__), 'details' => __('Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB.', __FILE__), 'progress' => 100], 1);
-    } else if ($_mode == 'emmc') {
-      self::setRecoveryProgress(['step' => __("Restauration système terminée.", __FILE__), 'details' => __('Cliquez sur le bouton "Arrêter" puis débrancher la clé USB avant de redémarrer la box électriquement.', __FILE__), 'progress' => 100], 1);
     }
     return true;
   }
@@ -85,10 +74,13 @@ class atlas extends eqLogic {
       self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 75], 1);
       $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . 'p1');
       self::setRecoveryProgress(['details' => $cmd, 'progress' => 90], 1);
+      if (cache::exist('atlasRecoveryCancellation')) {
+        throw new Exception(__("La restauration système est terminée, débrancher la clé USB avant de redémarrer la box électriquement.", __FILE__));
+      }
     }
 
     // USB
-    if (stripos($_targetDevice, '/dev/sd') !== false) {
+    else if (stripos($_targetDevice, '/dev/sd') !== false) {
       self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__), 'progress' => 10], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' 1');
       self::setRecoveryProgress(['details' => $cmd, 'progress' => 20], 1);
@@ -133,6 +125,9 @@ class atlas extends eqLogic {
       $cmd = shell_exec('sudo cp ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
       if (stripos($cmd, 'error') !== false) {
         throw new Exception(__("Erreur lors de la copie de l'image", __FILE__) . ' : ' . $cmd);
+      }
+      if (cache::exist('atlasRecoveryCancellation')) {
+        throw new Exception(__("La restauration système est prête, redémarrer la box sans débrancher la clé USB.", __FILE__));
       }
     }
   }
