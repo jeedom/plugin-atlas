@@ -31,9 +31,14 @@ class atlas extends eqLogic {
     return 'usb';
   }
 
-  public static function usbConnected(): bool {
-    if (file_exists('/dev/sda')) {
-      return true;
+  public static function usbConnected() {
+    foreach (['/dev/sda', '/dev/sdb', '/dev/sdc'] as $device) {
+      if (file_exists($device)) {
+        $deviceInfos = shell_exec('udevadm info -q path -n ' . $device);
+        if (stripos($deviceInfos, '/usb1/1-1/') !== false || stripos($deviceInfos, '/usb2/2-1/' !== false)) {
+          return $device;
+        }
+      }
     }
     return false;
   }
@@ -47,11 +52,11 @@ class atlas extends eqLogic {
       $imageFilepath = self::downloadImage();
       self::ddImage($imageFilepath, $targetDevice);
       self::finalizeRecovery($targetDevice, $imageFilepath);
+      return true;
     } catch (Exception $e) {
       self::setRecoveryProgress(['details' => $e->getMessage() . '.', 'progress' => -1], 2);
       return false;
     }
-    return true;
   }
 
   public static function cancelRecovery() {
@@ -322,16 +327,15 @@ class atlas extends eqLogic {
   }
 
   private static function getTargetDevice($_mode) {
-    if ($_mode == 'usb' && self::usbConnected()) {
-      return '/dev/sda';
+    if ($_mode == 'usb' && $usb = self::usbConnected()) {
+      return $usb;
     }
 
     if ($_mode == 'emmc') {
-      if (file_exists('/dev/mmcblk2')) {
-        return '/dev/mmcblk2';
-      }
-      if (file_exists('/dev/mmcblk1')) {
-        return '/dev/mmcblk1';
+      foreach (['/dev/mmcblk2', '/dev/mmcblk1'] as $device) {
+        if (file_exists($device)) {
+          return $device;
+        }
       }
     }
 

@@ -141,7 +141,7 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       let i = 1
       updateRecovery({
         step: '{{Détection de la clé USB...}}',
-        details: "{{Veuillez insérer une clé USB dans le port situé en bas à droite (8Go minimum)}}",
+        details: "{{Veuillez insérer une clé USB dans un des ports noirs sur la droite (8Go minimum)}}",
         progress: i
       })
       let usbDetection = setInterval(function() {
@@ -193,7 +193,6 @@ include_file('core', 'atlas', 'class.js', 'atlas');
   }
 
   function monitorRecovery() {
-
     let recoveryProgress = setInterval(function() {
       jeedom.atlas.getRecoveryProgress({
         async: false,
