@@ -54,7 +54,7 @@ class atlas extends eqLogic {
       self::finalizeRecovery($targetDevice, $imageFilepath);
       return true;
     } catch (Exception $e) {
-      self::setRecoveryProgress(['details' => $e->getMessage() . '.', 'progress' => -1], 2);
+      self::setRecoveryProgress(['details' => $e->getMessage(), 'progress' => -1], 2);
       return false;
     }
   }
@@ -64,37 +64,38 @@ class atlas extends eqLogic {
   }
 
   private static function finalizeRecovery($_targetDevice, $_imageFilepath) {
-    self::setRecoveryProgress(['step' => __("Finalisation...", __FILE__), 'details' => '', 'progress' => 0], 2);
+    self::setRecoveryProgress(['step' => __("Finalisation de la procédure...", __FILE__), 'details' => '', 'progress' => 0], 2);
 
     // EMMC
     if (stripos($_targetDevice, '/dev/mmc') !== false) {
-      self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__), 'progress' => 15], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__) . ' ' . $_targetDevice, 'progress' => 15], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' 1');
       self::setRecoveryProgress(['details' => $cmd, 'progress' => 30], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 45], 1);
-      $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . 'p1');
+      $rootfs = (file_exists($_targetDevice . 'p2')) ? $_targetDevice . 'p2' : $_targetDevice . 'p1';
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__) . ' ' . $rootfs, 'progress' => 45], 1);
+      $cmd = shell_exec('sudo e2fsck -fy ' . $rootfs);
       self::setRecoveryProgress(['details' => $cmd, 'progress' => 60], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 75], 1);
-      $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . 'p1');
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__) . ' ' . $rootfs, 'progress' => 75], 1);
+      $cmd = shell_exec('sudo resize2fs ' . $rootfs);
       self::setRecoveryProgress(['details' => $cmd, 'progress' => 90], 1);
       if (cache::exist('atlasRecoveryCancellation')) {
-        throw new Exception(__("La restauration système est terminée, débrancher la clé USB avant de redémarrer la box électriquement.", __FILE__));
+        throw new Exception(__("La restauration système est terminée, débrancher la clé USB avant de redémarrer la box électriquement", __FILE__));
       }
     }
 
     // USB
     else if (stripos($_targetDevice, '/dev/sd') !== false) {
-      self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__), 'progress' => 10], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__) . ' ' . $_targetDevice, 'progress' => 10], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' 1');
       self::setRecoveryProgress(['details' => $cmd, 'progress' => 20], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 30], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__) . ' ' . $_targetDevice . '1', 'progress' => 30], 1);
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . '1');
       self::setRecoveryProgress(['details' => $cmd, 'progress' => 40], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 50], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__) . ' ' . $_targetDevice . '1', 'progress' => 50], 1);
       $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . '1 7G');
       self::setRecoveryProgress(['details' => $cmd, 'progress' => 60], 1);
 
@@ -119,11 +120,11 @@ class atlas extends eqLogic {
       $iniFile = '/mnt/usb' . $coreDir . '/data/custom/custom.config.ini';
       $iniArray = parse_ini_file($iniFile);
       $iniArray['product_name'] = 'Jeedom Atlas Recovery';
-      $iniArray['path_wizard'] = 'data/custom/atlasRecoveryWizard.json';
+      // $iniArray['path_wizard'] = 'data/custom/atlasRecoveryWizard.json';
       $iniArray['product_connection_image'] = 'core/img/logo-jeedom-atlas-recovery-grand-nom-couleur.svg';
       self::put_ini_file($iniFile, $iniArray);
       shell_exec('sudo bash -c \'echo "JeedomAtlasRecovery" > /mnt/usb/etc/hostname\'');
-      shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/atlasRecoveryWizard.json /mnt/usb' . $coreDir . '/' . $iniArray['path_wizard']);
+      // shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/atlasRecoveryWizard.json /mnt/usb' . $coreDir . '/' . $iniArray['path_wizard']);
       shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb' . $coreDir . '/' . $iniArray['product_connection_image']);
 
       self::setRecoveryProgress(['details' => __("Copie de l'image", __FILE__), 'progress' => 90], 1);
@@ -132,9 +133,11 @@ class atlas extends eqLogic {
         throw new Exception(__("Erreur lors de la copie de l'image", __FILE__) . ' : ' . $cmd);
       }
       if (cache::exist('atlasRecoveryCancellation')) {
-        throw new Exception(__("La restauration système est prête, redémarrer la box sans débrancher la clé USB.", __FILE__));
+        throw new Exception(__("La restauration système est prête, redémarrer la box sans débrancher la clé USB", __FILE__));
       }
     }
+
+    self::setRecoveryProgress(['details' => __("Procédure terminée avec succès", __FILE__), 'progress' => 100], 2);
   }
 
   private static function ddImage($_imageFilepath, $_targetDevice) {

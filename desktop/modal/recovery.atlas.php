@@ -19,47 +19,81 @@
 if (!isConnect()) {
   throw new Exception('{{401 - Accès non autorisé}}');
 }
-sendVarToJS('_mode', init('mode'));
 include_file('core', 'atlas', 'class.js', 'atlas');
+sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
 ?>
 
-<div class="col-md-12 text-center" id="atlas-recovery">
-  <h2>{{Restauration système}}</h2>
-  <div class="col-md-6 col-md-offset-3 text-center">
-    <img class="img-responsive center-block img-atlas" src="<?php echo config::byKey('product_connection_image'); ?>" />
+<h3>{{Restauration système}}</h3>
+<img src="<?php echo config::byKey('product_connection_image'); ?>" alt="Product Image">
+<div class=" bold" id="recovery-step"></div>
+<div class="text-center" id="atlas-recovery">
+  <div class="progress hidden">
+    <div id="recovery-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
   </div>
-  <div class="col-md-12 text-center">
-    <h3 class="text-center" id="recovery-step"></h3>
-    <br>
-    <div class="col-md-offset-1 col-md-10">
-      <div class="progress hidden">
-        <div id="recovery-progress" role="progressbar" style="width:0; height:20px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-        </div>
-      </div>
-    </div>
-    <div class="col-md-12 text-center">
-      <h4 class="text-center" id="recovery-details"></h4>
-      <br>
-      <button type="button" class="btn btn-success hidden" id="bt_start"><i class="fab fa-usb"></i> {{Démarrer}}</button>
-      <button type="button" class="btn btn-danger" id="bt_cancel"><i class="fas fa-times"></i> {{Annuler}}</button>
-      <button type="button" class="btn btn-warning hidden" id="bt_restart"><i class="fas fa-redo"></i> {{Redémarrer}}</button>
-      <button type="button" class="btn btn-warning hidden" id="bt_stop"><i class="fas fa-stop"></i> {{Arrêter}}</button>
-    </div>
+  <div id="recovery-details"></div>
+
+  <div>
+    <button type="button" class="btn btn-danger" id="bt_cancel"><i class="fas fa-times"></i> {{Annuler}}</button>
+    <button type="button" class="btn btn-success hidden" id="bt_start"><i class="fab fa-usb"></i> {{Démarrer}}</button>
+    <button type="button" class="btn btn-primary hidden" id="bt_restart"><i class="fas fa-redo"></i> {{Redémarrer}}</button>
+    <button type="button" class="btn btn-primary hidden" id="bt_stop"><i class="fas fa-stop"></i> {{Arrêter}}</button>
   </div>
 </div>
 
+<style>
+  #md_atlasRecovery>.jeeDialogContent {
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    grid-template-columns: 100%;
+    grid-template-rows: 50px 250px 25px auto;
+  }
+
+  #md_atlasRecovery>.jeeDialogContent>img {
+    max-width: 350px;
+    max-height: 225px;
+  }
+
+  #atlas-recovery {
+    width: 100%;
+    height: 100%;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center
+  }
+
+  #atlas-recovery>.progress {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  #atlas-recovery>#recovery-details {
+    flex-grow: .75
+  }
+
+  .bold {
+    font-weight: bold;
+  }
+</style>
+
 <script>
-  var _cancelRecovery = false
+  var _atlasRecoveryInProgress = null
 
   if (_mode == 'usb') {
     usbDetect().then(() => {
-      document.getElementById('recovery-step').innerText = '{{Clé USB détectée, cliquez sur le bouton "Démarrer" pour initier la procédure de restauration système}}'
+      updateRecovery({
+        step: '{{Clé USB détectée, cliquez sur le bouton "Démarrer" pour initier la procédure de restauration du système}}',
+        details: ''
+      })
       document.querySelector('.progress').classList.add('hidden')
-      document.getElementById('recovery-details').innerText = ''
       document.getElementById('bt_start').classList.remove('hidden')
     })
   } else if (_mode == 'emmc') {
-    document.getElementById('recovery-step').innerText = '{{Cliquez sur le bouton "Démarrer" pour débuter la restauration du système}}'
+    updateRecovery({
+      step: '{{Cliquez sur le bouton "Démarrer" pour initier la restauration du système}}'
+    })
     document.getElementById('bt_start').classList.remove('hidden')
   }
 
@@ -68,33 +102,37 @@ include_file('core', 'atlas', 'class.js', 'atlas');
 
     if (_target = event.target.closest('#bt_start')) {
       _target.classList.add('hidden')
+      updateRecovery({
+        step: '{{Initialisation...}}',
+        details: "{{Démarrage de la procédure de restauration du système}}",
+        progress: 0
+      })
 
-      let progress = monitorRecovery()
+      monitorRecovery()
 
       jeedom.atlas.startRecovery({
         global: false,
         type: _mode,
         success: function(_result) {
-          clearInterval(progress)
+          stopRecoveryProgress()
           document.getElementById('recovery-progress').classList.remove('active')
+
           if (_result) {
             if (_mode == 'usb') {
               document.getElementById('bt_restart').classList.remove('hidden')
               updateRecovery({
-                step: '{{La restauration système est prête.}}',
-                details: '{{Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB.}}',
+                step: '{{La restauration système est prête}}',
+                details: '{{Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB}}',
                 progress: 100
               })
             } else if (_mode == 'emmc') {
               document.getElementById('bt_stop').classList.remove('hidden')
               updateRecovery({
-                step: '{{La restauration système est terminée.}}',
-                details: '{{Cliquez sur le bouton "Arrêter" puis débrancher la clé USB avant de redémarrer la box électriquement.}}',
+                step: '{{La restauration système est terminée}}',
+                details: '{{Cliquez sur le bouton "Arrêter" puis débrancher la clé USB avant de redémarrer la box électriquement}}',
                 progress: 100
               })
             }
-          } else {
-            _cancelRecovery = true
           }
         }
       })
@@ -102,18 +140,25 @@ include_file('core', 'atlas', 'class.js', 'atlas');
     }
 
     if (_target = event.target.closest('#bt_cancel')) {
-      if (!_cancelRecovery) {
-        bootbox.confirm("<div class='text-center alert alert-danger'><i class='fas fa-exclamation-triangle'></i> {{Annuler la restauration système ?}}</div>", function(ok) {
+      if (_atlasRecoveryInProgress) {
+        bootbox.confirm('<div class="text-center alert alert-danger"><i class="fas fa-exclamation-triangle"></i> {{Annuler la restauration système ?}}</div>', function(ok) {
           if (ok) {
             _target.classList.add('hidden')
-            _cancelRecovery = true
+            stopRecoveryProgress()
             updateRecovery({
               details: '',
               progress: -1
             })
-            jeedom.atlas.cancelRecovery({})
+            jeedom.atlas.cancelRecovery({
+              async: false
+            })
+            setTimeout(() => {
+              jeeDialog.get('#md_atlasRecovery')?.destroy()
+            }, 5000)
           }
         })
+      } else {
+        jeeDialog.get('#md_atlasRecovery')?.destroy()
       }
       return
     }
@@ -144,23 +189,18 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         details: "{{Veuillez insérer une clé USB dans un des ports noirs sur la droite (8Go minimum)}}",
         progress: i
       })
-      let usbDetection = setInterval(function() {
-        if (_cancelRecovery) {
-          return $('#md_modal').dialog('close')
-        }
-
+      _atlasRecoveryInProgress = setInterval(function() {
         if (usbConnected()) {
-          clearInterval(usbDetection)
+          stopRecoveryProgress()
           return resolve(true)
         }
 
         if (i == 100) {
           updateRecovery({
-            details: '{{Abandon, clé USB non détectée.}}',
+            details: '{{Abandon, clé USB non détectée}}',
             progress: -1
           })
-          _cancelRecovery = true
-          return clearInterval(usbDetection)
+          return stopRecoveryProgress()
         }
 
         i++
@@ -168,16 +208,6 @@ include_file('core', 'atlas', 'class.js', 'atlas');
           progress: i
         })
       }, 10000)
-
-      $('#md_modal').bind('dialogbeforeclose', function() {
-        if (!_cancelRecovery) {
-          document.getElementById('bt_cancel').triggerEvent('click')
-          return false
-        }
-
-        clearInterval(usbDetection)
-        return true
-      })
     })
   }
 
@@ -193,36 +223,19 @@ include_file('core', 'atlas', 'class.js', 'atlas');
   }
 
   function monitorRecovery() {
-    let recoveryProgress = setInterval(function() {
+    _atlasRecoveryInProgress = setInterval(function() {
       jeedom.atlas.getRecoveryProgress({
         async: false,
         success: function(_data) {
           if (_data) {
             data = JSON.parse(_data)
-            if (!_cancelRecovery || isset(data.progress) && data.progress < 0) {
+            if (_atlasRecoveryInProgress || isset(data.progress) && data.progress < 0) {
               updateRecovery(data)
-              if (_cancelRecovery) {
-                return setTimeout(() => {
-                  $('#md_modal').dialog('close')
-                }, 2000)
-              }
             }
           }
         }
       })
-    }, 950)
-
-    $('#md_modal').bind('dialogbeforeclose', function() {
-      if (!_cancelRecovery) {
-        document.getElementById('bt_cancel').triggerEvent('click')
-        return false
-      }
-
-      clearInterval(recoveryProgress)
-      return true
-    })
-
-    return recoveryProgress
+    }, 500)
   }
 
   function updateRecovery(_data) {
@@ -237,10 +250,10 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       let progressbar = document.getElementById('recovery-progress')
 
       if (_data.progress < 0) {
-        progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-danger'
+        progressbar.classList = 'progress-bar ' + ((!_atlasRecoveryInProgress) ? 'progress-bar-warning' : 'progress-bar-danger')
         progressbar.style.width = '100%'
         progressbar.setAttribute('aria-valuenow', 100)
-        progressbar.innerText = (_cancelRecovery) ? "{{Annulation demandée, veuillez patienter}}" : '{{Une erreur est survenue, veuillez réessayer}}'
+        progressbar.innerText = (!_atlasRecoveryInProgress) ? "{{Annulation demandée}}" : '{{Une erreur est survenue}}'
       } else if (_data.progress >= 100) {
         progressbar.classList = 'progress-bar progress-bar-striped progress-bar-animated progress-bar-success active'
         progressbar.style.width = '100%'
@@ -263,16 +276,12 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       progress: i
     })
 
-    let atlasDetection = setInterval(function() {
-      if (_cancelRecovery) {
-        return $('#md_modal').dialog('close')
-      }
-
-      ping(_url).then((_ping) => {
+    _atlasRecoveryInProgress = setInterval(function() {
+      ping(_url).then(_ping => {
         if (_ping) {
-          clearInterval(atlasDetection)
+          stopRecoveryProgress()
           updateRecovery({
-            details: '{{Box opérationnelle suite au redémarrage, redirection vers la page de connexion.}}',
+            details: '{{Box opérationnelle suite au redémarrage, redirection vers la page de connexion}}',
             progress: 100
           })
           return setTimeout(function() {
@@ -282,11 +291,10 @@ include_file('core', 'atlas', 'class.js', 'atlas');
 
         if (i == 100) {
           updateRecovery({
-            details: '{{Abandon, impossible de trouver la box suite au redémarrage.}}',
+            details: "{{Abandon, box non trouvée à l'adresse}} : " + _url,
             progress: -1
           })
-          _cancelRecovery = true
-          return clearInterval(atlasDetection)
+          return stopRecoveryProgress()
         }
 
         i++
@@ -295,16 +303,6 @@ include_file('core', 'atlas', 'class.js', 'atlas');
         })
       })
     }, 10000)
-
-    $('#md_modal').bind('dialogbeforeclose', function() {
-      if (!_cancelRecovery) {
-        document.getElementById('bt_cancel').triggerEvent('click')
-        return false
-      }
-
-      clearInterval(atlasDetection)
-      return true
-    })
   }
 
   function ping(_url) {
@@ -318,5 +316,10 @@ include_file('core', 'atlas', 'class.js', 'atlas');
       }
       image.src = _url + '/favicon.ico?t=' + new Date().getTime()
     })
+  }
+
+  function stopRecoveryProgress() {
+    clearInterval(_atlasRecoveryInProgress)
+    _atlasRecoveryInProgress = null
   }
 </script>

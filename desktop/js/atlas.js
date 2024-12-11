@@ -102,10 +102,10 @@ $('#bt_refreshWifiList').on('click', function() {
   printWifiList(true)
 })
 
-window.setInterval(function() {
-  printMacLan()
-  printMacWifi()
-}, 5000)
+// window.setInterval(function() {
+//   printMacLan()
+//   printMacWifi()
+// }, 5000)
 
 $("#table_cmd").sortable({ axis: "y", cursor: "move", items: ".cmd", placeholder: "ui-state-highlight", tolerance: "intersect", forcePlaceholderSize: true })
 function addCmdToTable(_cmd) {
@@ -156,12 +156,15 @@ function addCmdToTable(_cmd) {
 }
 
 document.getElementById('bt_recovery')?.addEventListener('click', function() {
-  let mode = this.getAttribute('data-mode')
-  let title = '{{Création clé USB de restauration système}}'
-  if (mode == 'emmc') {
-    title = '{{Restauration système}}'
-  }
-  $('#md_modal').dialog({ title: title }).dialog({ beforeClose: function(_event) { } }).load('index.php?v=d&plugin=atlas&modal=recovery.atlas&mode=' + mode).dialog('open')
+  jeeDialog.dialog({
+    id: 'md_atlasRecovery',
+    setTitle: false,
+    fullScreen: window.innerWidth < 850 ? true : false,
+    width: 1000,
+    height: 650,
+    contentUrl: 'index.php?v=d&plugin=atlas&modal=recovery.atlas'
+  })
+  jeeDialog.get('#md_atlasRecovery').dialog.addClass('jeeDialogNoCloseBackdrop')
 })
 
 $('#wifiEnabledCheck').change(function() {

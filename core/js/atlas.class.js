@@ -17,14 +17,7 @@
 jeedom.atlas = function() { }
 
 jeedom.atlas.usbConnected = function(_params) {
-	var paramsRequired = []
 	var paramsSpecifics = {}
-	try {
-		jeedom.private.checkParamsRequired(_params || {}, paramsRequired)
-	} catch (e) {
-		(_params.error || paramsSpecifics.error || jeedom.private.default_params.error)(e)
-		return
-	}
 	var params = $.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
 	var paramsAJAX = jeedom.private.getParamsAJAX(params)
 	paramsAJAX.url = 'plugins/atlas/core/ajax/atlas.ajax.php'
@@ -35,14 +28,7 @@ jeedom.atlas.usbConnected = function(_params) {
 }
 
 jeedom.atlas.getRecoveryProgress = function(_params) {
-	var paramsRequired = []
 	var paramsSpecifics = {}
-	try {
-		jeedom.private.checkParamsRequired(_params || {}, paramsRequired)
-	} catch (e) {
-		(_params.error || paramsSpecifics.error || jeedom.private.default_params.error)(e)
-		return
-	}
 	var params = $.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
 	var paramsAJAX = jeedom.private.getParamsAJAX(params)
 	paramsAJAX.url = 'plugins/atlas/core/ajax/atlas.ajax.php'
@@ -72,14 +58,7 @@ jeedom.atlas.startRecovery = function(_params) {
 }
 
 jeedom.atlas.cancelRecovery = function(_params) {
-	var paramsRequired = []
 	var paramsSpecifics = {}
-	try {
-		jeedom.private.checkParamsRequired(_params || {}, paramsRequired)
-	} catch (e) {
-		(_params.error || paramsSpecifics.error || jeedom.private.default_params.error)(e)
-		return
-	}
 	var params = $.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
 	var paramsAJAX = jeedom.private.getParamsAJAX(params)
 	paramsAJAX.url = 'plugins/atlas/core/ajax/atlas.ajax.php'

@@ -11,7 +11,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 	<div class="col-xs-12 eqLogicThumbnailDisplay">
 		<legend><i class="fas fa-cog"></i> {{Gestion}}</legend>
 		<div class="eqLogicThumbnailContainer">
-			<div class="cursor logoPrimary" data-mode="<?= atlas::getRecoveryMode() ?>" id="bt_recovery">
+			<div class="cursor logoPrimary" id="bt_recovery">
 				<i class="fas fa-upload"></i>
 				<br>
 				<span>{{Restauration système}}</span>
