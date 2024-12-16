@@ -144,12 +144,12 @@ class atlas extends eqLogic {
     self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __('Préparation de la gravure', __FILE__), 'progress' => 0], 2);
 
     $ext = pathinfo($_imageFilepath, PATHINFO_EXTENSION);
-    if ($ext = 'gz') {
+    if ($ext == 'gz') {
       $extract = 'gunzip';
-      $uncompressed = shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $2}'");
-    } else if ($ext = 'xz') {
-      $extract = 'xz';
-      $uncompressed = round(shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $5}'") * 1024 * 1024);
+      $uncompressed = shell_exec('gunzip -l ' . $_imageFilepath . " | awk 'NR==2 {print $2}'");
+    } else if ($ext == 'xz') {
+      $extract = 'xz -dc';
+      $uncompressed = round(shell_exec('xz -l ' . $_imageFilepath . " | awk 'NR==2 {print $5}'") * 1024 * 1024);
     } else {
       throw new Exception(__("Abandon, impossible de décompresser l'image système", __FILE__) . ' : ' . $ext);
     }
@@ -160,8 +160,8 @@ class atlas extends eqLogic {
     }
 
     self::setRecoveryProgress(['details' => __("Démarrage de la gravure", __FILE__)], 2);
-    // To check : removed bs=512
-    $cmd = 'sudo dd if=' . $_imageFilepath . ' | sudo ' . $extract . ' | sudo dd of=' . $_targetDevice . ' status=progress 2>&1';
+
+    $cmd = 'sudo ' . $extract . ' ' . $_imageFilepath . ' | sudo dd of=' . $_targetDevice . ' status=progress 2>&1';
     $pipes = array();
     $error = false;
     $process = proc_open($cmd, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'a']], $pipes);
