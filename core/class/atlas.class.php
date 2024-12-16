@@ -215,6 +215,8 @@ class atlas extends eqLogic {
 
     jeedom::cleanFileSystemRight();
     $imgInfos = self::getImgInfosFromMarket();
+    // Manually set $imgInfos for testings
+    $imgInfos['url'] = 'https://images.jeedom.com/atlas/jeedomAtlas.img.xz';
     $imgInfos['SHA256'] = '7c78d54887cf8f13206b17a0fa71426966661e36a4e96dbe00a532482cd1ac08';
 
     $downloadPath = realpath(__DIR__ . '/../../../../data') . '/imgOs';
