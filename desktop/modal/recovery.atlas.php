@@ -20,10 +20,18 @@ if (!isConnect()) {
   throw new Exception('{{401 - Accès non autorisé}}');
 }
 include_file('core', 'atlas', 'class.js', 'atlas');
-sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
+$_mode = init('mode', atlas::getRecoveryMode());
+sendVarToJS('_mode', $_mode);
+if ($_mode == 'usb') {
 ?>
-
-<h3>{{Restauration système}}</h3>
+  <h3>{{Clé USB de restauration}}</h3>
+<?php
+} else {
+?>
+  <h3>{{Restauration du système}}</h3>
+<?php
+}
+?>
 <img src="<?php echo config::byKey('product_connection_image'); ?>" alt="Product Image">
 <div class=" bold" id="recovery-step"></div>
 <div class="text-center" id="atlas-recovery">
@@ -70,7 +78,8 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
   }
 
   #atlas-recovery>#recovery-details {
-    flex-grow: .75
+    height: 150px;
+    overflow: hidden;
   }
 
   .bold {
@@ -84,27 +93,27 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
   if (_mode == 'usb') {
     usbDetect().then(() => {
       updateRecovery({
-        step: '{{Clé USB détectée, cliquez sur le bouton "Démarrer" pour initier la procédure de restauration du système}}',
+        step: '{{Cliquez sur le bouton "Démarrer" pour initier la création de la clé USB de restauration}}',
         details: ''
       })
-      document.querySelector('.progress').classList.add('hidden')
-      document.getElementById('bt_start').classList.remove('hidden')
+      document.querySelector('.progress').addClass('hidden')
+      document.getElementById('bt_start').removeClass('hidden')
     })
   } else if (_mode == 'emmc') {
     updateRecovery({
       step: '{{Cliquez sur le bouton "Démarrer" pour initier la restauration du système}}'
     })
-    document.getElementById('bt_start').classList.remove('hidden')
+    document.getElementById('bt_start').removeClass('hidden')
   }
 
   document.getElementById('atlas-recovery').addEventListener('click', function(event) {
     var _target = null
 
     if (_target = event.target.closest('#bt_start')) {
-      _target.classList.add('hidden')
+      _target.addClass('hidden')
       updateRecovery({
         step: '{{Initialisation...}}',
-        details: "{{Démarrage de la procédure de restauration du système}}",
+        details: "{{Démarrage}}",
         progress: 0
       })
 
@@ -115,18 +124,18 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
         type: _mode,
         success: function(_result) {
           stopRecoveryProgress()
-          document.getElementById('recovery-progress').classList.remove('active')
+          document.getElementById('recovery-progress').removeClass('active')
 
           if (_result) {
             if (_mode == 'usb') {
-              document.getElementById('bt_restart').classList.remove('hidden')
+              document.getElementById('bt_restart').removeClass('hidden')
               updateRecovery({
-                step: '{{La restauration système est prête}}',
+                step: '{{La clé USB de restauration du système est prête}}',
                 details: '{{Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB}}',
                 progress: 100
               })
             } else if (_mode == 'emmc') {
-              document.getElementById('bt_stop').classList.remove('hidden')
+              document.getElementById('bt_stop').removeClass('hidden')
               updateRecovery({
                 step: '{{La restauration système est terminée}}',
                 details: '{{Cliquez sur le bouton "Arrêter" puis débrancher la clé USB avant de redémarrer la box électriquement}}',
@@ -141,9 +150,9 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
 
     if (_target = event.target.closest('#bt_cancel')) {
       if (_atlasRecoveryInProgress) {
-        bootbox.confirm('<div class="text-center alert alert-danger"><i class="fas fa-exclamation-triangle"></i> {{Annuler la restauration système ?}}</div>', function(ok) {
+        bootbox.confirm('<div class="text-center alert alert-danger"><i class="fas fa-exclamation-triangle"></i> {{Annuler la procédure de restauration du système ?}}</div>', function(ok) {
           if (ok) {
-            _target.classList.add('hidden')
+            _target.addClass('hidden')
             stopRecoveryProgress()
             updateRecovery({
               details: '',
@@ -164,14 +173,14 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
     }
 
     if (_target = event.target.closest('#bt_restart')) {
-      _target.classList.add('hidden')
+      _target.addClass('hidden')
       redirect('http://jeedomatlasrecovery.local')
       jeedom.rebootSystem()
       return
     }
 
     if (_target = event.target.closest('#bt_stop')) {
-      _target.classList.add('hidden')
+      _target.addClass('hidden')
       redirect('http://jeedomatlas.local')
       jeedom.haltSystem()
       return
@@ -183,7 +192,7 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
       if (usbConnected()) {
         return resolve(true)
       }
-      let i = 1
+      let i = .5
       updateRecovery({
         step: '{{Détection de la clé USB...}}',
         details: "{{Veuillez insérer une clé USB dans un des ports noirs sur la droite (8Go minimum)}}",
@@ -195,7 +204,7 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
           return resolve(true)
         }
 
-        if (i == 100) {
+        if (i == 200) {
           updateRecovery({
             details: '{{Abandon, clé USB non détectée}}',
             progress: -1
@@ -203,11 +212,11 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
           return stopRecoveryProgress()
         }
 
-        i++
+        i += .5
         updateRecovery({
           progress: i
         })
-      }, 10000)
+      }, 5000)
     })
   }
 
@@ -246,7 +255,7 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
       document.getElementById('recovery-details').innerText = _data.details
     }
     if (isset(_data.progress)) {
-      document.querySelector('.progress.hidden')?.classList.remove('hidden')
+      document.querySelector('.progress.hidden')?.removeClass('hidden')
       let progressbar = document.getElementById('recovery-progress')
 
       if (_data.progress < 0) {
@@ -269,10 +278,10 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
   }
 
   function redirect(_url) {
-    let i = 1
+    let i = .5
     updateRecovery({
       step: '{{Redémarrage...}}',
-      details: "{{Détection automatique de la box}}",
+      details: "{{Veuillez patienter}}",
       progress: i
     })
 
@@ -281,7 +290,7 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
         if (_ping) {
           stopRecoveryProgress()
           updateRecovery({
-            details: '{{Box opérationnelle suite au redémarrage, redirection vers la page de connexion}}',
+            details: '{{Redirection vers la page de connexion}}',
             progress: 100
           })
           return setTimeout(function() {
@@ -289,20 +298,20 @@ sendVarToJS('_mode', init('mode', atlas::getRecoveryMode()));
           }, 2000)
         }
 
-        if (i == 100) {
+        if (i == 200) {
           updateRecovery({
-            details: "{{Abandon, box non trouvée à l'adresse}} : " + _url,
+            details: "{{Abandon, pas de réponse de l'adresse}} " + _url,
             progress: -1
           })
           return stopRecoveryProgress()
         }
 
-        i++
+        i += .5
         updateRecovery({
           progress: i
         })
       })
-    }, 10000)
+    }, 5000)
   }
 
   function ping(_url) {
