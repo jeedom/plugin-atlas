@@ -77,33 +77,36 @@ class atlas extends eqLogic {
 
     // USB
     else if (stripos($_targetDevice, '/dev/sd') !== false) {
+      if (!file_exists('/mnt/usb')) {
+        shell_exec('sudo mkdir /mnt/usb');
+      } else {
+        shell_exec('sudo umount /mnt/usb');
+      }
+
       self::setRecoveryProgress(['details' => __("Configuration du démarrage sur la clé USB", __FILE__), 'progress' => 10], 1);
       $cmd = shell_exec('sudo dd if="/usr/lib/u-boot/rock-pi-4b-plus/rkboot.bin" of=' . $_targetDevice . ' seek=64 && sync');
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 20], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 25], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 30], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 35], 1);
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 40], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 45], 1);
       $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . $partitionNumber . ' 8G');
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      if (!file_exists('/mnt/usb')) {
-        shell_exec('sudo mkdir /mnt/usb');
-      }
-      self::setRecoveryProgress(['details' => __("Montage de la clé USB", __FILE__), 'progress' => 50], 1);
+      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 55], 1);
       shell_exec('sudo mount ' . $_targetDevice . $partitionNumber . ' /mnt/usb');
+
       $imgDir = pathinfo($_imageFilepath, PATHINFO_DIRNAME);
       if (!file_exists('/mnt/usb' . $imgDir)) {
         shell_exec('sudo mkdir /mnt/usb' . $imgDir);
       }
 
-      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 60], 1);
       $coreDir = str_replace('/data/imgOs', '', $imgDir);
       $iniFile = '/mnt/usb' . $coreDir . '/data/custom/custom.config.ini';
       $iniArray = parse_ini_file($iniFile);
@@ -114,18 +117,14 @@ class atlas extends eqLogic {
       shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb' . $coreDir . '/' . $iniArray['product_connection_image']);
 
       if (file_exists('/mnt/usb' . $_imageFilepath)) {
-        self::setRecoveryProgress(['details' => __("Suppression de l'ancienne image système", __FILE__), 'progress' => 70], 1);
+        self::setRecoveryProgress(['details' => __("Suppression de l'ancienne image système", __FILE__), 'progress' => 75], 1);
         shell_exec('sudo rm /mnt/usb' . $_imageFilepath);
       }
       self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 80], 1);
-      $cmd = shell_exec('sudo rsync ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
+      $cmd = shell_exec('sudo rsync -D ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
       if (stripos($cmd, 'error') !== false || !is_file('/mnt/usb' . $_imageFilepath)) {
-        shell_exec('sudo umount ' . $_targetDevice . $partitionNumber . ' /mnt/usb');
         throw new Exception(__("Erreur lors de la copie de l'image système", __FILE__) . ' : ' . $cmd);
       }
-
-      self::setRecoveryProgress(['details' => __("Démontage de la clé USB", __FILE__), 'progress' => 90], 1);
-      shell_exec('sudo umount /mnt/usb');
 
       if (cache::exist('atlasRecoveryCancellation')) {
         throw new Exception(__("La restauration système est prête, redémarrer la box sans débrancher la clé USB", __FILE__));
@@ -330,7 +329,7 @@ class atlas extends eqLogic {
     foreach (['/dev/sda', '/dev/sdb', '/dev/sdc'] as $device) {
       if (file_exists($device)) {
         $deviceInfos = shell_exec('udevadm info -q path -n ' . $device);
-        if (stripos($deviceInfos, '/usb1/1-1/') !== false || stripos($deviceInfos, '/usb2/2-1/' !== false)) {
+        if (stripos($deviceInfos, '/usb1/1-1/') !== false) {
           return $device;
         }
       }

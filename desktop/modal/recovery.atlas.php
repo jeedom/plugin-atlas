@@ -195,7 +195,7 @@ if ($_mode == 'usb') {
       let i = .5
       updateRecovery({
         step: '{{Détection de la clé USB...}}',
-        details: "{{Veuillez insérer une clé USB dans un des ports noirs sur la droite (8Go minimum)}}",
+        details: "{{Veuillez insérer une clé USB dans le port noir en bas à droite (8Go minimum)}}",
         progress: i
       })
       _atlasRecoveryInProgress = setInterval(function() {
