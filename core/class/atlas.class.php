@@ -31,18 +31,6 @@ class atlas extends eqLogic {
     return 'usb';
   }
 
-  public static function usbConnected() {
-    foreach (['/dev/sda', '/dev/sdb', '/dev/sdc'] as $device) {
-      if (file_exists($device)) {
-        $deviceInfos = shell_exec('udevadm info -q path -n ' . $device);
-        if (stripos($deviceInfos, '/usb1/1-1/') !== false || stripos($deviceInfos, '/usb2/2-1/' !== false)) {
-          return $device;
-        }
-      }
-    }
-    return false;
-  }
-
   public static function startRecovery(string $_mode) {
     cache::delete('atlasRecoveryCancellation');
     cache::set('atlasRecovery', false, 60);
@@ -66,20 +54,22 @@ class atlas extends eqLogic {
   private static function finalizeRecovery($_targetDevice, $_imageFilepath) {
     self::setRecoveryProgress(['step' => __("Finalisation de la procédure...", __FILE__), 'details' => '', 'progress' => 0], 2);
 
+    $partitionNumber = (file_exists($_targetDevice . '2') || file_exists($_targetDevice . 'p2')) ? 2 : 1;
+
     // EMMC
     if (stripos($_targetDevice, '/dev/mmc') !== false) {
-      self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__) . ' ' . $_targetDevice, 'progress' => 15], 1);
-      $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' 1');
-      self::setRecoveryProgress(['details' => $cmd, 'progress' => 30], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du stockage", __FILE__), 'progress' => 15], 1);
+      $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
+      self::setRecoveryProgress(['details' => $cmd], 1);
 
-      $rootfs = (file_exists($_targetDevice . 'p2')) ? $_targetDevice . 'p2' : $_targetDevice . 'p1';
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__) . ' ' . $rootfs, 'progress' => 45], 1);
-      $cmd = shell_exec('sudo e2fsck -fy ' . $rootfs);
-      self::setRecoveryProgress(['details' => $cmd, 'progress' => 60], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 45], 1);
+      $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . 'p' . $partitionNumber);
+      self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__) . ' ' . $rootfs, 'progress' => 75], 1);
-      $cmd = shell_exec('sudo resize2fs ' . $rootfs);
-      self::setRecoveryProgress(['details' => $cmd, 'progress' => 90], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 75], 1);
+      $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . 'p' . $partitionNumber);
+      self::setRecoveryProgress(['details' => $cmd], 1);
+
       if (cache::exist('atlasRecoveryCancellation')) {
         throw new Exception(__("La restauration système est terminée, débrancher la clé USB avant de redémarrer la box électriquement", __FILE__));
       }
@@ -87,57 +77,62 @@ class atlas extends eqLogic {
 
     // USB
     else if (stripos($_targetDevice, '/dev/sd') !== false) {
-      self::setRecoveryProgress(['details' => __("Redimensionnement de la partition", __FILE__) . ' ' . $_targetDevice, 'progress' => 10], 1);
-      $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' 1');
-      self::setRecoveryProgress(['details' => $cmd, 'progress' => 20], 1);
+      self::setRecoveryProgress(['details' => __("Configuration du démarrage sur la clé USB", __FILE__), 'progress' => 10], 1);
+      $cmd = shell_exec('sudo dd if="/usr/lib/u-boot/rock-pi-4b-plus/rkboot.bin" of=' . $_targetDevice . ' seek=64 && sync');
+      self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__) . ' ' . $_targetDevice . '1', 'progress' => 30], 1);
-      $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . '1');
-      self::setRecoveryProgress(['details' => $cmd, 'progress' => 40], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 20], 1);
+      $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
+      self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__) . ' ' . $_targetDevice . '1', 'progress' => 50], 1);
-      $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . '1 7G');
-      self::setRecoveryProgress(['details' => $cmd, 'progress' => 60], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 30], 1);
+      $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . $partitionNumber);
+      self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Montage de la clé USB", __FILE__), 'progress' => 70], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 40], 1);
+      $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . $partitionNumber . ' 8G');
+      self::setRecoveryProgress(['details' => $cmd], 1);
+
       if (!file_exists('/mnt/usb')) {
         shell_exec('sudo mkdir /mnt/usb');
       }
-      // shell_exec('sudo umount /mnt/usb');
-      shell_exec('sudo mount ' . $_targetDevice . '1 /mnt/usb');
-
+      self::setRecoveryProgress(['details' => __("Montage de la clé USB", __FILE__), 'progress' => 50], 1);
+      shell_exec('sudo mount ' . $_targetDevice . $partitionNumber . ' /mnt/usb');
       $imgDir = pathinfo($_imageFilepath, PATHINFO_DIRNAME);
       if (!file_exists('/mnt/usb' . $imgDir)) {
         shell_exec('sudo mkdir /mnt/usb' . $imgDir);
-      } else {
-        if (file_exists('/mnt/usb' . $_imageFilepath)) {
-          shell_exec('sudo rm /mnt/usb' . $_imageFilepath);
-        }
       }
 
-      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 80], 1);
+      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 60], 1);
       $coreDir = str_replace('/data/imgOs', '', $imgDir);
       $iniFile = '/mnt/usb' . $coreDir . '/data/custom/custom.config.ini';
       $iniArray = parse_ini_file($iniFile);
       $iniArray['product_name'] = 'Jeedom Atlas Recovery';
-      // $iniArray['path_wizard'] = 'data/custom/atlasRecoveryWizard.json';
       $iniArray['product_connection_image'] = 'core/img/logo-jeedom-atlas-recovery-grand-nom-couleur.svg';
       self::put_ini_file($iniFile, $iniArray);
       shell_exec('sudo bash -c \'echo "JeedomAtlasRecovery" > /mnt/usb/etc/hostname\'');
-      // shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/atlasRecoveryWizard.json /mnt/usb' . $coreDir . '/' . $iniArray['path_wizard']);
       shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb' . $coreDir . '/' . $iniArray['product_connection_image']);
 
-      self::setRecoveryProgress(['details' => __("Copie de l'image", __FILE__), 'progress' => 90], 1);
-      $cmd = shell_exec('sudo cp ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
-      if (stripos($cmd, 'error') !== false) {
-        throw new Exception(__("Erreur lors de la copie de l'image", __FILE__) . ' : ' . $cmd);
+      if (file_exists('/mnt/usb' . $_imageFilepath)) {
+        self::setRecoveryProgress(['details' => __("Suppression de l'ancienne image système", __FILE__), 'progress' => 70], 1);
+        shell_exec('sudo rm /mnt/usb' . $_imageFilepath);
       }
+      self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 80], 1);
+      $cmd = shell_exec('sudo rsync ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
+      if (stripos($cmd, 'error') !== false || !is_file('/mnt/usb' . $_imageFilepath)) {
+        shell_exec('sudo umount ' . $_targetDevice . $partitionNumber . ' /mnt/usb');
+        throw new Exception(__("Erreur lors de la copie de l'image système", __FILE__) . ' : ' . $cmd);
+      }
+
+      self::setRecoveryProgress(['details' => __("Démontage de la clé USB", __FILE__), 'progress' => 90], 1);
+      shell_exec('sudo umount /mnt/usb');
+
       if (cache::exist('atlasRecoveryCancellation')) {
         throw new Exception(__("La restauration système est prête, redémarrer la box sans débrancher la clé USB", __FILE__));
       }
     }
 
-    self::setRecoveryProgress(['details' => __("Procédure terminée avec succès", __FILE__), 'progress' => 100], 2);
+    self::setRecoveryProgress(['details' => __("Procédure finalisée avec succès", __FILE__), 'progress' => 100], 2);
   }
 
   private static function ddImage($_imageFilepath, $_targetDevice) {
@@ -146,10 +141,10 @@ class atlas extends eqLogic {
     $ext = pathinfo($_imageFilepath, PATHINFO_EXTENSION);
     if ($ext == 'gz') {
       $extract = 'gunzip';
-      $uncompressed = shell_exec('gunzip -l ' . $_imageFilepath . " | awk 'NR==2 {print $2}'");
+      $uncompressed = shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $2}'");
     } else if ($ext == 'xz') {
-      $extract = 'xz -dc';
-      $uncompressed = round(shell_exec('xz -l ' . $_imageFilepath . " | awk 'NR==2 {print $5}'") * 1024 * 1024);
+      $extract = 'xz';
+      $uncompressed = round(shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $5}'") * 1024 * 1024);
     } else {
       throw new Exception(__("Abandon, impossible de décompresser l'image système", __FILE__) . ' : ' . $ext);
     }
@@ -161,7 +156,7 @@ class atlas extends eqLogic {
 
     self::setRecoveryProgress(['details' => __("Démarrage de la gravure", __FILE__)], 2);
 
-    $cmd = 'sudo ' . $extract . ' ' . $_imageFilepath . ' | sudo dd of=' . $_targetDevice . ' status=progress 2>&1';
+    $cmd = 'sudo ' . $extract . ' -dc ' . $_imageFilepath . ' | sudo dd of=' . $_targetDevice . ' bs=4096 oflag=nocache status=progress 2>&1';
     $pipes = array();
     $error = false;
     $process = proc_open($cmd, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'a']], $pipes);
@@ -226,7 +221,7 @@ class atlas extends eqLogic {
 
     $downloadFilepath = $downloadPath . '/' . basename($imgInfos['url']);
     if (file_exists($downloadFilepath)) {
-      self::setRecoveryProgress(['details' => __("Image système trouvée, en cours de validation", __FILE__), 'progress' => 99], 1);
+      self::setRecoveryProgress(['details' => __("Validation de l'image système", __FILE__), 'progress' => 99], 1);
       self::validateImage($downloadFilepath, $imgInfos['SHA256']);
       self::setRecoveryProgress(['details' => __("Image système validée avec succès", __FILE__), 'progress' => 100], 2);
       return $downloadFilepath;
@@ -264,7 +259,7 @@ class atlas extends eqLogic {
       throw new Exception($error);
     }
 
-    self::setRecoveryProgress(['details' => __("Téléchargement terminé, en cours de validation", __FILE__), 'progress' => 99], 1);
+    self::setRecoveryProgress(['details' => __("Validation de l'image système téléchargée", __FILE__), 'progress' => 99], 1);
     self::validateImage($downloadFilepath, $imgInfos['SHA256']);
     self::setRecoveryProgress(['details' => __("Image système téléchargée avec succès", __FILE__), 'progress' => 100], 2);
     return $downloadFilepath;
@@ -331,13 +326,25 @@ class atlas extends eqLogic {
     return cache::byKey('atlasRecovery')->getValue();
   }
 
+  public static function usbConnected() {
+    foreach (['/dev/sda', '/dev/sdb', '/dev/sdc'] as $device) {
+      if (file_exists($device)) {
+        $deviceInfos = shell_exec('udevadm info -q path -n ' . $device);
+        if (stripos($deviceInfos, '/usb1/1-1/') !== false || stripos($deviceInfos, '/usb2/2-1/' !== false)) {
+          return $device;
+        }
+      }
+    }
+    return false;
+  }
+
   private static function getTargetDevice($_mode) {
     if ($_mode == 'usb' && $usb = self::usbConnected()) {
       return $usb;
     }
 
     if ($_mode == 'emmc') {
-      foreach (['/dev/mmcblk2', '/dev/mmcblk1'] as $device) {
+      foreach (['/dev/mmcblk2', '/dev/mmcblk1', '/dev/mmcblk0'] as $device) {
         if (file_exists($device)) {
           return $device;
         }
