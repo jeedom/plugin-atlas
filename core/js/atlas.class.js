@@ -18,24 +18,24 @@ jeedom.atlas = function() { }
 
 jeedom.atlas.usbConnected = function(_params) {
 	var paramsSpecifics = {}
-	var params = $.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
+	var params = domUtils.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
 	var paramsAJAX = jeedom.private.getParamsAJAX(params)
 	paramsAJAX.url = 'plugins/atlas/core/ajax/atlas.ajax.php'
 	paramsAJAX.data = {
 		action: 'usbConnected'
 	}
-	$.ajax(paramsAJAX)
+	domUtils.ajax(paramsAJAX)
 }
 
 jeedom.atlas.getRecoveryProgress = function(_params) {
 	var paramsSpecifics = {}
-	var params = $.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
+	var params = domUtils.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
 	var paramsAJAX = jeedom.private.getParamsAJAX(params)
 	paramsAJAX.url = 'plugins/atlas/core/ajax/atlas.ajax.php'
 	paramsAJAX.data = {
 		action: 'getRecoveryProgress'
 	}
-	$.ajax(paramsAJAX)
+	domUtils.ajax(paramsAJAX)
 }
 
 jeedom.atlas.startRecovery = function(_params) {
@@ -47,23 +47,23 @@ jeedom.atlas.startRecovery = function(_params) {
 		(_params.error || paramsSpecifics.error || jeedom.private.default_params.error)(e)
 		return
 	}
-	var params = $.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
+	var params = domUtils.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
 	var paramsAJAX = jeedom.private.getParamsAJAX(params)
 	paramsAJAX.url = 'plugins/atlas/core/ajax/atlas.ajax.php'
 	paramsAJAX.data = {
 		action: 'startRecovery',
 		type: _params.type
 	}
-	$.ajax(paramsAJAX)
+	domUtils.ajax(paramsAJAX)
 }
 
 jeedom.atlas.cancelRecovery = function(_params) {
 	var paramsSpecifics = {}
-	var params = $.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
+	var params = domUtils.extend({}, jeedom.private.default_params, paramsSpecifics, _params || {})
 	var paramsAJAX = jeedom.private.getParamsAJAX(params)
 	paramsAJAX.url = 'plugins/atlas/core/ajax/atlas.ajax.php'
 	paramsAJAX.data = {
 		action: 'cancelRecovery'
 	}
-	$.ajax(paramsAJAX)
+	domUtils.ajax(paramsAJAX)
 }
