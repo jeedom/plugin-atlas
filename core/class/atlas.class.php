@@ -58,11 +58,11 @@ class atlas extends eqLogic {
 
     // EMMC
     if (stripos($_targetDevice, '/dev/mmc') !== false) {
-      self::setRecoveryProgress(['details' => __("Redimensionnement du stockage", __FILE__), 'progress' => 15], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du support de stockage", __FILE__), 'progress' => 25], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 45], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 50], 1);
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . 'p' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
@@ -83,23 +83,19 @@ class atlas extends eqLogic {
         shell_exec('sudo umount /mnt/usb');
       }
 
-      self::setRecoveryProgress(['details' => __("Configuration du démarrage sur la clé USB", __FILE__), 'progress' => 10], 1);
-      $cmd = shell_exec('sudo dd if="/usr/lib/u-boot/rock-pi-4b-plus/rkboot.bin" of=' . $_targetDevice . ' seek=64 && sync');
-      self::setRecoveryProgress(['details' => $cmd], 1);
-
-      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 25], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 20], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 35], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 30], 1);
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 45], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 40], 1);
       $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . $partitionNumber . ' 8G');
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 55], 1);
+      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 50], 1);
       shell_exec('sudo mount ' . $_targetDevice . $partitionNumber . ' /mnt/usb');
 
       $imgDir = pathinfo($_imageFilepath, PATHINFO_DIRNAME);
@@ -117,11 +113,13 @@ class atlas extends eqLogic {
       shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb' . $coreDir . '/' . $iniArray['product_connection_image']);
 
       if (file_exists('/mnt/usb' . $_imageFilepath)) {
-        self::setRecoveryProgress(['details' => __("Suppression de l'ancienne image système", __FILE__), 'progress' => 75], 1);
+        self::setRecoveryProgress(['details' => __("Suppression de l'ancienne image système", __FILE__), 'progress' => 60], 1);
         shell_exec('sudo rm /mnt/usb' . $_imageFilepath);
       }
-      self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 80], 1);
-      $cmd = shell_exec('sudo rsync -D ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
+
+      self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 75], 1);
+      shell_exec('sudo scp -p ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
+
       if (stripos($cmd, 'error') !== false || !is_file('/mnt/usb' . $_imageFilepath)) {
         throw new Exception(__("Erreur lors de la copie de l'image système", __FILE__) . ' : ' . $cmd);
       }
@@ -211,7 +209,7 @@ class atlas extends eqLogic {
     $imgInfos = self::getImgInfosFromMarket();
     // Manually set $imgInfos for testings
     $imgInfos['url'] = 'https://images.jeedom.com/atlas/jeedomAtlas.img.xz';
-    $imgInfos['SHA256'] = '7c78d54887cf8f13206b17a0fa71426966661e36a4e96dbe00a532482cd1ac08';
+    $imgInfos['SHA256'] = '811ce8f26cc6d0bc7fbede6e7cb469456d502ec8f17ad6183c7d87a4053f2f66';
 
     $downloadPath = realpath(__DIR__ . '/../../../../data') . '/imgOs';
     if (!file_exists($downloadPath)) {
