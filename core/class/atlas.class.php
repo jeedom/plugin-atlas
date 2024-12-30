@@ -56,21 +56,17 @@ class atlas extends eqLogic {
 
     $partitionNumber = (file_exists($_targetDevice . '2') || file_exists($_targetDevice . 'p2')) ? 2 : 1;
 
-    self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 10], 1);
-    $cmd = shell_exec('(echo t; echo ' . $partitionNumber . '; echo 1; echo w) | sudo fdisk ' . $_targetDevice);
-    self::setRecoveryProgress(['details' => $cmd], 1);
-
     // EMMC
     if (stripos($_targetDevice, '/dev/mmc') !== false) {
-      self::setRecoveryProgress(['details' => __("Redimensionnement du support de stockage", __FILE__), 'progress' => 25], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du support de stockage", __FILE__), 'progress' => 10], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 50], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 40], 1);
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . 'p' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 75], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 70], 1);
       $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . 'p' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
@@ -87,11 +83,11 @@ class atlas extends eqLogic {
         shell_exec('sudo umount /mnt/usb');
       }
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 20], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 10], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 30], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 25], 1);
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
@@ -121,7 +117,7 @@ class atlas extends eqLogic {
         shell_exec('sudo rm /mnt/usb' . $_imageFilepath);
       }
 
-      self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 75], 1);
+      self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 70], 1);
       shell_exec('sudo scp -p ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
 
       if (stripos($cmd, 'error') !== false || !is_file('/mnt/usb' . $_imageFilepath)) {
@@ -132,6 +128,10 @@ class atlas extends eqLogic {
         throw new Exception(__("La restauration système est prête, redémarrer la box sans débrancher la clé USB", __FILE__));
       }
     }
+
+    self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 90], 1);
+    $cmd = shell_exec('(echo t; echo ' . $partitionNumber . '; echo 1; echo w) | sudo fdisk ' . $_targetDevice);
+    self::setRecoveryProgress(['details' => $cmd], 1);
 
     self::setRecoveryProgress(['details' => __("Synchronisation du support", __FILE__), 'progress' => 95], 1);
     shell_exec('sudo sync');
