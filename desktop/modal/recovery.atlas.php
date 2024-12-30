@@ -22,13 +22,13 @@ if (!isConnect()) {
 include_file('core', 'atlas', 'class.js', 'atlas');
 $_mode = init('mode', atlas::getRecoveryMode());
 sendVarToJS('_mode', $_mode);
-if ($_mode == 'usb') {
+if ($_mode == 'emmc') {
 ?>
-  <h3>{{Clé USB de restauration}}</h3>
+  <h3>{{Restauration du système}}</h3>
 <?php
 } else {
 ?>
-  <h3>{{Restauration du système}}</h3>
+  <h3>{{Clé USB de restauration}}</h3>
 <?php
 }
 ?>
@@ -39,6 +39,17 @@ if ($_mode == 'usb') {
     <div id="recovery-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
   </div>
   <div id="recovery-details"></div>
+  <?php
+  if ($_mode == 'emmc') {
+  ?>
+    <div class="alert alert-warning text-center" id="recovery-warning">{{Une sauvegarde récente doit être téléchargée avant de démarrer la restauration du système}}</div>
+  <?php
+  } else {
+  ?>
+    <div class="alert alert-warning text-center" id="recovery-warning">{{La clé USB sera formatée durant le processus}}</div>
+  <?php
+  }
+  ?>
 
   <div>
     <button type="button" class="btn btn-danger" id="bt_cancel"><i class="fas fa-times"></i> {{Annuler}}</button>
@@ -110,6 +121,7 @@ if ($_mode == 'usb') {
     var _target = null
 
     if (_target = event.target.closest('#bt_start')) {
+      document.getElementById('recovery-warning').addClass('hidden')
       _target.addClass('hidden')
       updateRecovery({
         step: '{{Initialisation...}}',
@@ -124,7 +136,6 @@ if ($_mode == 'usb') {
         type: _mode,
         success: function(_result) {
           stopRecoveryProgress()
-          document.getElementById('recovery-progress').removeClass('active')
 
           if (_result) {
             if (_mode == 'usb') {
@@ -143,6 +154,7 @@ if ($_mode == 'usb') {
               })
             }
           }
+          document.getElementById('recovery-progress').removeClass('active')
         }
       })
       return
