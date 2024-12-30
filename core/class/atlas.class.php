@@ -56,6 +56,10 @@ class atlas extends eqLogic {
 
     $partitionNumber = (file_exists($_targetDevice . '2') || file_exists($_targetDevice . 'p2')) ? 2 : 1;
 
+    self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 10], 1);
+    $cmd = shell_exec('(echo t; echo ' . $partitionNumber . '; echo 1; echo w) | sudo fdisk ' . $_targetDevice);
+    self::setRecoveryProgress(['details' => $cmd], 1);
+
     // EMMC
     if (stripos($_targetDevice, '/dev/mmc') !== false) {
       self::setRecoveryProgress(['details' => __("Redimensionnement du support de stockage", __FILE__), 'progress' => 25], 1);
@@ -92,7 +96,7 @@ class atlas extends eqLogic {
       self::setRecoveryProgress(['details' => $cmd], 1);
 
       self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 40], 1);
-      $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . $partitionNumber . ' 8G');
+      $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . $partitionNumber . ' 7G');
       self::setRecoveryProgress(['details' => $cmd], 1);
 
       self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 50], 1);
@@ -129,6 +133,9 @@ class atlas extends eqLogic {
       }
     }
 
+    self::setRecoveryProgress(['details' => __("Synchronisation du support", __FILE__), 'progress' => 95], 1);
+    shell_exec('sudo sync');
+
     self::setRecoveryProgress(['details' => __("Procédure finalisée avec succès", __FILE__), 'progress' => 100], 2);
   }
 
@@ -136,10 +143,11 @@ class atlas extends eqLogic {
     self::setRecoveryProgress(['step' => __("Gravure de l'image système...", __FILE__), 'details' => __('Préparation de la gravure', __FILE__), 'progress' => 0], 2);
 
     $ext = pathinfo($_imageFilepath, PATHINFO_EXTENSION);
-    if ($ext == 'gz') {
-      $extract = 'gunzip';
-      $uncompressed = shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $2}'");
-    } else if ($ext == 'xz') {
+    // if ($ext == 'gz') {
+    //   $extract = 'gunzip';
+    //   $uncompressed = shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $2}'");
+    // } else
+    if ($ext == 'xz') {
       $extract = 'xz';
       $uncompressed = round(shell_exec($extract . ' -l ' . $_imageFilepath . " | awk 'NR==2 {print $5}'") * 1024 * 1024);
     } else {
