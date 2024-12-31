@@ -16,49 +16,49 @@
  * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
+// require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
-$filename = '/etc/apt/sources.list.d/armbian.list';
-$cmdArmBian = "sudo sed -i 's|^deb http://apt.armbian.com|#deb http://apt.armbian.com|g' $filename";
+// $filename = '/etc/apt/sources.list.d/armbian.list';
+// $cmdArmBian = "sudo sed -i 's|^deb http://apt.armbian.com|#deb http://apt.armbian.com|g' $filename";
 
-function atlas_install() {
-	$eqLogic = atlas::byLogicalId('wifi', 'atlas');
-	if (!is_object($eqLogic)) {
-		message::add('atlas', __('Installation du Wifi', __FILE__));
-		$eqLogic = new atlas();
-		$eqLogic->setLogicalId('wifi');
-		$eqLogic->setCategory('multimedia', 1);
-		$eqLogic->setName(__('Wifi', __FILE__));
-		$eqLogic->setEqType_name('atlas');
-		$eqLogic->setIsVisible(1);
-		$eqLogic->setIsEnable(1);
-		$eqLogic->save();
-	}
-	foreach (eqLogic::byType('atlas') as $atlas) {
-		$atlas->save();
-	}
+// function atlas_install() {
+// 	$eqLogic = atlas::byLogicalId('wifi', 'atlas');
+// 	if (!is_object($eqLogic)) {
+// 		message::add('atlas', __('Installation du Wifi', __FILE__));
+// 		$eqLogic = new atlas();
+// 		$eqLogic->setLogicalId('wifi');
+// 		$eqLogic->setCategory('multimedia', 1);
+// 		$eqLogic->setName(__('Wifi', __FILE__));
+// 		$eqLogic->setEqType_name('atlas');
+// 		$eqLogic->setIsVisible(1);
+// 		$eqLogic->setIsEnable(1);
+// 		$eqLogic->save();
+// 	}
+// 	foreach (eqLogic::byType('atlas') as $atlas) {
+// 		$atlas->save();
+// 	}
 
-	exec($cmdArmBian);
-	exec('apt-get update');
-}
+// 	exec($cmdArmBian);
+// 	exec('apt-get update');
+// }
 
-function atlas_update() {
-	$eqLogic = atlas::byLogicalId('wifi', 'atlas');
-	if (!is_object($eqLogic)) {
-		message::add('atlas', __('Mise à jour du Wifi', __FILE__));
-		$eqLogic = new atlas();
-		$eqLogic->setLogicalId('wifi');
-		$eqLogic->setCategory('multimedia', 1);
-		$eqLogic->setName(__('Wifi', __FILE__));
-		$eqLogic->setEqType_name('atlas');
-		$eqLogic->setIsVisible(1);
-		$eqLogic->setIsEnable(1);
-		$eqLogic->save();
-	}
-	foreach (eqLogic::byType('atlas') as $atlas) {
-		$atlas->save();
-	}
+// function atlas_update() {
+// 	$eqLogic = atlas::byLogicalId('wifi', 'atlas');
+// 	if (!is_object($eqLogic)) {
+// 		message::add('atlas', __('Mise à jour du Wifi', __FILE__));
+// 		$eqLogic = new atlas();
+// 		$eqLogic->setLogicalId('wifi');
+// 		$eqLogic->setCategory('multimedia', 1);
+// 		$eqLogic->setName(__('Wifi', __FILE__));
+// 		$eqLogic->setEqType_name('atlas');
+// 		$eqLogic->setIsVisible(1);
+// 		$eqLogic->setIsEnable(1);
+// 		$eqLogic->save();
+// 	}
+// 	foreach (eqLogic::byType('atlas') as $atlas) {
+// 		$atlas->save();
+// 	}
 
-	exec($cmdArmBian);
-	exec('apt-get update');
-}
+// 	exec($cmdArmBian);
+// 	exec('apt-get update');
+// }

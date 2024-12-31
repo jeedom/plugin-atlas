@@ -16,91 +16,91 @@
  */
 
 
-printWifiList()
-printMacLan()
-printMacWifi()
-function printWifiList($forced = false) {
-  $.ajax({// fonction permettant de faire de l'ajax
-    type: "POST", // methode de transmission des données au fichier php
-    url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
-    data: {
-      action: "listWifi",
-      mode: $forced,
-    },
-    dataType: 'json',
-    async: true,
-    error: function(request, status, error) {
-      handleAjaxError(request, status, error)
-    },
-    success: function(data) {
-      if (data.state != 'ok') {
-        $('#div_alert').showAlert({ message: data.result, level: 'danger' })
-        return
-      }
-      var options = ''
-      for (i in data.result) {
-        options += '<option value="' + i + '">'
-        options += data.result[i]['ssid'] + ' - Signal : ' + data.result[i]['signal'] + ' Canal : ' + data.result[i]['channel'] + ' Sécurité - ' + data.result[i]['security']
-        options += '</option>'
-      }
-      $('.eqLogicAttr[data-l1key=configuration][data-l2key=wifiSsid]').empty().html(options)
-    }
-  })
-}
+// printWifiList()
+// printMacLan()
+// printMacWifi()
+// function printWifiList($forced = false) {
+//   $.ajax({// fonction permettant de faire de l'ajax
+//     type: "POST", // methode de transmission des données au fichier php
+//     url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
+//     data: {
+//       action: "listWifi",
+//       mode: $forced,
+//     },
+//     dataType: 'json',
+//     async: true,
+//     error: function(request, status, error) {
+//       handleAjaxError(request, status, error)
+//     },
+//     success: function(data) {
+//       if (data.state != 'ok') {
+//         $('#div_alert').showAlert({ message: data.result, level: 'danger' })
+//         return
+//       }
+//       var options = ''
+//       for (i in data.result) {
+//         options += '<option value="' + i + '">'
+//         options += data.result[i]['ssid'] + ' - Signal : ' + data.result[i]['signal'] + ' Canal : ' + data.result[i]['channel'] + ' Sécurité - ' + data.result[i]['security']
+//         options += '</option>'
+//       }
+//       $('.eqLogicAttr[data-l1key=configuration][data-l2key=wifiSsid]').empty().html(options)
+//     }
+//   })
+// }
 
-function printMacLan() {
-  $.ajax({// fonction permettant de faire de l'ajax
-    type: "POST", // methode de transmission des données au fichier php
-    url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
-    data: {
-      action: "macfinder",
-      interfa: "eth0",
-    },
-    dataType: 'json',
-    async: true,
-    global: false,
-    error: function(request, status, error) {
-      handleAjaxError(request, status, error)
-    },
-    success: function(data) {
-      if (data.state != 'ok') {
-        $('#div_alert').showAlert({ message: data.result, level: 'danger' })
-        return
-      }
-      $('.macLan').empty().append(data.result[0])
-      $('.ipLan').empty().append(data.result[1])
-    }
-  })
-}
+// function printMacLan() {
+//   $.ajax({// fonction permettant de faire de l'ajax
+//     type: "POST", // methode de transmission des données au fichier php
+//     url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
+//     data: {
+//       action: "macfinder",
+//       interfa: "eth0",
+//     },
+//     dataType: 'json',
+//     async: true,
+//     global: false,
+//     error: function(request, status, error) {
+//       handleAjaxError(request, status, error)
+//     },
+//     success: function(data) {
+//       if (data.state != 'ok') {
+//         $('#div_alert').showAlert({ message: data.result, level: 'danger' })
+//         return
+//       }
+//       $('.macLan').empty().append(data.result[0])
+//       $('.ipLan').empty().append(data.result[1])
+//     }
+//   })
+// }
 
-function printMacWifi() {
-  $.ajax({// fonction permettant de faire de l'ajax
-    type: "POST", // methode de transmission des données au fichier php
-    url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
-    data: {
-      action: "macfinder",
-      interfa: "wlan0",
-    },
-    dataType: 'json',
-    async: true,
-    global: false,
-    error: function(request, status, error) {
-      handleAjaxError(request, status, error)
-    },
-    success: function(data) {
-      if (data.state != 'ok') {
-        $('#div_alert').showAlert({ message: data.result, level: 'danger' })
-        return
-      }
-      $('.macWifi').empty().append(data.result[0])
-      $('.ipWifi').empty().append(data.result[1])
-    }
-  })
-}
+// function printMacWifi() {
+//   $.ajax({// fonction permettant de faire de l'ajax
+//     type: "POST", // methode de transmission des données au fichier php
+//     url: "plugins/atlas/core/ajax/atlas.ajax.php", // url du fichier php
+//     data: {
+//       action: "macfinder",
+//       interfa: "wlan0",
+//     },
+//     dataType: 'json',
+//     async: true,
+//     global: false,
+//     error: function(request, status, error) {
+//       handleAjaxError(request, status, error)
+//     },
+//     success: function(data) {
+//       if (data.state != 'ok') {
+//         $('#div_alert').showAlert({ message: data.result, level: 'danger' })
+//         return
+//       }
+//       $('.macWifi').empty().append(data.result[0])
+//       $('.ipWifi').empty().append(data.result[1])
+//     }
+//   })
+// }
 
-$('#bt_refreshWifiList').on('click', function() {
-  printWifiList(true)
-})
+// $('#bt_refreshWifiList').on('click', function() {
+//   printWifiList(true)
+// })
 
 // window.setInterval(function() {
 //   printMacLan()
@@ -167,40 +167,40 @@ document.getElementById('bt_recovery')?.addEventListener('click', function() {
   jeeDialog.get('#md_atlasRecovery').dialog.addClass('jeeDialogNoCloseBackdrop')
 })
 
-$('#wifiEnabledCheck').change(function() {
-  if (this.checked == true) {
-    $('.wifi').css('display', 'block')
-    $('.wifihot').css('display', 'block')
-  } else {
-    $('.wifi').css('display', 'none')
-    $('.wifihot').css('display', 'none')
-    $('#hotspotEnabledCheck').prop('checked', false)
-    $('.wifihotspot').css('display', 'none')
-    $('.nohotspot').prop('disabled', false)
-    $('#dnsDesactivated').prop('selected', true)
-  }
-})
+// $('#wifiEnabledCheck').change(function() {
+//   if (this.checked == true) {
+//     $('.wifi').css('display', 'block')
+//     $('.wifihot').css('display', 'block')
+//   } else {
+//     $('.wifi').css('display', 'none')
+//     $('.wifihot').css('display', 'none')
+//     $('#hotspotEnabledCheck').prop('checked', false)
+//     $('.wifihotspot').css('display', 'none')
+//     $('.nohotspot').prop('disabled', false)
+//     $('#dnsDesactivated').prop('selected', true)
+//   }
+// })
 
-$('#hotspotEnabledCheck').change(function() {
-  if (this.checked == true) {
-    $('.wifihotspot').css('display', 'block')
-    $('.nohotspot').prop('disabled', true)
-    $('#dnsWlan0').prop('disabled', false)
-    $('#dnsEth0').prop('disabled', true)
-    $("#dnsSelect option:selected").each(function() {
-      if ($(this).val() == 'eth0' || $(this).val() == 'desactivated') {
-        $('#dnsWlan0').prop('selected', true)
-      }
-    })
-  } else {
-    $('.wifihotspot').css('display', 'none')
-    $('.nohotspot').prop('disabled', false)
-    $('#dnsWlan0').prop('disabled', true)
-    $('#dnsEth0').prop('disabled', false)
-    $("#dnsSelect option:selected").each(function() {
-      if ($(this).val() == 'wlan0') {
-        $('#dnsDesactivated').prop('selected', true)
-      }
-    })
-  }
-})
+// $('#hotspotEnabledCheck').change(function() {
+//   if (this.checked == true) {
+//     $('.wifihotspot').css('display', 'block')
+//     $('.nohotspot').prop('disabled', true)
+//     $('#dnsWlan0').prop('disabled', false)
+//     $('#dnsEth0').prop('disabled', true)
+//     $("#dnsSelect option:selected").each(function() {
+//       if ($(this).val() == 'eth0' || $(this).val() == 'desactivated') {
+//         $('#dnsWlan0').prop('selected', true)
+//       }
+//     })
+//   } else {
+//     $('.wifihotspot').css('display', 'none')
+//     $('.nohotspot').prop('disabled', false)
+//     $('#dnsWlan0').prop('disabled', true)
+//     $('#dnsEth0').prop('disabled', false)
+//     $("#dnsSelect option:selected").each(function() {
+//       if ($(this).val() == 'wlan0') {
+//         $('#dnsDesactivated').prop('selected', true)
+//       }
+//     })
+//   }
+// })
