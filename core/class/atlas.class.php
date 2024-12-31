@@ -52,14 +52,14 @@ class atlas extends eqLogic {
   }
 
   private static function finalizeRecovery($_targetDevice, $_imageFilepath) {
-    self::setRecoveryProgress(['step' => __("Finalisation de la procédure...", __FILE__), 'details' => '', 'progress' => 0], 2);
+    self::setRecoveryProgress(['step' => __("Préparation du support de restauration...", __FILE__), 'details' => '', 'progress' => 0], 2);
 
     $partitionNumber = (file_exists($_targetDevice . '2') || file_exists($_targetDevice . 'p2')) ? 2 : 1;
 
     // EMMC
     if (stripos($_targetDevice, '/dev/mmc') !== false) {
       self::setRecoveryProgress(['details' => __("Redimensionnement du support de stockage", __FILE__), 'progress' => 20], 1);
-      $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
+      $cmd = shell_exec('(echo d; echo ' . $partitionNumber . '; echo n; echo ' . $partitionNumber . '; echo; echo; echo N; echo w) | sudo fdisk ' . $_targetDevice);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
       self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 40], 1);
@@ -73,10 +73,6 @@ class atlas extends eqLogic {
       self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 80], 1);
       $cmd = shell_exec('(echo t; echo ' . $partitionNumber . '; echo 1; echo w) | sudo fdisk ' . $_targetDevice);
       self::setRecoveryProgress(['details' => $cmd], 1);
-
-      if (cache::exist('atlasRecoveryCancellation')) {
-        throw new Exception(__("La restauration système est terminée, débrancher la clé USB avant de redémarrer la box électriquement", __FILE__));
-      }
     }
 
     // USB
@@ -87,29 +83,30 @@ class atlas extends eqLogic {
         shell_exec('sudo umount /mnt/usb');
       }
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 10], 1);
-      $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
+      self::setRecoveryProgress(['details' => __("Redimensionnement de la clé USB", __FILE__), 'progress' => 5], 1);
+      $cmd = shell_exec('(echo d; echo ' . $partitionNumber . '; echo n; echo ' . $partitionNumber . '; echo; echo +7G; echo N; echo w) | sudo fdisk ' . $_targetDevice);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 20], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 15], 1);
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 30], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 25], 1);
       $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . $partitionNumber . ' 7G');
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 40], 1);
+      self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 35], 1);
       $cmd = shell_exec('(echo t; echo ' . $partitionNumber . '; echo 1; echo w) | sudo fdisk ' . $_targetDevice);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 50], 1);
+      self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 45], 1);
       shell_exec('sudo mount ' . $_targetDevice . $partitionNumber . ' /mnt/usb');
 
       $imgDir = pathinfo($_imageFilepath, PATHINFO_DIRNAME);
       if (!file_exists('/mnt/usb' . $imgDir)) {
-        shell_exec('sudo mkdir /mnt/usb' . $imgDir);
+        mkdir('/mnt/usb' . $imgDir, 0644);
       }
+      shell_exec('sudo chown -R 33:33 /mnt/usb/var/www/html/* && sudo chmod 775 -R /mnt/usb/var/www/html/*');
 
       $coreDir = str_replace('/data/imgOs', '', $imgDir);
       $iniFile = '/mnt/usb' . $coreDir . '/data/custom/custom.config.ini';
@@ -121,23 +118,39 @@ class atlas extends eqLogic {
       shell_exec('sudo cp ' . $coreDir . '/plugins/atlas/data/recovery/logo-jeedom-atlas-recovery-grand-nom-couleur.svg /mnt/usb' . $coreDir . '/' . $iniArray['product_connection_image']);
 
       if (file_exists('/mnt/usb' . $_imageFilepath)) {
-        self::setRecoveryProgress(['details' => __("Suppression de l'ancienne image système", __FILE__), 'progress' => 60], 1);
         shell_exec('sudo rm /mnt/usb' . $_imageFilepath);
       }
 
-      self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 75], 1);
-      shell_exec('sudo scp -p ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
+      $sourceHandle = fopen($_imageFilepath, 'rb');
+      $destinationHandle = fopen('/mnt/usb' . $_imageFilepath, 'wb');
 
-      if (stripos($cmd, 'error') !== false || !is_file('/mnt/usb' . $_imageFilepath)) {
-        throw new Exception(__("Erreur lors de la copie de l'image système", __FILE__) . ' : ' . $cmd);
-      }
+      if ($sourceHandle !== false && $destinationHandle !== false) {
+        $totalSize = filesize($_imageFilepath);
+        $total = cmd::autoValueArray($totalSize, 2, 'o');
+        $copiedSize = 0;
 
-      if (cache::exist('atlasRecoveryCancellation')) {
-        throw new Exception(__("La restauration système est prête, redémarrer la box sans débrancher la clé USB", __FILE__));
+        while (!feof($sourceHandle)) {
+          $buffer = fread($sourceHandle, 1024 * 1024);
+          fwrite($destinationHandle, $buffer);
+          $copiedSize += strlen($buffer);
+          $percent = self::calculPercentProgress($copiedSize, $totalSize, 100, 50);
+          $done = cmd::autoValueArray($copiedSize, 2, 'o');
+          self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__) . ': ' . $done[0] . $done[1] . '/' . $total[0] . $total[1], 'progress' => $percent]);
+          flush();
+
+          if (cache::exist('atlasRecoveryCancellation')) {
+            self::setRecoveryProgress(['details' => __("Annulation de la copie de l'image système sur la clé USB, elle sera téléchargée durant la phase de restauration", __FILE__), 'progress' => 100], 2);
+            unlink('/mnt/usb' . $_imageFilepath);
+            break;
+          }
+        }
+
+        fclose($sourceHandle);
+        fclose($destinationHandle);
+      } else {
+        self::setRecoveryProgress(['details' => __("Impossible de copier l'image système sur la clé USB, elle sera téléchargée durant la phase de restauration", __FILE__), 'progress' => 100], 2);
       }
     }
-
-    self::setRecoveryProgress(['details' => __("Procédure finalisée avec succès", __FILE__), 'progress' => 100], 2);
   }
 
   private static function ddImage($_imageFilepath, $_targetDevice) {
@@ -360,8 +373,13 @@ class atlas extends eqLogic {
     throw new Exception(__('Abandon, support de destination introuvable', __FILE__) . ' : ' . $_mode);
   }
 
-  private static function calculPercentProgress($_done, $_total, int $_max = 100) {
+  private static function calculPercentProgress($_done, $_total, float $_max = 100, float $_base = 0) {
     $percent = round(($_done / $_total) * 100, 1);
+
+    if ($_base > 0 && $_base < $_max) {
+      $percent = round($percent * ($_base / $_max) + $_base, 1);
+    }
+
     if ($percent < 0) {
       return 0;
     }
