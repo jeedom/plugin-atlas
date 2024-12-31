@@ -58,7 +58,7 @@ class atlas extends eqLogic {
 
     // EMMC
     if (stripos($_targetDevice, '/dev/mmc') !== false) {
-      self::setRecoveryProgress(['details' => __("Redimensionnement du support de stockage", __FILE__), 'progress' => 10], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du support de stockage", __FILE__), 'progress' => 20], 1);
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
@@ -66,8 +66,12 @@ class atlas extends eqLogic {
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . 'p' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 70], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 60], 1);
       $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . 'p' . $partitionNumber);
+      self::setRecoveryProgress(['details' => $cmd], 1);
+
+      self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 80], 1);
+      $cmd = shell_exec('(echo t; echo ' . $partitionNumber . '; echo 1; echo w) | sudo fdisk ' . $_targetDevice);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
       if (cache::exist('atlasRecoveryCancellation')) {
@@ -87,12 +91,16 @@ class atlas extends eqLogic {
       $cmd = shell_exec('sudo growpart ' . $_targetDevice . ' ' . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 25], 1);
+      self::setRecoveryProgress(['details' => __("Vérification du système de fichier", __FILE__), 'progress' => 20], 1);
       $cmd = shell_exec('sudo e2fsck -fy ' . $_targetDevice . $partitionNumber);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
-      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 40], 1);
+      self::setRecoveryProgress(['details' => __("Redimensionnement du système de fichier", __FILE__), 'progress' => 30], 1);
       $cmd = shell_exec('sudo resize2fs ' . $_targetDevice . $partitionNumber . ' 7G');
+      self::setRecoveryProgress(['details' => $cmd], 1);
+
+      self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 40], 1);
+      $cmd = shell_exec('(echo t; echo ' . $partitionNumber . '; echo 1; echo w) | sudo fdisk ' . $_targetDevice);
       self::setRecoveryProgress(['details' => $cmd], 1);
 
       self::setRecoveryProgress(['details' => __("Personnalisation de la clé USB", __FILE__), 'progress' => 50], 1);
@@ -117,7 +125,7 @@ class atlas extends eqLogic {
         shell_exec('sudo rm /mnt/usb' . $_imageFilepath);
       }
 
-      self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 70], 1);
+      self::setRecoveryProgress(['details' => __("Copie de l'image système", __FILE__), 'progress' => 75], 1);
       shell_exec('sudo scp -p ' . $_imageFilepath . ' /mnt/usb' . $_imageFilepath);
 
       if (stripos($cmd, 'error') !== false || !is_file('/mnt/usb' . $_imageFilepath)) {
@@ -128,13 +136,6 @@ class atlas extends eqLogic {
         throw new Exception(__("La restauration système est prête, redémarrer la box sans débrancher la clé USB", __FILE__));
       }
     }
-
-    self::setRecoveryProgress(['details' => __("Préparation de la partition de démarrage", __FILE__), 'progress' => 90], 1);
-    $cmd = shell_exec('(echo t; echo ' . $partitionNumber . '; echo 1; echo w) | sudo fdisk ' . $_targetDevice);
-    self::setRecoveryProgress(['details' => $cmd], 1);
-
-    self::setRecoveryProgress(['details' => __("Synchronisation du support", __FILE__), 'progress' => 95], 1);
-    shell_exec('sudo sync');
 
     self::setRecoveryProgress(['details' => __("Procédure finalisée avec succès", __FILE__), 'progress' => 100], 2);
   }
@@ -213,7 +214,6 @@ class atlas extends eqLogic {
   private static function downloadImage() {
     self::setRecoveryProgress(['step' => __("Téléchargement de l'image système...", __FILE__), 'details' => __("Collecte des informations", __FILE__), 'progress' => 0], 2);
 
-    jeedom::cleanFileSystemRight();
     $imgInfos = self::getImgInfosFromMarket();
     // Manually set $imgInfos for testings
     $imgInfos['url'] = 'https://images.jeedom.com/atlas/jeedomAtlas.img.xz';
@@ -223,6 +223,7 @@ class atlas extends eqLogic {
     if (!file_exists($downloadPath)) {
       mkdir($downloadPath, 0644);
     }
+    jeedom::cleanFileSystemRight();
 
     $downloadFilepath = $downloadPath . '/' . basename($imgInfos['url']);
     if (file_exists($downloadFilepath)) {
@@ -389,352 +390,352 @@ class atlas extends eqLogic {
 
   /* ----- RECOVERY END  ----- */
 
-  public static function cron5($_eqlogic_id = null) {
-    if ($_eqlogic_id !== null) {
-      $eqLogics = array(eqLogic::byId($_eqlogic_id));
-    } else {
-      $eqLogics = eqLogic::byType('atlas');
-    }
-    foreach ($eqLogics as $atlas) {
-      log::add(__CLASS__, 'debug', 'Pull Cron Atlas');
-      $atlas->wifiConnect();
-      if ($atlas->getIsEnable() != 1) {
-        continue;
-      };
-      if (!file_exists("/sys/class/net/eth0/operstate")) {
-        $ethup = 0;
-      } else {
-        $ethup = (trim(file_get_contents("/sys/class/net/eth0/operstate")) == 'up') ? 1 : 0;
-      }
-      if (!file_exists("/sys/class/net/wlan0/operstate")) {
-        $wifiup = 0;
-      } else {
-        $wifiup = (trim(file_get_contents("/sys/class/net/wlan0/operstate")) == 'up') ? 1 : 0;
-      }
-      $wifisignal = str_replace('.', '', shell_exec("sudo tail -n +3 /proc/net/wireless | awk '{ print $3 }'"));
-      $wifiIp = shell_exec("sudo ifconfig wlan0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'");
-      $lanIp = shell_exec("sudo ifconfig eth0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'");
-      log::add(__CLASS__, 'debug', 'Lan Ip is :' . $lanIp);
-      log::add(__CLASS__, 'debug', 'Wifi Ip is :' . $wifiIp);
-      $atlas->checkAndUpdateCmd('isconnect', $wifiup);
-      $atlas->checkAndUpdateCmd('isconnecteth', $ethup);
-      $atlas->checkAndUpdateCmd('signal', $wifisignal);
-      $atlas->checkAndUpdateCmd('lanip', $lanIp);
-      $atlas->checkAndUpdateCmd('wifiip', $wifiIp);
-      if ($atlas->getConfiguration('wifiEnabled', 0) == 1) {
-        $atlas->checkAndUpdateCmd('ssid', $atlas->getConfiguration('wifiSsid', ''));
-      } else {
-        $atlas->checkAndUpdateCmd('ssid', 'Aucun');
-      }
-    }
-  }
+  // public static function cron5($_eqlogic_id = null) {
+  //   if ($_eqlogic_id !== null) {
+  //     $eqLogics = array(eqLogic::byId($_eqlogic_id));
+  //   } else {
+  //     $eqLogics = eqLogic::byType('atlas');
+  //   }
+  //   foreach ($eqLogics as $atlas) {
+  //     log::add(__CLASS__, 'debug', 'Pull Cron Atlas');
+  //     $atlas->wifiConnect();
+  //     if ($atlas->getIsEnable() != 1) {
+  //       continue;
+  //     };
+  //     if (!file_exists("/sys/class/net/eth0/operstate")) {
+  //       $ethup = 0;
+  //     } else {
+  //       $ethup = (trim(file_get_contents("/sys/class/net/eth0/operstate")) == 'up') ? 1 : 0;
+  //     }
+  //     if (!file_exists("/sys/class/net/wlan0/operstate")) {
+  //       $wifiup = 0;
+  //     } else {
+  //       $wifiup = (trim(file_get_contents("/sys/class/net/wlan0/operstate")) == 'up') ? 1 : 0;
+  //     }
+  //     $wifisignal = str_replace('.', '', shell_exec("sudo tail -n +3 /proc/net/wireless | awk '{ print $3 }'"));
+  //     $wifiIp = shell_exec("sudo ifconfig wlan0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'");
+  //     $lanIp = shell_exec("sudo ifconfig eth0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'");
+  //     log::add(__CLASS__, 'debug', 'Lan Ip is :' . $lanIp);
+  //     log::add(__CLASS__, 'debug', 'Wifi Ip is :' . $wifiIp);
+  //     $atlas->checkAndUpdateCmd('isconnect', $wifiup);
+  //     $atlas->checkAndUpdateCmd('isconnecteth', $ethup);
+  //     $atlas->checkAndUpdateCmd('signal', $wifisignal);
+  //     $atlas->checkAndUpdateCmd('lanip', $lanIp);
+  //     $atlas->checkAndUpdateCmd('wifiip', $wifiIp);
+  //     if ($atlas->getConfiguration('wifiEnabled', 0) == 1) {
+  //       $atlas->checkAndUpdateCmd('ssid', $atlas->getConfiguration('wifiSsid', ''));
+  //     } else {
+  //       $atlas->checkAndUpdateCmd('ssid', 'Aucun');
+  //     }
+  //   }
+  // }
 
-  /* ----- SECURITY IP ----- */
+  // /* ----- SECURITY IP ----- */
 
-  public static function securityIp($type = 'eth0') {
-    //verif ip
-    $ipEth = trim(shell_exec('ip addr show ' . $type . ' | grep "inet\b" | awk \'{print $2}\' | cut -d/ -f1'));
-    if ($ipEth == '' || !$ipEth) {
-      log::add(__CLASS__, 'debug', __('Aucune adresse IP détectée sur', __FILE__) . ' ' . $type . '. ' .  __('Passage en 100M/TX', __FILE__));
-      shell_exec('sudo ethtool -s ' . $type . ' speed 100 duplex full autoneg on');
-    } else {
-      log::add(__CLASS__, 'debug', 'ip ok sur ' . $type . ' / ' . $ipEth);
-    }
-  }
+  // public static function securityIp($type = 'eth0') {
+  //   //verif ip
+  //   $ipEth = trim(shell_exec('ip addr show ' . $type . ' | grep "inet\b" | awk \'{print $2}\' | cut -d/ -f1'));
+  //   if ($ipEth == '' || !$ipEth) {
+  //     log::add(__CLASS__, 'debug', __('Aucune adresse IP détectée sur', __FILE__) . ' ' . $type . '. ' .  __('Passage en 100M/TX', __FILE__));
+  //     shell_exec('sudo ethtool -s ' . $type . ' speed 100 duplex full autoneg on');
+  //   } else {
+  //     log::add(__CLASS__, 'debug', 'ip ok sur ' . $type . ' / ' . $ipEth);
+  //   }
+  // }
 
-  /* ----- START ----- */
+  // /* ----- START ----- */
 
-  public static function start() {
-    log::add(__CLASS__, 'debug', __('Jeedom est démarré, vérification des connexions.', __FILE__));
-    self::securityIp();
-    $atlas = eqLogic::byLogicalId('wifi', __CLASS__);
-    if (is_object($atlas)) {
-      $atlas->wifiConnect();
-    }
-  }
+  // public static function start() {
+  //   log::add(__CLASS__, 'debug', __('Jeedom est démarré, vérification des connexions.', __FILE__));
+  //   self::securityIp();
+  //   $atlas = eqLogic::byLogicalId('wifi', __CLASS__);
+  //   if (is_object($atlas)) {
+  //     $atlas->wifiConnect();
+  //   }
+  // }
 
-  /* ----- WIFI ----- */
+  // /* ----- WIFI ----- */
 
-  public static function isWificonnected($ssid) {
-    $result = shell_exec("sudo nmcli d | grep '" . $ssid . "'");
-    log::add(__CLASS__, 'debug', $result);
-    if (strpos($result, 'connected') === false && strpos($result, 'connecté') === false) {
-      return false;
-    }
-    return true;
-  }
+  // public static function isWificonnected($ssid) {
+  //   $result = shell_exec("sudo nmcli d | grep '" . $ssid . "'");
+  //   log::add(__CLASS__, 'debug', $result);
+  //   if (strpos($result, 'connected') === false && strpos($result, 'connecté') === false) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
-  public static function isWifiProfileexist($ssid) {
-    $result = shell_exec("nmcli --fields NAME con show");
-    $countProfile = substr_count($result, $ssid);
-    if ($countProfile > 1) {
-      log::add(__CLASS__, 'debug', __('Suppression des profils.', __FILE__));
-      shell_exec("nmcli --pretty --fields UUID,TYPE con show | grep wifi | awk '{print $1}'" . ' | while read line; do nmcli con delete uuid $line; done');
-      return true;
-    } else if ($countProfile == 1) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  // public static function isWifiProfileexist($ssid) {
+  //   $result = shell_exec("nmcli --fields NAME con show");
+  //   $countProfile = substr_count($result, $ssid);
+  //   if ($countProfile > 1) {
+  //     log::add(__CLASS__, 'debug', __('Suppression des profils.', __FILE__));
+  //     shell_exec("nmcli --pretty --fields UUID,TYPE con show | grep wifi | awk '{print $1}'" . ' | while read line; do nmcli con delete uuid $line; done');
+  //     return true;
+  //   } else if ($countProfile == 1) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // }
 
-  public static function listWifi($forced = false) {
-    $eqLogic = eqLogic::byType(__CLASS__);
-    log::add(__CLASS__, 'debug', 'Wifi enabled : ' . $eqLogic[0]->getConfiguration('wifiEnabled'));
-    $return = [];
-    if ($eqLogic[0]->getConfiguration('wifiEnabled') == true || $forced == true) {
-      $scanresult = shell_exec('sudo nmcli -f SSID,SIGNAL,SECURITY,CHAN -t -m tabular dev wifi list');
-      $results = explode("\n", $scanresult);
-      $return = array();
-      foreach ($results as $result) {
-        log::add(__CLASS__, 'debug', $result);
-        $result = str_replace('\:', '$%$%', $result);
-        $wifiDetail = explode(':', $result);
-        $chan = $wifiDetail[3];
-        $security = $wifiDetail[2];
-        if ($security == '') {
-          $security = 'Aucune';
-        }
-        $signal =  $wifiDetail[1];
-        $ssid = str_replace('$%$%', '\:', $wifiDetail[0]);
-        if ($ssid != '') {
-          log::add(__CLASS__, 'debug', $ssid . ' with signal ' . $signal . ' and security ' . $security . ' on channel ' . $chan);
-          if (isset($return[$ssid]) && $return[$ssid]['signal'] > $signal) {
-            continue;
-          }
-          $return[$ssid] = array('ssid' => $ssid, 'signal' => $signal, 'security' => $security, 'channel' => $chan);
-        }
-      }
-    }
-    return $return;
-  }
+  // public static function listWifi($forced = false) {
+  //   $eqLogic = eqLogic::byType(__CLASS__);
+  //   log::add(__CLASS__, 'debug', 'Wifi enabled : ' . $eqLogic[0]->getConfiguration('wifiEnabled'));
+  //   $return = [];
+  //   if ($eqLogic[0]->getConfiguration('wifiEnabled') == true || $forced == true) {
+  //     $scanresult = shell_exec('sudo nmcli -f SSID,SIGNAL,SECURITY,CHAN -t -m tabular dev wifi list');
+  //     $results = explode("\n", $scanresult);
+  //     $return = array();
+  //     foreach ($results as $result) {
+  //       log::add(__CLASS__, 'debug', $result);
+  //       $result = str_replace('\:', '$%$%', $result);
+  //       $wifiDetail = explode(':', $result);
+  //       $chan = $wifiDetail[3];
+  //       $security = $wifiDetail[2];
+  //       if ($security == '') {
+  //         $security = 'Aucune';
+  //       }
+  //       $signal =  $wifiDetail[1];
+  //       $ssid = str_replace('$%$%', '\:', $wifiDetail[0]);
+  //       if ($ssid != '') {
+  //         log::add(__CLASS__, 'debug', $ssid . ' with signal ' . $signal . ' and security ' . $security . ' on channel ' . $chan);
+  //         if (isset($return[$ssid]) && $return[$ssid]['signal'] > $signal) {
+  //           continue;
+  //         }
+  //         $return[$ssid] = array('ssid' => $ssid, 'signal' => $signal, 'security' => $security, 'channel' => $chan);
+  //       }
+  //     }
+  //   }
+  //   return $return;
+  // }
 
-  public static function getMac($_interface = 'eth0') {
-    $interfaceIp = shell_exec("sudo ifconfig $_interface | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'");
-    $interfaceMac = shell_exec("sudo ip addr show $_interface | grep -i 'link/ether' | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' | sed -n 1p");
-    return [$interfaceMac, $interfaceIp];
-  }
+  // public static function getMac($_interface = 'eth0') {
+  //   $interfaceIp = shell_exec("sudo ifconfig $_interface | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'");
+  //   $interfaceMac = shell_exec("sudo ip addr show $_interface | grep -i 'link/ether' | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' | sed -n 1p");
+  //   return [$interfaceMac, $interfaceIp];
+  // }
 
-  public function wifiConnect() {
-    if ($this->getConfiguration('wifiEnabled') == true) {
-      self::activeHotSpot();
-      if ($this->getConfiguration('hotspotEnabled') == true) {
-        return;
-      } else {
-        $ssid = $this->getConfiguration('wifiSsid', '');
-      }
-      if (self::isWificonnected($ssid) === false) {
-        log::add(__CLASS__, 'debug', __('Non connecté à', __FILE__) . ' ' . $ssid . '. ' . __('Connexion en cours...', __FILE__));
-        shell_exec("sudo ip link set wlan0");
-        if (self::isWifiProfileexist($ssid) === true) {
-          $exec = "sudo nmcli con up '" . $ssid . "'";
-        } else {
-          $password = $this->getConfiguration('wifiPassword', '');
-          if ($password != '') {
-            $exec = "sudo nmcli dev wifi connect '" . $ssid . "' password '" . $password . "'";
-          } else {
-            $exec = "sudo nmcli dev wifi connect '" . $ssid . "'";
-          }
-        }
-        log::add(__CLASS__, 'debug', 'Executing ' . $exec);
-        shell_exec($exec);
-      }
-    } else {
-      log::add(__CLASS__, 'debug', 'Executing sudo nmcli dev disconnect wlan0');
-      shell_exec('sudo nmcli dev disconnect wlan0');
-    }
-  }
+  // public function wifiConnect() {
+  //   if ($this->getConfiguration('wifiEnabled') == true) {
+  //     self::activeHotSpot();
+  //     if ($this->getConfiguration('hotspotEnabled') == true) {
+  //       return;
+  //     } else {
+  //       $ssid = $this->getConfiguration('wifiSsid', '');
+  //     }
+  //     if (self::isWificonnected($ssid) === false) {
+  //       log::add(__CLASS__, 'debug', __('Non connecté à', __FILE__) . ' ' . $ssid . '. ' . __('Connexion en cours...', __FILE__));
+  //       shell_exec("sudo ip link set wlan0");
+  //       if (self::isWifiProfileexist($ssid) === true) {
+  //         $exec = "sudo nmcli con up '" . $ssid . "'";
+  //       } else {
+  //         $password = $this->getConfiguration('wifiPassword', '');
+  //         if ($password != '') {
+  //           $exec = "sudo nmcli dev wifi connect '" . $ssid . "' password '" . $password . "'";
+  //         } else {
+  //           $exec = "sudo nmcli dev wifi connect '" . $ssid . "'";
+  //         }
+  //       }
+  //       log::add(__CLASS__, 'debug', 'Executing ' . $exec);
+  //       shell_exec($exec);
+  //     }
+  //   } else {
+  //     log::add(__CLASS__, 'debug', 'Executing sudo nmcli dev disconnect wlan0');
+  //     shell_exec('sudo nmcli dev disconnect wlan0');
+  //   }
+  // }
 
-  /* ----- FIN WIFI ----- */
+  // /* ----- FIN WIFI ----- */
 
-  /* ----- HotSpot ----- */
+  // /* ----- HotSpot ----- */
 
-  public function testHotspot() {
-    $linkForHotspot = __DIR__ . '/../../resources/lnxrouter';
-    if ($this->getConfiguration('hotspotEnabled') == true) {
-      $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
-      if ($pid != "") {
-        self::activeHotSpot();
-      }
-    }
-  }
+  // public function testHotspot() {
+  //   $linkForHotspot = __DIR__ . '/../../resources/lnxrouter';
+  //   if ($this->getConfiguration('hotspotEnabled') == true) {
+  //     $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
+  //     if ($pid != "") {
+  //       self::activeHotSpot();
+  //     }
+  //   }
+  // }
 
-  public static function activeHotSpot() {
-    log::add(__CLASS__, 'debug', __('Activation du Hotspot.', __FILE__));
-    $linkForHotspot = __DIR__ . '/../../resources/lnxrouter';
-    $wlanLink = 'wlan0';
-    $atlas = eqLogic::byLogicalId('wifi', __CLASS__);
-    $interfaceInfo = self::getMac();
-    $macAddress = $interfaceInfo[1];
-    $strMac = str_replace(':', '', $macAddress);
-    $wifiPostFix = substr($strMac, -4);
-    if (!is_object($atlas)) {
-      log::add(__CLASS__, 'debug', __('Hotspot : erreur 1.', __FILE__));
-      return;
-    }
-    if ($atlas->getConfiguration('hotspotEnabled') == true) {
+  // public static function activeHotSpot() {
+  //   log::add(__CLASS__, 'debug', __('Activation du Hotspot.', __FILE__));
+  //   $linkForHotspot = __DIR__ . '/../../resources/lnxrouter';
+  //   $wlanLink = 'wlan0';
+  //   $atlas = eqLogic::byLogicalId('wifi', __CLASS__);
+  //   $interfaceInfo = self::getMac();
+  //   $macAddress = $interfaceInfo[1];
+  //   $strMac = str_replace(':', '', $macAddress);
+  //   $wifiPostFix = substr($strMac, -4);
+  //   if (!is_object($atlas)) {
+  //     log::add(__CLASS__, 'debug', __('Hotspot : erreur 1.', __FILE__));
+  //     return;
+  //   }
+  //   if ($atlas->getConfiguration('hotspotEnabled') == true) {
 
-      log::add(__CLASS__, 'debug', __('Hotspot activé.', __FILE__));
-      log::add(__CLASS__, 'debug', 'Executing sudo nmcli dev disconnect wlan0');
+  //     log::add(__CLASS__, 'debug', __('Hotspot activé.', __FILE__));
+  //     log::add(__CLASS__, 'debug', 'Executing sudo nmcli dev disconnect wlan0');
 
-      shell_exec('sudo nmcli dev disconnect wlan0');
-      shell_exec('sudo systemctl daemon-reload');
-      $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
-      $log = shell_exec("sudo bash " . $linkForHotspot . " --stop " . $pid . " > /dev/null 2>&1");
-      log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
-      $atlas->setConfiguration('dns', 'wlan0');
-      $atlas->setConfiguration('forwardingIPV4', true);
-      $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas-' . $wifiPostFix);
-      $mdp = $atlas->getConfiguration('mdpHotspot', $strMac);
-      if ($ssid == 'JeedomAtlas-' . $wifiPostFix) {
-        $atlas->setConfiguration('ssidHotspot', 'JeedomAtlas-' . $wifiPostFix);
-      }
-      if ($mdp == $strMac) {
-        $atlas->setConfiguration('mdpHotspot', $strMac);
-      }
-      $atlas->save();
+  //     shell_exec('sudo nmcli dev disconnect wlan0');
+  //     shell_exec('sudo systemctl daemon-reload');
+  //     $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
+  //     $log = shell_exec("sudo bash " . $linkForHotspot . " --stop " . $pid . " > /dev/null 2>&1");
+  //     log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
+  //     $atlas->setConfiguration('dns', 'wlan0');
+  //     $atlas->setConfiguration('forwardingIPV4', true);
+  //     $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas-' . $wifiPostFix);
+  //     $mdp = $atlas->getConfiguration('mdpHotspot', $strMac);
+  //     if ($ssid == 'JeedomAtlas-' . $wifiPostFix) {
+  //       $atlas->setConfiguration('ssidHotspot', 'JeedomAtlas-' . $wifiPostFix);
+  //     }
+  //     if ($mdp == $strMac) {
+  //       $atlas->setConfiguration('mdpHotspot', $strMac);
+  //     }
+  //     $atlas->save();
 
-      log::add(__CLASS__, 'debug', __('Mise en plance du Profil Hotspot.', __FILE__));
-      log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
-      $log = shell_exec('sudo bash ' . $linkForHotspot . ' --daemon --ap ' . $wlanLink . ' ' . $ssid . ' -p ' . $mdp . ' > /dev/null 2>&1');
-      log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
-    } else {
-      shell_exec('sudo systemctl daemon-reload');
-      shell_exec('sudo ifconfig wlan0 up');
-      $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
-      $log = shell_exec("sudo bash " . $linkForHotspot . " --stop " . $pid . " > /dev/null 2>&1");
-    }
-  }
+  //     log::add(__CLASS__, 'debug', __('Mise en plance du Profil Hotspot.', __FILE__));
+  //     log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
+  //     $log = shell_exec('sudo bash ' . $linkForHotspot . ' --daemon --ap ' . $wlanLink . ' ' . $ssid . ' -p ' . $mdp . ' > /dev/null 2>&1');
+  //     log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
+  //   } else {
+  //     shell_exec('sudo systemctl daemon-reload');
+  //     shell_exec('sudo ifconfig wlan0 up');
+  //     $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
+  //     $log = shell_exec("sudo bash " . $linkForHotspot . " --stop " . $pid . " > /dev/null 2>&1");
+  //   }
+  // }
 
-  /* ----- FIN ----- */
+  // /* ----- FIN ----- */
 
-  public function postSave() {
-    $connect = $this->getCmd(null, 'connect');
-    if (!is_object($connect)) {
-      $connect = new atlasCmd();
-      $connect->setLogicalId('connect');
-      $connect->setIsVisible(1);
-      $connect->setName(__('Connecter Wifi', __FILE__));
-    }
-    $connect->setType('action');
-    $connect->setSubType('other');
-    $connect->setEqLogic_id($this->getId());
-    $connect->save();
+  // public function postSave() {
+  //   $connect = $this->getCmd(null, 'connect');
+  //   if (!is_object($connect)) {
+  //     $connect = new atlasCmd();
+  //     $connect->setLogicalId('connect');
+  //     $connect->setIsVisible(1);
+  //     $connect->setName(__('Connecter Wifi', __FILE__));
+  //   }
+  //   $connect->setType('action');
+  //   $connect->setSubType('other');
+  //   $connect->setEqLogic_id($this->getId());
+  //   $connect->save();
 
-    $disconnect = $this->getCmd(null, 'disconnect');
-    if (!is_object($disconnect)) {
-      $disconnect = new atlasCmd();
-      $disconnect->setLogicalId('disconnect');
-      $disconnect->setIsVisible(1);
-      $disconnect->setName(__('Déconnecter Wifi', __FILE__));
-    }
-    $disconnect->setType('action');
-    $disconnect->setSubType('other');
-    $disconnect->setEqLogic_id($this->getId());
-    $disconnect->save();
+  //   $disconnect = $this->getCmd(null, 'disconnect');
+  //   if (!is_object($disconnect)) {
+  //     $disconnect = new atlasCmd();
+  //     $disconnect->setLogicalId('disconnect');
+  //     $disconnect->setIsVisible(1);
+  //     $disconnect->setName(__('Déconnecter Wifi', __FILE__));
+  //   }
+  //   $disconnect->setType('action');
+  //   $disconnect->setSubType('other');
+  //   $disconnect->setEqLogic_id($this->getId());
+  //   $disconnect->save();
 
-    $isconnect = $this->getCmd(null, 'isconnect');
-    if (!is_object($isconnect)) {
-      $isconnect = new atlasCmd();
-      $isconnect->setName(__('Etat Wifi', __FILE__));
-    }
-    $isconnect->setEqLogic_id($this->getId());
-    $isconnect->setLogicalId('isconnect');
-    $isconnect->setType('info');
-    $isconnect->setSubType('binary');
-    $isconnect->save();
+  //   $isconnect = $this->getCmd(null, 'isconnect');
+  //   if (!is_object($isconnect)) {
+  //     $isconnect = new atlasCmd();
+  //     $isconnect->setName(__('Etat Wifi', __FILE__));
+  //   }
+  //   $isconnect->setEqLogic_id($this->getId());
+  //   $isconnect->setLogicalId('isconnect');
+  //   $isconnect->setType('info');
+  //   $isconnect->setSubType('binary');
+  //   $isconnect->save();
 
-    $signal = $this->getCmd(null, 'signal');
-    if (!is_object($signal)) {
-      $signal = new atlasCmd();
-      $signal->setName(__('Signal', __FILE__));
-    }
-    $signal->setEqLogic_id($this->getId());
-    $signal->setLogicalId('signal');
-    $signal->setType('info');
-    $signal->setSubType('numeric');
-    $signal->save();
+  //   $signal = $this->getCmd(null, 'signal');
+  //   if (!is_object($signal)) {
+  //     $signal = new atlasCmd();
+  //     $signal->setName(__('Signal', __FILE__));
+  //   }
+  //   $signal->setEqLogic_id($this->getId());
+  //   $signal->setLogicalId('signal');
+  //   $signal->setType('info');
+  //   $signal->setSubType('numeric');
+  //   $signal->save();
 
-    $lanip = $this->getCmd(null, 'lanip');
-    if (!is_object($lanip)) {
-      $lanip = new atlasCmd();
-      $lanip->setName(__('Lan IP', __FILE__));
-    }
-    $lanip->setEqLogic_id($this->getId());
-    $lanip->setLogicalId('lanip');
-    $lanip->setType('info');
-    $lanip->setSubType('string');
-    $lanip->save();
+  //   $lanip = $this->getCmd(null, 'lanip');
+  //   if (!is_object($lanip)) {
+  //     $lanip = new atlasCmd();
+  //     $lanip->setName(__('Lan IP', __FILE__));
+  //   }
+  //   $lanip->setEqLogic_id($this->getId());
+  //   $lanip->setLogicalId('lanip');
+  //   $lanip->setType('info');
+  //   $lanip->setSubType('string');
+  //   $lanip->save();
 
-    $wifiip = $this->getCmd(null, 'wifiip');
-    if (!is_object($wifiip)) {
-      $wifiip = new atlasCmd();
-      $wifiip->setName(__('Wifi IP', __FILE__));
-    }
-    $wifiip->setEqLogic_id($this->getId());
-    $wifiip->setLogicalId('wifiip');
-    $wifiip->setType('info');
-    $wifiip->setSubType('string');
-    $wifiip->save();
+  //   $wifiip = $this->getCmd(null, 'wifiip');
+  //   if (!is_object($wifiip)) {
+  //     $wifiip = new atlasCmd();
+  //     $wifiip->setName(__('Wifi IP', __FILE__));
+  //   }
+  //   $wifiip->setEqLogic_id($this->getId());
+  //   $wifiip->setLogicalId('wifiip');
+  //   $wifiip->setType('info');
+  //   $wifiip->setSubType('string');
+  //   $wifiip->save();
 
-    $ssid = $this->getCmd(null, 'ssid');
-    if (!is_object($ssid)) {
-      $ssid = new atlasCmd();
-      $ssid->setName(__('SSID', __FILE__));
-    }
-    $ssid->setEqLogic_id($this->getId());
-    $ssid->setLogicalId('ssid');
-    $ssid->setType('info');
-    $ssid->setSubType('string');
-    $ssid->save();
+  //   $ssid = $this->getCmd(null, 'ssid');
+  //   if (!is_object($ssid)) {
+  //     $ssid = new atlasCmd();
+  //     $ssid->setName(__('SSID', __FILE__));
+  //   }
+  //   $ssid->setEqLogic_id($this->getId());
+  //   $ssid->setLogicalId('ssid');
+  //   $ssid->setType('info');
+  //   $ssid->setSubType('string');
+  //   $ssid->save();
 
-    $refresh = $this->getCmd(null, 'refresh');
-    if (!is_object($refresh)) {
-      $refresh = new atlasCmd();
-    }
-    $refresh->setName(__('Rafraichir', __FILE__));
-    $refresh->setLogicalId('refresh');
-    $refresh->setEqLogic_id($this->getId());
-    $refresh->setType('action');
-    $refresh->setSubType('other');
-    $refresh->save();
-  }
+  //   $refresh = $this->getCmd(null, 'refresh');
+  //   if (!is_object($refresh)) {
+  //     $refresh = new atlasCmd();
+  //   }
+  //   $refresh->setName(__('Rafraichir', __FILE__));
+  //   $refresh->setLogicalId('refresh');
+  //   $refresh->setEqLogic_id($this->getId());
+  //   $refresh->setType('action');
+  //   $refresh->setSubType('other');
+  //   $refresh->save();
+  // }
 
-  public function postAjax() {
-    $this->wifiConnect();
-  }
+  // public function postAjax() {
+  //   $this->wifiConnect();
+  // }
 }
 
 class atlasCmd extends cmd {
 
-  public function execute($_options = array()) {
-    if ($this->getType() == '') {
-      return '';
-    }
-    $eqLogic = $this->getEqlogic();
-    $action = $this->getLogicalId();
-    switch ($action) {
-      case 'connect':
-        $eqLogic->setConfiguration('wifiEnabled', true);
-        $eqLogic->save();
-        break;
-      case 'disconnect':
-        $eqLogic->setConfiguration('wifiEnabled', false);
-        $eqLogic->save();
-        break;
-      case 'repair':
-        $ssidConf = $eqLogic->getConfiguration('wifiSsid');
-        if ($ssidConf == "") {
-          $eqLogic->setConfiguration('wifiSsid', shell_exec('iwgetid -r'));
-          $eqLogic->save();
-          message::add('wifip', __('Sauvegarde du SSID', __FILE__));
-        }
-        $connFile = shell_exec('nmcli --fields TYPE,FILENAME con show --active | grep -i wifi | cut -c46-600');
-        message::add('atlas', __('Suppression des profils pour', __FILE__) . ' ' . $connFile);
-        shell_exec('sudo find /etc/NetworkManager/system-connections -type f ! -name "' . $connFile . '" -delete');
-        message::add('atlas', __('Suppression effectuée, veuillez redémarrer.', __FILE__));
-        break;
-    }
-    $eqLogic->cron5($eqLogic->getId());
-  }
+  // public function execute($_options = array()) {
+  //   if ($this->getType() == '') {
+  //     return '';
+  //   }
+  //   $eqLogic = $this->getEqlogic();
+  //   $action = $this->getLogicalId();
+  //   switch ($action) {
+  //     case 'connect':
+  //       $eqLogic->setConfiguration('wifiEnabled', true);
+  //       $eqLogic->save();
+  //       break;
+  //     case 'disconnect':
+  //       $eqLogic->setConfiguration('wifiEnabled', false);
+  //       $eqLogic->save();
+  //       break;
+  //     case 'repair':
+  //       $ssidConf = $eqLogic->getConfiguration('wifiSsid');
+  //       if ($ssidConf == "") {
+  //         $eqLogic->setConfiguration('wifiSsid', shell_exec('iwgetid -r'));
+  //         $eqLogic->save();
+  //         message::add('wifip', __('Sauvegarde du SSID', __FILE__));
+  //       }
+  //       $connFile = shell_exec('nmcli --fields TYPE,FILENAME con show --active | grep -i wifi | cut -c46-600');
+  //       message::add('atlas', __('Suppression des profils pour', __FILE__) . ' ' . $connFile);
+  //       shell_exec('sudo find /etc/NetworkManager/system-connections -type f ! -name "' . $connFile . '" -delete');
+  //       message::add('atlas', __('Suppression effectuée, veuillez redémarrer.', __FILE__));
+  //       break;
+  //   }
+  //   $eqLogic->cron5($eqLogic->getId());
+  // }
 }

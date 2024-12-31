@@ -142,7 +142,7 @@ if ($_mode == 'emmc') {
               document.getElementById('bt_restart').removeClass('hidden')
               updateRecovery({
                 step: '{{La clé USB de restauration du système est prête}}',
-                details: '{{Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB}}',
+                details: '{{Cliquez sur le bouton "Redémarrer" sans débrancher la clé USB de restauration (aucun autre périphérique USB ne doit être branché)}}',
                 progress: 100
               })
             } else if (_mode == 'emmc') {
