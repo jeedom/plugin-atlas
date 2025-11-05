@@ -4,7 +4,7 @@ Le plugin Atlas est un outil essentiel pour gérer votre box Jeedom Atlas. Il vo
 
 ---
 
-## 🔄 Restauration Système (Recovery Mode)
+##  Restauration Système (Recovery Mode)
 
 ### Pourquoi utiliser la restauration système ?
 
@@ -24,7 +24,7 @@ La fonctionnalité de restauration système est **cruciale** pour votre box Atla
 >
 > La restauration système **effacera toutes vos données** !
 
-### 🚀 Comment accéder au Recovery Mode ?
+### Comment accéder au Recovery Mode ?
 
 **Depuis Jeedom (Core 4.4.20 et supérieur) :**
 
@@ -32,7 +32,7 @@ La fonctionnalité de recovery est désormais **intégrée directement dans le c
 
 📖 **Documentation officielle** : [https://doc.jeedom.com/fr_FR/installation/recovery](https://doc.jeedom.com/fr_FR/installation/recovery)
 
-### 🔧 Deux modes de restauration disponibles
+###  Deux modes de restauration disponibles
 
 #### 1. Restauration sur mémoire interne (EMMC)
 
@@ -51,7 +51,7 @@ Cette option crée une clé USB bootable pour restaurer votre système :
 - **Durée** : environ 15 minutes
 - **Après création** : redémarrer la box avec la clé USB branchée
 
-### 📋 Étapes de restauration détaillées
+###  Étapes de restauration détaillées
 
 1. **Préparation**
    - Téléchargez votre backup en local
@@ -75,7 +75,7 @@ Cette option crée une clé USB bootable pour restaurer votre système :
    - Reconnexion à Jeedom
    - Restauration de votre backup
 
-### 💡 Astuces et recommandations
+###  Astuces et recommandations
 
 - **Sauvegardez régulièrement** : programmez des backups automatiques
 - **Testez vos sauvegardes** : vérifiez qu'elles peuvent être restaurées
@@ -85,7 +85,7 @@ Cette option crée une clé USB bootable pour restaurer votre système :
 
 ---
 
-## 📡 Configuration WiFi
+##  Configuration WiFi
 
 Le plugin Atlas vous permet de connecter facilement votre box Atlas à un réseau WiFi (avec ou sans mot de passe).
 
@@ -102,7 +102,7 @@ Le plugin Atlas vous permet de connecter facilement votre box Atlas à un résea
 
 ---
 
-## 🔥 Hotspot WiFi (BETA)
+##  Hotspot WiFi (BETA)
 
 ### Fonctionnalité
 
@@ -125,15 +125,15 @@ Le mode Hotspot vous permet de transformer votre box Atlas en **point d'accès W
 
 ---
 
-## ❓ Besoin d'aide ?
+##  Besoin d'aide ?
 
 Une question ? Un problème ? N'hésitez pas à consulter la communauté :
 
-👉 **[Community Jeedom](https://community.jeedom.com/)**
+ **[Community Jeedom](https://community.jeedom.com/)**
 
 ---
 
-## 📚 Ressources complémentaires
+##  Ressources complémentaires
 
 - [Documentation officielle du Recovery](https://doc.jeedom.com/fr_FR/installation/recovery)
 - [Guide des sauvegardes Jeedom](https://doc.jeedom.com/fr_FR/core/4.4/backup)
