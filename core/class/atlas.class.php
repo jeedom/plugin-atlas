@@ -436,6 +436,10 @@ class atlas extends eqLogic {
 
   public static function isWificonnected($ssid) {
     $result = shell_exec("sudo nmcli d | grep '" . $ssid . "'");
+    if (!is_string($result)) {
+      log::add(__CLASS__, 'error', __('Erreur lors de la vérification de la connexion Wifi.', __FILE__));
+      return false;
+    }
     log::add(__CLASS__, 'debug', $result);
     if (strpos($result, 'connected') === false && strpos($result, 'connecté') === false) {
       return false;
