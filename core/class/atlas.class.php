@@ -434,10 +434,10 @@ class atlas extends eqLogic {
 
   /* ----- WIFI ----- */
 
-  public static function isWificonnected($ssid) {
-    $result = shell_exec("sudo nmcli d | grep '" . $ssid . "'");
+  public static function isWificonnected(string $ssid) {
+    $safeSsid = escapeshellarg($ssid);
+    $result = shell_exec("sudo nmcli d | grep -F -- {$safeSsid}");
     if (!is_string($result)) {
-      log::add(__CLASS__, 'error', __('Erreur lors de la vérification de la connexion Wifi.', __FILE__));
       return false;
     }
     log::add(__CLASS__, 'debug', $result);
@@ -447,13 +447,16 @@ class atlas extends eqLogic {
     return true;
   }
 
-  public static function isWifiProfileexist($ssid) {
+  public static function isWifiProfileexist(string $ssid) {
     $result = shell_exec("nmcli --fields NAME con show");
+    if (!is_string($result)) {
+      return false;
+    }
     $countProfile = substr_count($result, $ssid);
     if ($countProfile > 1) {
       log::add(__CLASS__, 'debug', __('Suppression des profils.', __FILE__));
       // $line is generated from shell : while read p; do echo "$p"; done
-      shell_exec("nmcli --pretty --fields UUID,TYPE con show | grep wifi | awk '{print $1}' | while read line; do nmcli con delete uuid $line; done");
+      shell_exec("nmcli --pretty --fields UUID,TYPE con show | grep wifi | awk '{print $1}' | while read line; do nmcli con delete uuid \$line; done");
       return true;
     } else if ($countProfile == 1) {
       return true;
