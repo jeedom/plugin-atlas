@@ -6,16 +6,11 @@
         "en_US": "Specialized plugin for the Jeedom Atlas box",
         "es_ES": "Complemento especializado para la caja Jeedom Atlas",
         "de_DE": "Spezialisiertes Plugin für die Jeedom Atlas Box",
-        "ru_RU": "Plugin spécialisé pour la box Jeedom Atlas",
-        "id_ID": "Plugin spécialisé pour la box Jeedom Atlas",
-        "it_IT": "Plugin spécialisé pour la box Jeedom Atlas",
-        "ja_JP": "Plugin spécialisé pour la box Jeedom Atlas",
-        "pt_PT": "Plugin especializado para a caixa Jeedom Atlas",
-        "tr": "Plugin spécialisé pour la box Jeedom Atlas"
+        "pt_PT": "Plugin especializado para a caixa Jeedom Atlas"
     },
     "licence": "AGPL",
     "author": "Jeedom SAS",
-    "require": "4.1",
+    "require": "4.5",
     "category": "home automation protocol",
     "hasDependency": true,
     "hasOwnDeamon": false,
