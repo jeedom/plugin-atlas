@@ -447,6 +447,15 @@ class atlas extends eqLogic {
     return true;
   }
 
+  public static function isWificonnectedandfunctional() {
+    system('ping -c 1 -W 2 $(ip route show dev wlan0 | awk \'/default/ {print $3}\') >/dev/null 2>&1', $exitCode);
+    $result = ($exitCode === 0) ? 1 : 0;
+    if ($result != 1) {
+      return false;
+      }
+    return true;
+  }  
+	
   public static function isWifiProfileexist(string $ssid) {
     $result = shell_exec("nmcli --fields NAME con show");
     if (!is_string($result)) {
@@ -526,6 +535,17 @@ class atlas extends eqLogic {
         log::add(__CLASS__, 'debug', 'Executing ' . $exec);
         shell_exec($exec);
       }
+	  else {
+		  log::add(__CLASS__, 'debug', 'Wifi is Connected ... Checking WiFi');
+		  if (self::isWificonnectedandfunctional()) { 
+			  log::add(__CLASS__, 'debug', 'Wifi is Connected and everithing seems OK');
+		  }
+		  else {
+			  log::add(__CLASS__, 'debug', 'Wifi is Connected but something is wrong. Executing con up again');
+			  $exec = "sudo nmcli con up '" . $ssid . "'";
+			  shell_exec($exec);
+       }
+	  }
     } else {
       log::add(__CLASS__, 'debug', 'Executing sudo nmcli dev disconnect wlan0');
       shell_exec('sudo nmcli dev disconnect wlan0');
