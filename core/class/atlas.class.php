@@ -241,12 +241,16 @@ class atlas extends eqLogic {
       config::save('migrationTextfine', __('Informations demandées au Market.', __FILE__));
       sleep(2);
     }
-    $jsonrpc = repo_market::getJsonRpc();
-    if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
-      throw new Exception($jsonrpc->getErrorMessage());
+    if (class_exists('repo_market') && class_exists('marketClient', false)) {
+      $urlArray = marketClient::request('GET', '/box-images/atlas');
+    } else {
+      $jsonrpc = repo_market::getJsonRpc();
+      if (!$jsonrpc->sendRequest('box::atlas_image_url')) {
+        throw new Exception($jsonrpc->getErrorMessage());
+      }
+      $urlArray = $jsonrpc->getResult();
     }
-    $urlArray = $jsonrpc->getResult();
-    if ($urlArray['url'] && $urlArray['SHA256'] && $urlArray['size']) {
+    if (!empty($urlArray['url']) && !empty($urlArray['SHA256']) && !empty($urlArray['size'])) {
       return $urlArray;
     }
     return false;
