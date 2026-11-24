@@ -560,15 +560,7 @@ class atlas extends eqLogic {
       return;
     }
     if ($atlas->getConfiguration('hotspotEnabled') == true) {
-
       log::add(__CLASS__, 'debug', __('Hotspot activé.', __FILE__));
-      log::add(__CLASS__, 'debug', 'Executing sudo nmcli dev disconnect wlan0');
-
-      shell_exec('sudo nmcli dev disconnect wlan0');
-      shell_exec('sudo systemctl daemon-reload');
-      $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
-      $log = shell_exec("sudo bash " . $linkForHotspot . " --stop " . $pid . " > /dev/null 2>&1");
-      log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
       $atlas->setConfiguration('dns', 'wlan0');
       $atlas->setConfiguration('forwardingIPV4', true);
       $ssid = $atlas->getConfiguration('ssidHotspot', 'JeedomAtlas-' . $wifiPostFix);
@@ -579,18 +571,127 @@ class atlas extends eqLogic {
       if ($mdp == $strMac) {
         $atlas->setConfiguration('mdpHotspot', $strMac);
       }
-      $atlas->save();
+      $hotspotOptions = ' --daemon --ap ' . escapeshellarg($wlanLink) . ' ' . escapeshellarg($ssid) . ' -p ' . escapeshellarg($mdp);
+      $gateway = self::getHotspotGateway($atlas);
+      if ($gateway !== null) {
+        $hotspotOptions .= ' -g ' . escapeshellarg($gateway);
+        log::add(__CLASS__, 'debug', __('Passerelle du Hotspot :', __FILE__) . ' ' . $gateway);
+        foreach (self::getHotspotDhcpReservations($atlas, $gateway) as $reservation) {
+          $hotspotOptions .= ' --dhcp-host ' . escapeshellarg($reservation);
+          log::add(__CLASS__, 'debug', __('Réservation DHCP du Hotspot :', __FILE__) . ' ' . $reservation);
+        }
+      } elseif (trim($atlas->getConfiguration('dhcpReservationsHotspot', '')) != '') {
+        log::add(__CLASS__, 'warning', __('Réservations DHCP du Hotspot ignorées : la passerelle du Hotspot n\'est pas fixe.', __FILE__));
+      }
 
-      log::add(__CLASS__, 'debug', __('Mise en plance du Profil Hotspot.', __FILE__));
-      log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
-      $log = shell_exec('sudo bash ' . $linkForHotspot . ' --daemon --ap ' . $wlanLink . ' ' . $ssid . ' -p ' . $mdp . ' > /dev/null 2>&1');
-      log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
+      $signature = sha1($hotspotOptions);
+      $pid = trim((string) shell_exec('sudo bash ' . $linkForHotspot . ' -l'));
+      if ($pid != '' && cache::byKey('atlas::hotspotSignature')->getValue('') == $signature) {
+        log::add(__CLASS__, 'debug', __('Hotspot déjà actif avec la même configuration, pas de redémarrage.', __FILE__));
+        return;
+      }
+
+      $atlas->save();
+      log::add(__CLASS__, 'debug', 'Executing sudo nmcli dev disconnect wlan0');
+      shell_exec('sudo nmcli dev disconnect wlan0');
+      shell_exec('sudo systemctl daemon-reload');
+      if ($pid != '') {
+        $log = shell_exec('sudo bash ' . $linkForHotspot . ' --stop ' . escapeshellarg(strtok($pid, " \n")) . ' 2>&1');
+        log::add(__CLASS__, 'debug', 'Hotspot > ' . $log);
+      }
+      log::add(__CLASS__, 'debug', __('Mise en place du Profil Hotspot.', __FILE__));
+      shell_exec('sudo bash ' . $linkForHotspot . $hotspotOptions . ' > /dev/null 2>&1');
+      cache::set('atlas::hotspotSignature', $signature);
     } else {
       shell_exec('sudo systemctl daemon-reload');
       shell_exec('sudo ifconfig wlan0 up');
       $pid = shell_exec("sudo bash " . $linkForHotspot . " -l");
       $log = shell_exec("sudo bash " . $linkForHotspot . " --stop " . $pid . " > /dev/null 2>&1");
     }
+  }
+
+  /**
+   * Retourne l'adresse IPv4 de passerelle du hotspot (sous-réseau /24 fixe).
+   *
+   * Sans passerelle fixe, lnxrouter tire un sous-réseau 192.168.x.0/24 aléatoire
+   * à chaque démarrage, ce qui empêche les clients d'avoir une IP stable.
+   * Le contrôle de conflit ignore wlan0 et les interfaces virtuelles créées par lnxrouter (x0wlan0...),
+   * qui portent l'adresse du hotspot lui-même lorsqu'il est actif.
+   *
+   * Initialise la configuration avec la valeur par défaut si elle est vide (sans sauvegarder).
+   *
+   * @param eqLogic $atlas Équipement wifi du plugin
+   * @return string|null Adresse de passerelle, ou null pour laisser lnxrouter choisir
+   *                     (adresse invalide ou sous-réseau déjà utilisé par une autre interface)
+   */
+  public static function getHotspotGateway($atlas) {
+    $gateway = trim($atlas->getConfiguration('gatewayHotspot', ''));
+    if ($gateway == '') {
+      $gateway = '192.168.50.1';
+      $atlas->setConfiguration('gatewayHotspot', $gateway);
+    }
+    if (!filter_var($gateway, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+      log::add(__CLASS__, 'error', __('Passerelle du Hotspot invalide, sous-réseau aléatoire utilisé :', __FILE__) . ' ' . $gateway);
+      return null;
+    }
+    $subnetPrefix = substr($gateway, 0, strrpos($gateway, '.') + 1);
+    $addresses = shell_exec("ip -4 -o addr show | awk '\$2 !~ /^(x[0-9]+)?wlan0\$/ {print \$4}'");
+    foreach (explode("\n", trim((string) $addresses)) as $address) {
+      if ($address != '' && strpos($address, $subnetPrefix) === 0) {
+        log::add(__CLASS__, 'error', __('Le sous-réseau du Hotspot est déjà utilisé par une autre interface, sous-réseau aléatoire utilisé :', __FILE__) . ' ' . $address);
+        return null;
+      }
+    }
+    return $gateway;
+  }
+
+  /**
+   * Retourne les réservations DHCP valides du hotspot, au format attendu par lnxrouter (--dhcp-host).
+   *
+   * Format de la configuration : une réservation par ligne, "MAC IP [nom]",
+   * séparateurs acceptés : espace, tabulation, virgule ou point-virgule.
+   * Les lignes invalides, hors sous-réseau ou en doublon sont ignorées et loguées.
+   *
+   * @param eqLogic $atlas Équipement wifi du plugin
+   * @param string $gateway Adresse de passerelle du hotspot (sous-réseau /24)
+   * @return string[] Liste de "mac,ip" (MAC en minuscules, séparée par ':')
+   */
+  public static function getHotspotDhcpReservations($atlas, $gateway) {
+    $subnetPrefix = substr($gateway, 0, strrpos($gateway, '.') + 1);
+    $reservations = [];
+    $usedMacs = [];
+    $usedIps = [$gateway];
+    $lines = preg_split('/\r\n|\r|\n/', (string) $atlas->getConfiguration('dhcpReservationsHotspot', ''));
+    foreach ($lines as $line) {
+      $line = trim($line);
+      if ($line == '') {
+        continue;
+      }
+      $parts = preg_split('/[\s,;]+/', $line);
+      $mac = isset($parts[0]) ? strtolower(str_replace('-', ':', $parts[0])) : '';
+      $ip = isset($parts[1]) ? $parts[1] : '';
+      if (!preg_match('/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/', $mac)) {
+        log::add(__CLASS__, 'warning', __('Réservation DHCP ignorée, adresse MAC invalide :', __FILE__) . ' ' . $line);
+        continue;
+      }
+      if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) || strpos($ip, $subnetPrefix) !== 0) {
+        log::add(__CLASS__, 'warning', __('Réservation DHCP ignorée, adresse IP invalide ou hors du réseau du Hotspot :', __FILE__) . ' ' . $line);
+        continue;
+      }
+      $lastByte = (int) substr($ip, strlen($subnetPrefix));
+      if ($lastByte < 1 || $lastByte > 254) {
+        log::add(__CLASS__, 'warning', __('Réservation DHCP ignorée, adresse IP non attribuable :', __FILE__) . ' ' . $line);
+        continue;
+      }
+      if (in_array($mac, $usedMacs) || in_array($ip, $usedIps)) {
+        log::add(__CLASS__, 'warning', __('Réservation DHCP ignorée, adresse MAC ou IP déjà utilisée :', __FILE__) . ' ' . $line);
+        continue;
+      }
+      $usedMacs[] = $mac;
+      $usedIps[] = $ip;
+      $reservations[] = $mac . ',' . $ip;
+    }
+    return $reservations;
   }
 
 

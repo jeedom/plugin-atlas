@@ -6,6 +6,13 @@
 >
 >Pour rappel s'il n'y a pas d'information sur la mise à jour, c'est que celle-ci concerne uniquement de la mise à jour de documentation, de traduction ou de texte.
 
+# 24/11/2026
+
+- Hotspot : adresse IP du réseau fixe et configurable (le réseau ne change plus à chaque démarrage).
+- Hotspot : ajout des réservations DHCP (adresse IP fixe par adresse MAC).
+- Hotspot : le hotspot n'est plus redémarré toutes les 5 minutes, uniquement s'il est arrêté ou si sa configuration change.
+- Hotspot : correction de la prise en compte des noms de réseau et clés contenant des espaces ou des caractères spéciaux.
+
 # 04/04/2026
 
 - Correction d'un bug qui pouvait se produire lors de la vérification de la connexion wifi

@@ -123,6 +123,34 @@ Le mode Hotspot vous permet de transformer votre box Atlas en **point d'accès W
 
 > ⚠️ **Attention** : Cette fonctionnalité est en version BETA. Des améliorations sont en cours.
 
+### Adresse IP du hotspot
+
+Le hotspot crée son propre réseau en `/24`. Le champ **Adresse IP du hotspot** définit l'adresse de la box sur ce réseau (par défaut `192.168.50.1`, le réseau est alors `192.168.50.0/24`).
+
+- Les appareils qui se connectent reçoivent automatiquement une adresse entre `.10` et `.250`.
+- Les adresses `.2` à `.9` et `.251` à `.254` ne sont jamais distribuées : vous pouvez les configurer manuellement sur vos équipements (IP fixe), avec comme passerelle et DNS l'adresse du hotspot.
+- Le réseau choisi ne doit pas être déjà utilisé par votre réseau local (Ethernet). Si c'est le cas, ou si l'adresse saisie est invalide, le plugin l'indique dans les logs et le hotspot démarre sur un réseau aléatoire : les adresses des appareils changent alors à chaque démarrage.
+
+### Réservations DHCP
+
+Le champ **Réservations DHCP** permet d'attribuer toujours la même adresse IP à un appareil (caméra, capteur...) sans toucher à sa configuration. Saisissez une réservation par ligne : adresse MAC, adresse IP et, en option, un nom.
+
+```
+AA:BB:CC:DD:EE:FF 192.168.50.20 Caméra
+11-22-33-44-55-66;192.168.50.21
+```
+
+- L'adresse IP doit appartenir au réseau du hotspot et ne pas être l'adresse du hotspot.
+- Une même adresse MAC ou IP ne peut apparaître qu'une fois.
+- Les lignes invalides sont ignorées et signalées dans les logs du plugin.
+- Les réservations ne sont appliquées que si l'adresse IP du hotspot est fixe (voir ci-dessus).
+
+Après la sauvegarde, débranchez puis rebranchez l'appareil (ou redémarrez-le) pour qu'il récupère sa nouvelle adresse.
+
+### Redémarrage du hotspot
+
+Le plugin vérifie régulièrement l'état du hotspot. Il n'est redémarré que s'il est arrêté ou si sa configuration (nom, clé, adresse IP, réservations) a été modifiée : les appareils connectés ne sont pas déconnectés inutilement.
+
 ---
 
 ##  Besoin d'aide ?
