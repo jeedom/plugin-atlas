@@ -176,6 +176,22 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									<input type="password" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="mdpHotspot" />
 								</div>
 							</div>
+							<div class="form-group wifihotspot" style="display:none">
+								<label class="col-sm-4 control-label">{{Adresse IP du hotspot}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Adresse de la box sur le réseau du hotspot (masque /24). Les clients reçoivent une IP de .10 à .250 ; les adresses .2 à .9 et .251 à .254 peuvent être fixées manuellement sur les équipements.}}"></i></sup>
+								</label>
+								<div class="col-sm-6">
+									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="gatewayHotspot" placeholder="192.168.50.1" />
+								</div>
+							</div>
+							<div class="form-group wifihotspot" style="display:none">
+								<label class="col-sm-4 control-label">{{Réservations DHCP}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Une réservation par ligne : adresse MAC, adresse IP et nom facultatif. L'adresse IP doit appartenir au réseau du hotspot. Les lignes invalides sont ignorées (voir les logs).}}"></i></sup>
+								</label>
+								<div class="col-sm-6">
+									<textarea class="eqLogicAttr form-control autogrow" data-l1key="configuration" data-l2key="dhcpReservationsHotspot" rows="3" placeholder="AA:BB:CC:DD:EE:FF 192.168.50.20 {{Caméra}}"></textarea>
+								</div>
+							</div>
 							<div class="form-group" style="display:none">
 								<label class="col-sm-4 control-label">{{DHCP Hotspot}} :</label>
 								<div class="col-sm-6">
